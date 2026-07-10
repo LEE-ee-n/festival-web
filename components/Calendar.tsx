@@ -41,9 +41,33 @@ export default function Calendar() {
 
         const { data, error } = await supabase
           .from("festivals")
-          .select(
-            "id, name, start_date, end_date, location, category, description",
-          )
+          .select(`
+            id,
+            name,
+            start_date,
+            end_date,
+            location,
+            address,
+            region,
+            category,
+            description,
+            official_url,
+            ticket_url,
+            ticket_platform,
+            thumbnail_url,
+            price_info,
+            price_type,
+            program_info,
+            source_url,
+            slug,
+            status,
+            confidence_score,
+            verification_status,
+            created_at,
+            updated_at
+          `)
+          .eq("verification_status", "approved")
+          .neq("status", "cancelled")
           .order("start_date", { ascending: true });
 
         if (error) {

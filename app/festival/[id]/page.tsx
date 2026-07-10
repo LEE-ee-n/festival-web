@@ -30,10 +30,34 @@ export default function FestivalDetailPage() {
 
         const { data, error } = await supabase
           .from("festivals")
-          .select(
-            "id, name, start_date, end_date, location, category, description",
-          )
+          .select(`
+            id,
+            name,
+            start_date,
+            end_date,
+            location,
+            address,
+            region,
+            category,
+            description,
+            official_url,
+            ticket_url,
+            ticket_platform,
+            thumbnail_url,
+            price_info,
+            price_type,
+            program_info,
+            source_url,
+            slug,
+            status,
+            confidence_score,
+            verification_status,
+            created_at,
+            updated_at
+          `)
           .eq("id", festivalId)
+          .eq("verification_status", "approved")
+          .neq("status", "cancelled")
           .maybeSingle();
 
         if (error) {
@@ -148,6 +172,57 @@ export default function FestivalDetailPage() {
                   {festival.location || "장소 확인 중"}
                 </dd>
               </div>
+
+              {festival.address && (
+                <div>
+                  <dt className="text-sm font-medium text-slate-400">
+                    주소
+                  </dt>
+
+                  <dd className="mt-1 font-semibold text-slate-800">
+                    {festival.address}
+                  </dd>
+                </div>
+              )}
+
+              {festival.region && (
+                <div>
+                  <dt className="text-sm font-medium text-slate-400">
+                    지역
+                  </dt>
+
+                  <dd className="mt-1 font-semibold text-slate-800">
+                    {festival.region}
+                  </dd>
+                </div>
+              )}
+
+              {festival.price_type && (
+                <div>
+                  <dt className="text-sm font-medium text-slate-400">
+                    요금 구분
+                  </dt>
+
+                  <dd className="mt-1 font-semibold text-slate-800">
+                    {festival.price_type === "free" && "무료"}
+                    {festival.price_type === "paid" && "유료"}
+                    {festival.price_type === "partial_free" && "부분 무료"}
+                    {festival.price_type === "unknown" && "확인 필요"}
+                  </dd>
+                </div>
+              )}
+
+              {festival.price_info && (
+                <div>
+                  <dt className="text-sm font-medium text-slate-400">
+                    가격 정보
+                  </dt>
+
+                  <dd className="mt-1 font-semibold text-slate-800">
+                    {festival.price_info}
+                  </dd>
+                </div>
+              )}
             </dl>
 
             <section>
@@ -159,6 +234,42 @@ export default function FestivalDetailPage() {
                 {festival.description ||
                   "등록된 상세 설명이 없습니다."}
               </p>
+            </section>
+
+            {festival.program_info && (
+              <section>
+                <h2 className="text-lg font-bold text-slate-900">
+                  프로그램
+                </h2>
+
+                <p className="mt-3 whitespace-pre-line leading-7 text-slate-600">
+                  {festival.program_info}
+                </p>
+              </section>
+            )}
+
+            <section className="flex flex-wrap gap-3">
+              {festival.official_url && (
+                <a
+                  href={festival.official_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                >
+                  공식 홈페이지
+                </a>
+              )}
+
+              {festival.ticket_url && (
+                <a
+                  href={festival.ticket_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700"
+                >
+                  예매하기
+                </a>
+              )}
             </section>
           </div>
         </div>
