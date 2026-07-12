@@ -12,15 +12,133 @@ import {
 import { supabase } from "@/lib/supabase/client";
 import type { Festival } from "@/lib/types";
 
+  type FestivalTicketRound = {
+    id: number;
+    round_type: string | null;
+    round_name: string;
+    open_at: string | null;
+    price_info: string | null;
+    ticket_url: string | null;
+    ticket_platform: string | null;
+  };
+
+  type FestivalArtist = {
+    artist_id: number;
+    performance_date: string | null;
+    performance_time: string | null;
+    performance_end_time: string | null;
+    stage_name: string | null;
+    status: string;
+    artists:
+      | {
+          id: number;
+          name: string;
+        }
+      | {
+          id: number;
+          name: string;
+        }[]
+      | null;
+  };
+
+  function formatTicketOpenAt(openAt: string) {
+    return new Intl.DateTimeFormat("ko-KR", {
+      timeZone: "Asia/Seoul",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      weekday: "short",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    }).format(new Date(openAt));
+  }
+
 export default function FestivalDetailPage() {
   const params = useParams<{ id: string }>();
   const festivalId = params.id;
 
   const [festival, setFestival] = useState<Festival | null>(null);
+
+  const [festivalArtists, setFestivalArtists] = useState<
+    FestivalArtist[]
+  >([]);
+
+  const [ticketRounds, setTicketRounds] = useState<
+    FestivalTicketRound[]
+  >([]);
+
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(
     null,
   );
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  const latestOpenAt =
+    ticketRounds
+      .filter((round) => round.open_at)
+      .map((round) => round.open_at as string)
+      .sort(
+        (a, b) =>
+          new Date(b).getTime() - new Date(a).getTime(),
+      )[0] ?? null;
+
+  const latestTicketRounds = latestOpenAt
+    ? ticketRounds.filter(
+        (round) => round.open_at === latestOpenAt,
+      )
+    : [];
+
+    const artistsByDateAndStage = festivalArtists.reduce<
+      Record<string, Record<string, FestivalArtist[]>>
+    >((dateGroups, item) => {
+      const date = item.performance_date || "날짜 미정";
+      const stage = item.stage_name?.trim() || "무대 미정";
+
+      if (!dateGroups[date]) {
+        dateGroups[date] = {};
+      }
+
+      if (!dateGroups[date][stage]) {
+        dateGroups[date][stage] = [];
+      }
+
+      dateGroups[date][stage].push(item);
+
+      return dateGroups;
+    }, {});
+
+    Object.values(artistsByDateAndStage).forEach((stageGroups) => {
+      Object.values(stageGroups).forEach((artists) => {
+        artists.sort((a, b) => {
+          if (!a.performance_time && !b.performance_time) {
+            return 0;
+          }
+
+          if (!a.performance_time) {
+            return 1;
+          }
+
+          if (!b.performance_time) {
+            return -1;
+          }
+
+          return a.performance_time.localeCompare(b.performance_time);
+        });
+      });
+    });
+  
+  useEffect(() => {
+    async function checkAdminSession() {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      setIsAdmin(Boolean(session));
+    }
+
+    void checkAdminSession();
+  }, []);
 
   useEffect(() => {
     async function fetchFestival() {
@@ -28,47 +146,110 @@ export default function FestivalDetailPage() {
         setIsLoading(true);
         setErrorMessage(null);
 
-        const { data, error } = await supabase
-          .from("festivals")
-          .select(`
-            id,
-            name,
-            start_date,
-            end_date,
-            location,
-            address,
-            region,
-            category,
-            description,
-            official_url,
-            ticket_url,
-            ticket_platform,
-            thumbnail_url,
-            price_info,
-            price_type,
-            program_info,
-            source_url,
-            slug,
-            status,
-            confidence_score,
-            verification_status,
-            created_at,
-            updated_at
-          `)
-          .eq("id", festivalId)
-          .eq("verification_status", "approved")
-          .neq("status", "cancelled")
-          .maybeSingle();
+        const [
+          festivalResult,
+          ticketRoundsResult,
+          festivalArtistsResult,
+        ] = await Promise.all([
+          supabase
+            .from("festivals")
+            .select(`
+              id,
+              name,
+              start_date,
+              end_date,
+              location,
+              address,
+              region,
+              category,
+              description,
+              official_url,
+              thumbnail_url,
+              price_info,
+              price_type,
+              program_info,
+              source_url,
+              slug,
+              status,
+              confidence_score,
+              verification_status,
+              created_at,
+              updated_at
+            `)
+            .eq("id", festivalId)
+            .eq("verification_status", "approved")
+            .neq("status", "cancelled")
+            .maybeSingle(),
 
-        if (error) {
-          throw error;
+          supabase
+            .from("festival_ticket_rounds")
+            .select(`
+              id,
+              round_type,
+              round_name,
+              open_at,
+              price_info,
+              ticket_url,
+              ticket_platform
+            `)
+            .eq("festival_id", festivalId)
+            .order("open_at", {
+              ascending: true,
+              nullsFirst: false,
+            }),
+
+          supabase
+            .from("festival_artists")
+            .select(`
+              artist_id,
+              performance_date,
+              performance_time,
+              performance_end_time,
+              stage_name,
+              status,
+              artists (
+                id,
+                name
+              )
+            `)
+            .eq("festival_id", festivalId)
+            .neq("status", "cancelled")
+            .order("performance_date", {
+              ascending: true,
+              nullsFirst: false,
+            })
+            .order("performance_time", {
+              ascending: true,
+              nullsFirst: false,
+            }),
+        ]);
+
+        if (festivalResult.error) {
+          throw festivalResult.error;
         }
 
-        if (!data) {
+        if (ticketRoundsResult.error) {
+          throw ticketRoundsResult.error;
+        }
+
+        if (festivalArtistsResult.error) {
+          throw festivalArtistsResult.error;
+        }
+
+        if (!festivalResult.data) {
           throw new Error("축제를 찾을 수 없습니다.");
         }
 
-        setFestival(data as Festival);
+        setFestival(festivalResult.data as Festival);
+
+        setTicketRounds(
+          (ticketRoundsResult.data || []) as FestivalTicketRound[],
+        );
+
+        setFestivalArtists(
+          (festivalArtistsResult.data || []) as FestivalArtist[],
+        );
+
       } catch (error) {
         console.error(error);
 
@@ -146,6 +327,23 @@ export default function FestivalDetailPage() {
             <h1 className="mt-5 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
               {festival.name}
             </h1>
+            {isAdmin && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Link
+                  href={`/admin/festivals/${festival.id}/lineup`}
+                  className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+                >
+                  페스티벌 기본정보·라인업·티켓 관리
+                </Link>
+
+                <Link
+                  href="/admin/festivals"
+                  className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700"
+                >
+                  페스티벌 목록
+                </Link>
+              </div>
+            )}
           </header>
 
           <div className="space-y-8 p-6 sm:p-9">
@@ -236,6 +434,92 @@ export default function FestivalDetailPage() {
               </p>
             </section>
 
+            {festivalArtists.length > 0 && (
+              <section>
+                <h2 className="text-lg font-bold text-slate-900">
+                  출연진
+                </h2>
+
+                <div className="mt-4 space-y-5">
+                  {Object.entries(artistsByDateAndStage).map(
+  ([date, stageGroups]) => (
+    <div key={date}>
+      <h3 className="font-bold text-slate-800">
+        {date === "날짜 미정"
+          ? date
+          : new Intl.DateTimeFormat("ko-KR", {
+              timeZone: "Asia/Seoul",
+              month: "long",
+              day: "numeric",
+              weekday: "short",
+            }).format(
+              new Date(`${date}T00:00:00+09:00`),
+            )}
+      </h3>
+
+      <div className="mt-4 space-y-5">
+        {Object.entries(stageGroups).map(
+          ([stage, artists]) => (
+            <div
+              key={stage}
+              className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+            >
+              <h4 className="font-bold text-slate-900">
+                {stage}
+              </h4>
+
+              <div className="mt-3 space-y-2">
+                {artists.map((item) => {
+                  const artist = Array.isArray(item.artists)
+                    ? item.artists[0]
+                    : item.artists;
+
+                  return (
+                    <div
+                      key={item.artist_id}
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white px-4 py-3"
+                    >
+                      <div>
+                        {artist ? (
+                          <Link
+                            href={`/artist/${artist.id}`}
+                            className="font-semibold text-slate-900 hover:text-blue-600 hover:underline"
+                          >
+                            {artist.name}
+                          </Link>
+                        ) : (
+                          <p className="font-semibold text-slate-900">
+                            아티스트 정보 없음
+                          </p>
+                        )}
+                      </div>
+
+                      {(item.performance_time ||
+                        item.performance_end_time) && (
+                        <span className="rounded-md bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700">
+                          {item.performance_time
+                            ? item.performance_time.slice(0, 5)
+                            : "시작 미정"}
+
+                          {item.performance_end_time &&
+                            ` ~ ${item.performance_end_time.slice(0, 5)}`}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ),
+        )}
+      </div>
+    </div>
+  ),
+)}
+                </div>
+              </section>
+            )}
+
             {festival.program_info && (
               <section>
                 <h2 className="text-lg font-bold text-slate-900">
@@ -245,6 +529,53 @@ export default function FestivalDetailPage() {
                 <p className="mt-3 whitespace-pre-line leading-7 text-slate-600">
                   {festival.program_info}
                 </p>
+              </section>
+            )}
+
+
+            {latestTicketRounds.length > 0 && (
+              <section>
+                <h2 className="text-lg font-bold text-slate-900">
+                  티켓 안내
+                </h2>
+
+                <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                  <h3 className="font-bold text-slate-900">
+                    {latestTicketRounds[0].round_name}
+                  </h3>
+
+                  {latestOpenAt &&
+                    new Date(latestOpenAt).getTime() > Date.now() && (
+                      <p className="mt-3 font-semibold text-slate-800">
+                        {formatTicketOpenAt(latestOpenAt)}
+                      </p>
+                    )}
+
+                  {latestTicketRounds[0].price_info && (
+                    <p className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-600">
+                      {latestTicketRounds[0].price_info}
+                    </p>
+                  )}
+
+                  {latestOpenAt &&
+                  new Date(latestOpenAt).getTime() <= Date.now() ? (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {latestTicketRounds
+                        .filter((round) => round.ticket_url)
+                        .map((round) => (
+                          <a
+                            key={round.id}
+                            href={round.ticket_url || "#"}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700"
+                          >
+                            {round.ticket_platform || "예매하기"}
+                          </a>
+                        ))}
+                    </div>
+                  ) : null}
+                </div>
               </section>
             )}
 
@@ -260,16 +591,7 @@ export default function FestivalDetailPage() {
                 </a>
               )}
 
-              {festival.ticket_url && (
-                <a
-                  href={festival.ticket_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700"
-                >
-                  예매하기
-                </a>
-              )}
+              
             </section>
           </div>
         </div>

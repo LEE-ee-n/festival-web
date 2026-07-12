@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import "./globals.css";
+import CommonHeader from "../components/CommonHeader";
 
 export const metadata: Metadata = {
   title: "페스티벌 캘린더",
@@ -17,7 +18,10 @@ export default function RootLayout({
 }: RootLayoutProps) {
   return (
     <html lang="ko">
-      <body>{children}</body>
+      <body>
+        <CommonHeader />
+        {children}
+      </body>
     </html>
   );
 }

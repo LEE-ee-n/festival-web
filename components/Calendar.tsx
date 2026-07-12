@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import FestivalList from "@/components/FestivalList";
+import FestivalDetailDrawer from "@/components/FestivalDetailDrawer";
 import {
   formatKoreanDate,
   getCalendarDays,
@@ -28,6 +29,8 @@ export default function Calendar() {
     useState("2026-07-01");
 
   const [festivals, setFestivals] = useState<Festival[]>([]);
+  const [selectedFestival, setSelectedFestival] =
+    useState<Festival | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(
     null,
@@ -52,8 +55,6 @@ export default function Calendar() {
             category,
             description,
             official_url,
-            ticket_url,
-            ticket_platform,
             thumbnail_url,
             price_info,
             price_type,
@@ -64,7 +65,8 @@ export default function Calendar() {
             confidence_score,
             verification_status,
             created_at,
-            updated_at
+            updated_at,
+            thumbnail_url
           `)
           .eq("verification_status", "approved")
           .neq("status", "cancelled")
@@ -133,14 +135,19 @@ export default function Calendar() {
   }
 
   return (
-    <section className="mx-auto w-full max-w-6xl">
+  <section className="mx-auto w-full max-w-[1500px]">
+    <div
+      className={[
+        "grid items-start gap-6",
+        selectedFestival
+          ? "lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]"
+          : "lg:grid-cols-1",
+      ].join(" ")}
+    >
+      <div className="min-w-0">
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <header className="flex flex-col gap-4 border-b border-slate-200 px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div className="flex flex-col gap-4 border-b border-slate-200 px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div>
-            <p className="text-sm font-medium text-blue-600">
-              Festival Calendar
-            </p>
-
             <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
               {currentYear}년 {currentMonthIndex + 1}월
             </h1>
@@ -171,7 +178,7 @@ export default function Calendar() {
               다음
             </button>
           </div>
-        </header>
+        </div>
 
         {errorMessage && (
           <div className="border-b border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -185,7 +192,7 @@ export default function Calendar() {
               <div
                 key={weekday}
                 className={[
-                  "border-r border-t border-slate-200 bg-slate-50 py-2 text-center text-[11px] font-semibold sm:py-3 sm:text-sm",
+                  "flex h-10 items-center justify-center border-r border-t border-slate-200 bg-slate-50 text-center text-[11px] font-semibold sm:h-12 sm:text-sm",
                   index === 0
                     ? "text-red-500"
                     : index === 6
@@ -206,10 +213,8 @@ export default function Calendar() {
 
               const hasFestivals = dayFestivals.length > 0;
 
-              const visibleDots =
-                dayFestivals.length >= 2
-                  ? dayFestivals.slice(0, 2)
-                  : dayFestivals.slice(0, 1);
+              const isRowStart = index % 7 === 0;
+              const isRowEnd = index % 7 === 6;
 
               return (
                 <button
@@ -219,12 +224,12 @@ export default function Calendar() {
                     setSelectedDateKey(day.dateKey)
                   }
                   className={[
-                    "relative min-h-20 border-r border-t border-slate-200 p-1.5 text-left transition sm:min-h-28 sm:p-2.5",
+                    "relative min-h-20 border-r border-t border-slate-200 text-center transition sm:min-h-28",
                     day.isCurrentMonth
                       ? "text-slate-800"
                       : "bg-slate-50 text-slate-300",
                     hasFestivals && day.isCurrentMonth
-                      ? "bg-blue-50/50 hover:bg-blue-50"
+                      ? "bg-blue-50/40 hover:bg-blue-50"
                       : "hover:bg-slate-50",
                     isSelected
                       ? "z-10 ring-2 ring-inset ring-blue-600"
@@ -233,8 +238,7 @@ export default function Calendar() {
                 >
                   <span
                     className={[
-                      "inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-xs font-semibold sm:h-7 sm:min-w-7 sm:text-sm",
-                      day.isToday
+                      "absolute left-1/2 top-2 inline-flex h-6 min-w-6 -translate-x-1/2 items-center justify-center rounded-full px-1 text-xs font-semibold sm:h-7 sm:min-w-7 sm:text-sm",                      day.isToday
                         ? "bg-slate-900 text-white"
                         : "",
                       index % 7 === 0 && !day.isToday
@@ -249,33 +253,85 @@ export default function Calendar() {
                   </span>
 
                   {isLoading ? (
-                    <div className="mt-3 h-2 w-5 animate-pulse rounded-full bg-slate-200" />
+                    <div className="mx-auto mt-4 h-2 w-5 animate-pulse rounded-full bg-slate-200" />
                   ) : (
                     hasFestivals && (
-                      <div className="mt-2">
-                        <div className="flex items-center gap-1">
-                          {visibleDots.map((festival) => (
-                            <span
-                              key={`${day.dateKey}-${festival.id}`}
-                              className={[
-                                "h-2 w-2 rounded-full",
-                                categoryDotClasses[
-                                  festival.category
-                                ],
-                              ].join(" ")}
-                            />
-                          ))}
-                        </div>
+                      <div className="mt-11 space-y-1.5 text-left">
+                        {dayFestivals.slice(0, 2).map((festival) => {
+                          const startsToday =
+                            festival.start_date === day.dateKey;
 
-                        <span className="mt-1 hidden text-[11px] font-medium text-slate-500 sm:block">
-                          {dayFestivals.length}개
-                        </span>
+                          const endsToday =
+                            festival.end_date === day.dateKey;
+
+                          const showName =
+                            startsToday || isRowStart;
+
+                          const roundLeft =
+                            startsToday || isRowStart;
+
+                          const roundRight =
+                            endsToday || isRowEnd;
+
+                          return (
+                            <div
+                              key={`${day.dateKey}-${festival.id}`}
+                              className="relative"
+                            >
+                              <div className="h-4 px-1">
+                                {showName && (
+                                  <span
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      setSelectedFestival(festival);
+                                    }}
+                                    onKeyDown={(event) => {
+                                      if (event.key === "Enter" || event.key === " ") {
+                                        event.preventDefault();
+                                        event.stopPropagation();
+                                        setSelectedFestival(festival);
+                                      }
+                                    }}
+                                    className="block w-full cursor-pointer truncate text-left text-[10px] font-semibold leading-4 text-slate-700 hover:text-blue-600"
+                                  >
+                                    {festival.name.replace(/^\d{4}\s*/, "")}
+                                  </span>
+                                )}
+                              </div>
+
+                              <div
+                                className={[
+                                  "-mx-px h-1.5",
+                                  categoryDotClasses[
+                                    festival.category
+                                  ],
+                                  roundLeft
+                                    ? "rounded-l-full"
+                                    : "",
+                                  roundRight
+                                    ? "rounded-r-full"
+                                    : "",
+                                ].join(" ")}
+                              />
+                            </div>
+                          );
+                        })}
+
+                        {dayFestivals.length > 2 && (
+                          <span className="block px-1 text-[10px] font-medium text-slate-500">
+                            +{dayFestivals.length - 2}개
+                          </span>
+                        )}
                       </div>
                     )
                   )}
                 </button>
               );
             })}
+
+
           </div>
         </div>
       </div>
@@ -306,6 +362,14 @@ export default function Calendar() {
           <FestivalList festivals={selectedFestivals} />
         )}
       </section>
-    </section>
+    </div>
+
+      <FestivalDetailDrawer
+        festivalId={selectedFestival?.id ?? null}
+        isOpen={selectedFestival !== null}
+        onClose={() => setSelectedFestival(null)}
+      />
+    </div>
+  </section>
   );
 }

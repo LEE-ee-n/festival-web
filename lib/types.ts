@@ -36,8 +36,6 @@ export interface Festival {
   description: string | null;
 
   official_url: string | null;
-  ticket_url: string | null;
-  ticket_platform: string | null;
   thumbnail_url: string | null;
 
   price_info: string | null;
