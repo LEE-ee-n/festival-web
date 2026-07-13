@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { formatFestivalPeriod } from "@/lib/calendar";
 import {
   categoryBadgeClasses,
@@ -7,18 +5,47 @@ import {
 } from "@/lib/categories";
 import type { Festival } from "@/lib/types";
 
+import {
+  CalendarDays,
+  MapPin,
+} from "lucide-react";
+
 interface FestivalCardProps {
   festival: Festival;
+  onSelect: (festival: Festival) => void;
+}
+
+const FESTIVAL_BAR_COLORS = [
+  "bg-indigo-500",
+  "bg-orange-400",
+  "bg-emerald-500",
+  "bg-rose-400",
+  "bg-purple-500",
+  "bg-sky-500",
+];
+
+function getFestivalColorClass(festivalId: number) {
+  return FESTIVAL_BAR_COLORS[
+    festivalId % FESTIVAL_BAR_COLORS.length
+  ];
 }
 
 export default function FestivalCard({
   festival,
+  onSelect,
 }: FestivalCardProps) {
   return (
-    <Link
-      href={`/festival/${festival.id}`}
-      className="flex gap-4 rounded-2xl border border-slate-200 bg-white p-4 transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
+    <button
+      type="button"
+      onClick={() => onSelect(festival)}
+      className="flex w-full gap-4 rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
     >
+      <span
+  className={[
+    "w-2.5 shrink-0 rounded-full",
+    getFestivalColorClass(festival.id),
+  ].join(" ")}
+/>
       {festival.thumbnail_url && (
         <div className="flex aspect-[4/5] w-28 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100 sm:w-32">
           <img
@@ -30,34 +57,44 @@ export default function FestivalCard({
       )}
 
       <div className="min-w-0 flex-1">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h3 className="line-clamp-2 font-semibold text-slate-900">
-              {festival.name.replace(/^\d{4}\s*/, "")}
-            </h3>
+  <div className="flex flex-col items-start gap-3">
+    <div className="flex w-full items-start gap-3">
+      <h3 className="min-w-0 flex-1 line-clamp-2 text-lg font-bold text-slate-900">
+        {festival.name.replace(/^\d{4}\s*/, "")}
+      </h3>
 
-            <p className="mt-2 text-sm text-slate-500">
-              {festival.location || "장소 확인 중"}
-            </p>
-          </div>
+      <span
+        className={[
+          "shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium",
+          categoryBadgeClasses[festival.category],
+        ].join(" ")}
+      >
+        {categoryLabels[festival.category]}
+      </span>
+    </div>
 
-          <span
-            className={[
-              "shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium",
-              categoryBadgeClasses[festival.category],
-            ].join(" ")}
-          >
-            {categoryLabels[festival.category]}
-          </span>
-        </div>
+    <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">
+      <p className="flex items-center gap-1.5 text-base text-slate-500">
+        <MapPin className="h-4 w-4 shrink-0 text-slate-400" />
 
-        <p className="mt-3 text-xs text-slate-400">
+        <span>
+          {festival.location || "장소 확인 중"}
+        </span>
+      </p>
+
+      <p className="flex items-center gap-1.5 text-sm text-slate-400">
+        <CalendarDays className="h-4 w-4 shrink-0" />
+
+        <span>
           {formatFestivalPeriod(
             festival.start_date,
             festival.end_date,
           )}
-        </p>
-      </div>
-    </Link>
+        </span>
+      </p>
+    </div>
+  </div>
+</div>
+    </button>
   );
 }

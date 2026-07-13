@@ -283,7 +283,7 @@ export default function FestivalDetailDrawer({
 
     return (
       <aside className="h-fit max-h-[calc(100vh-2rem)] overflow-y-auto rounded-3xl border border-slate-200 bg-slate-50 shadow-sm lg:sticky lg:top-4">
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white/95 px-5 py-4 backdrop-blur">
+        <div className="sticky top-0 z-10 flex min-h-[80px] items-center justify-between border-b border-slate-200 bg-white/95 px-5 py-5 backdrop-blur">
           <p className="text-sm font-semibold text-blue-600">
             축제 상세정보
           </p>
@@ -318,9 +318,9 @@ export default function FestivalDetailDrawer({
             </div>
           </div>
         ) : (
-          <article className="p-4 sm:p-6">
-            <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-              <header className="border-b border-slate-200 p-6 sm:p-8">
+          <article className="bg-white">
+            <div>
+              <header className="px-6 pt-4 pb-3">
                 <span
                   className={[
                     "inline-flex rounded-full border px-3 py-1 text-sm font-medium",
@@ -330,18 +330,18 @@ export default function FestivalDetailDrawer({
                   {categoryLabels[festival.category]}
                 </span>
 
-                <h1 className="mt-5 text-3xl font-bold tracking-tight text-slate-950">
+                <h1 className="mt-2 text-2xl font-bold leading-tight tracking-tight text-slate-950">
                   {festival.name}
                 </h1>
               </header>
 
               <div className="space-y-8 p-6 sm:p-8">
-                <dl className="grid gap-5 sm:grid-cols-2">
-                  <div>
-                    <dt className="text-sm font-medium text-slate-400">
+                <dl className="space-y-3">
+                  <div className="grid grid-cols-[44px_minmax(0,1fr)] items-start gap-3 text-base">
+                    <dt className="text-slate-400">
                       기간
                     </dt>
-                    <dd className="mt-1 font-semibold text-slate-800">
+                    <dd className="font-semibold text-slate-800">
                       {formatFestivalPeriod(
                         festival.start_date,
                         festival.end_date,
@@ -349,43 +349,39 @@ export default function FestivalDetailDrawer({
                     </dd>
                   </div>
 
-                  <div>
-                    <dt className="text-sm font-medium text-slate-400">
+                  <div className="grid grid-cols-[44px_minmax(0,1fr)] items-start gap-3 text-base">
+                    <dt className="text-slate-400">
                       장소
                     </dt>
-                    <dd className="mt-1 font-semibold text-slate-800">
+                    <dd className="font-semibold text-slate-800">
                       {festival.location || "장소 확인 중"}
                     </dd>
                   </div>
 
-                  {festival.address && (
-                    <div>
-                      <dt className="text-sm font-medium text-slate-400">
-                        주소
-                      </dt>
-                      <dd className="mt-1 font-semibold text-slate-800">
-                        {festival.address}
-                      </dd>
-                    </div>
-                  )}
+                  <div className="grid grid-cols-[44px_minmax(0,1fr)] items-start gap-3 text-base">
+                    <dt className="text-slate-400">
+                      주소
+                    </dt>
+                    <dd className="break-words font-semibold text-slate-800">
+                      {festival.address || "주소 확인 중"}
+                    </dd>
+                  </div>
 
-                  {festival.region && (
-                    <div>
-                      <dt className="text-sm font-medium text-slate-400">
-                        지역
-                      </dt>
-                      <dd className="mt-1 font-semibold text-slate-800">
-                        {festival.region}
-                      </dd>
-                    </div>
-                  )}
+                  <div className="grid grid-cols-[44px_minmax(0,1fr)] items-start gap-3 text-base">
+                    <dt className="text-slate-400">
+                      지역
+                    </dt>
+                    <dd className="font-semibold text-slate-800">
+                      {festival.region || "지역 확인 중"}
+                    </dd>
+                  </div>
 
                   {festival.price_type && (
-                    <div>
-                      <dt className="text-sm font-medium text-slate-400">
-                        요금 구분
+                    <div className="grid grid-cols-[44px_minmax(0,1fr)] items-start gap-3 text-base">
+                      <dt className="text-slate-400">
+                        요금
                       </dt>
-                      <dd className="mt-1 font-semibold text-slate-800">
+                      <dd className="font-semibold text-slate-800">
                         {festival.price_type === "free" && "무료"}
                         {festival.price_type === "paid" && "유료"}
                         {festival.price_type === "partial_free" &&
@@ -397,38 +393,36 @@ export default function FestivalDetailDrawer({
                   )}
 
                   {festival.price_info && (
-                    <div>
-                      <dt className="text-sm font-medium text-slate-400">
-                        가격 정보
+                    <div className="grid grid-cols-[44px_minmax(0,1fr)] items-start gap-3 text-base">
+                      <dt className="text-slate-400">
+                        가격
                       </dt>
-                      <dd className="mt-1 font-semibold text-slate-800">
+                      <dd className="break-words font-semibold text-slate-800">
                         {festival.price_info}
                       </dd>
                     </div>
                   )}
                 </dl>
 
-                <section>
-                  <h2 className="text-lg font-bold text-slate-900">
-                    축제 소개
-                  </h2>
-                  <p className="mt-3 whitespace-pre-line leading-7 text-slate-600">
-                    {festival.description ||
-                      "등록된 상세 설명이 없습니다."}
-                  </p>
-                </section>
-
+                <div className="pt-2">
+                  <div className="border-b border-slate-200" />
+                </div>
+ 
                 {festivalArtists.length > 0 && (
                   <section>
-                    <h2 className="text-lg font-bold text-slate-900">
-                      출연진
+                    <h2 className="flex items-center justify-center gap-2 text-lg font-bold text-slate-900">
+                      <span className="text-lg text-slate-400">
+                        ♪
+                      </span>
+
+                      <span>출연진</span>
                     </h2>
 
                     <div className="mt-4 space-y-5">
                       {Object.entries(artistsByDateAndStage).map(
                         ([date, stageGroups]) => (
                           <div key={date}>
-                            <h3 className="font-bold text-slate-800">
+                            <h3 className="mt-1 inline-flex rounded-full bg-slate-800 px-3 py-1.5 text-sm font-bold text-white">
                               {date === "날짜 미정"
                                 ? date
                                 : new Intl.DateTimeFormat("ko-KR", {
@@ -446,16 +440,17 @@ export default function FestivalDetailDrawer({
                             <div className="mt-4 space-y-5">
                               {Object.entries(stageGroups).map(
                                 ([stage, artists]) => (
-                                  <div
-                                    key={stage}
-                                    className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
-                                  >
-                                    <h4 className="font-bold text-slate-900">
-                                      {stage}
+                                  <div key={stage}>
+                                    <h4 className="flex overflow-hidden rounded-xl bg-slate-100 text-sm font-bold text-slate-700">
+                                      <span className="w-3.5 shrink-0 bg-indigo-500" />
+
+                                      <span className="flex-1 px-3 py-3">
+                                        {stage}
+                                      </span>
                                     </h4>
 
-                                    <div className="mt-3 space-y-2">
-                                      {artists.map((item) => {
+                                    <div className="mt-1 divide-y divide-slate-300">
+                                          {artists.map((item) => {
                                         const artist = Array.isArray(
                                           item.artists,
                                         )
@@ -464,9 +459,9 @@ export default function FestivalDetailDrawer({
 
                                         return (
                                           <div
-                                            key={item.artist_id}
-                                            className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white px-4 py-3"
-                                          >
+                                              key={item.artist_id}
+                                              className="flex items-center justify-between gap-3 px-5 py-3"
+                                            >
                                             <div>
                                               {artist ? (
                                                 <Link
@@ -484,7 +479,7 @@ export default function FestivalDetailDrawer({
 
                                             {(item.performance_time ||
                                               item.performance_end_time) && (
-                                              <span className="rounded-md bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700">
+                                              <span className="shrink-0 font-mono text-base font-medium text-indigo-600">
                                                 {item.performance_time
                                                   ? item.performance_time.slice(
                                                       0,
@@ -523,16 +518,29 @@ export default function FestivalDetailDrawer({
                 )}
 
                 {latestTicketRounds.length > 0 && (
-                  <section>
-                    <h2 className="text-lg font-bold text-slate-900">
-                      티켓 안내
-                    </h2>
+  <section>
+    <div className="pt-2">
+      <div className="border-b border-slate-200" />
+    </div>
 
-                    <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                      <h3 className="font-bold text-slate-900">
-                        {latestTicketRounds[0].round_name}
-                      </h3>
+    <h2 className="mt-4 flex items-center justify-center gap-2 text-lg font-bold text-slate-900">
+      <span className="text-sm text-slate-400">
+        ♫
+      </span>
 
+      <span>티켓 안내</span>
+    </h2>
+
+    <div className="mt-4">
+      <h3 className="flex overflow-hidden rounded-xl bg-emerald-50 text-sm font-bold text-slate-700">
+      <span className="w-3.5 shrink-0 bg-teal-500" />
+
+      <span className="flex-1 px-3 py-3">
+        {latestTicketRounds[0].round_name}
+      </span>
+    </h3>
+
+      <div className="mt-2 px-3">
                       {latestOpenAt &&
                         new Date(latestOpenAt).getTime() >
                           Date.now() && (
@@ -542,7 +550,7 @@ export default function FestivalDetailDrawer({
                         )}
 
                       {latestTicketRounds[0].price_info && (
-                        <p className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-600">
+                        <p className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-700">
                           {latestTicketRounds[0].price_info}
                         </p>
                       )}
@@ -550,7 +558,18 @@ export default function FestivalDetailDrawer({
                       {latestOpenAt &&
                       new Date(latestOpenAt).getTime() <=
                         Date.now() ? (
-                        <div className="mt-4 flex flex-wrap gap-2">
+                        <div
+                          className={[
+                            "mt-4 grid gap-2",
+                            latestTicketRounds.filter((round) => round.ticket_url)
+                              .length === 1
+                              ? "grid-cols-1"
+                              : latestTicketRounds.filter((round) => round.ticket_url)
+                                    .length === 2
+                                ? "grid-cols-2"
+                                : "grid-cols-3",
+                          ].join(" ")}
+                        >
                           {latestTicketRounds
                             .filter((round) => round.ticket_url)
                             .map((round) => (
@@ -559,13 +578,14 @@ export default function FestivalDetailDrawer({
                                 href={round.ticket_url || "#"}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700"
+                                className="flex w-full items-center justify-center rounded-xl bg-slate-800 px-3 py-3 text-center text-sm font-semibold text-white hover:bg-slate-700"
                               >
                                 {round.ticket_platform || "예매하기"}
                               </a>
                             ))}
                         </div>
                       ) : null}
+                    </div>
                     </div>
                   </section>
                 )}
@@ -576,7 +596,8 @@ export default function FestivalDetailDrawer({
                       href={festival.official_url}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                      className="flex w-full items-center justify-center rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-200"
+
                     >
                       공식 홈페이지
                     </a>

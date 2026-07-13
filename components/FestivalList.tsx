@@ -3,10 +3,11 @@ import type { Festival } from "@/lib/types";
 
 interface FestivalListProps {
   festivals: Festival[];
+  onSelect?: (festival: Festival) => void;
 }
-
 export default function FestivalList({
   festivals,
+  onSelect,
 }: FestivalListProps) {
   if (festivals.length === 0) {
     return (
@@ -23,9 +24,15 @@ export default function FestivalList({
   }
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className="space-y-3">
       {festivals.map((festival) => (
-        <FestivalCard key={festival.id} festival={festival} />
+        <FestivalCard
+          key={festival.id}
+          festival={festival}
+          onSelect={(selectedFestival) =>
+            onSelect?.(selectedFestival)
+          }
+        />
       ))}
     </div>
   );

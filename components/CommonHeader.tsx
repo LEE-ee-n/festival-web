@@ -59,50 +59,57 @@ export default function CommonHeader() {
   }
 
   return (
-    <header className="border-b border-slate-200 bg-white">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
-        <Link href="/" className="font-bold text-slate-950">
-          Festival Calendar
-        </Link>
+  <header className="border-b border-white/10 bg-[#0C0C1E] text-white">
+    <div className="mx-auto flex h-14 w-full max-w-[1500px] items-center justify-between px-4 sm:px-6">
+      <Link
+        href="/"
+        className="flex items-center gap-2.5 font-bold tracking-tight"
+      >
+        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/20 text-indigo-400">
+          ♪
+        </span>
 
-        <div className="flex items-center gap-3 text-sm">
-          {isLoading ? (
-            <span className="text-slate-400">
-              로그인 확인 중
+        <span>Festival Calendar</span>
+      </Link>
+
+      <div className="flex items-center gap-3 text-sm">
+        {isLoading ? (
+          <span className="text-white/50">
+            로그인 확인 중
+          </span>
+        ) : userEmail ? (
+          <>
+            <span className="hidden text-white/70 sm:inline">
+              {isAdmin ? "관리자" : "회원"} · {userEmail}
             </span>
-          ) : userEmail ? (
-            <>
-              <span className="text-slate-600">
-                {isAdmin ? "관리자" : "회원"} · {userEmail}
-              </span>
-            
-                {isAdmin && (
-                    <Link
-                        href="/admin"
-                        className="rounded-lg bg-blue-600 px-3 py-2 font-medium text-white hover:bg-blue-700"
-                    >
-                        관리자 페이지
-                    </Link>
-                    )}
-                    
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="rounded-lg border border-slate-200 px-3 py-2 font-medium text-slate-700 hover:bg-slate-50"
+
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className="rounded-full border border-white/20 px-4 py-1.5 font-medium text-white hover:bg-white/10"
               >
-                로그아웃
-              </button>
-            </>
-          ) : (
-            <Link
-              href="/admin/login"
-              className="rounded-lg bg-slate-900 px-3 py-2 font-medium text-white hover:bg-slate-700"
+                관리자
+              </Link>
+            )}
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="rounded-full border border-white/20 px-4 py-1.5 font-medium text-white hover:bg-white/10"
             >
-              로그인
-            </Link>
-          )}
-        </div>
+              로그아웃
+            </button>
+          </>
+        ) : (
+          <Link
+            href="/admin/login"
+            className="rounded-full border border-white/20 px-4 py-1.5 font-medium text-white hover:bg-white/10"
+          >
+            로그인
+          </Link>
+        )}
       </div>
-    </header>
-  );
+    </div>
+  </header>
+);
 }
