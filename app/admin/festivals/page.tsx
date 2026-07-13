@@ -18,8 +18,6 @@ export default function AdminFestivalsPage() {
   const [festivals, setFestivals] = useState<Festival[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const [, setSelectedFestival] =
-    useState<Festival | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(
     null,
   );
@@ -215,13 +213,12 @@ export default function AdminFestivalsPage() {
 
                       <td className="px-5 py-4">
                         <div className="flex justify-end gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setSelectedFestival(festival)}
+                          <Link
+                            href={`/admin/festivals/${festival.id}/lineup`}
                             className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700"
                           >
                             관리
-                          </button>
+                          </Link>
 
                           <button
                             type="button"
