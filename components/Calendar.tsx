@@ -10,7 +10,6 @@ import {
   getFestivalsForDate,
   toDateKey,
 } from "@/lib/calendar";
-import { categoryDotClasses } from "@/lib/categories";
 import { supabase } from "@/lib/supabase/client";
 import type { Festival } from "@/lib/types";
 
@@ -233,9 +232,6 @@ export default function Calendar() {
                 selectedDateKey === day.dateKey;
 
               const hasFestivals = dayFestivals.length > 0;
-
-              const isRowStart = dayIndex % 7 === 0;
-              const isRowEnd = dayIndex % 7 === 6;
 
               return (
                 <button
