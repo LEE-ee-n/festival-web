@@ -5,10 +5,7 @@ import {
 } from "@/lib/categories";
 import type { Festival } from "@/lib/types";
 
-import {
-  CalendarDays,
-  MapPin,
-} from "lucide-react";
+import {CalendarDays,   MapPin, } from "lucide-react";
 
 interface FestivalCardProps {
   festival: Festival;
@@ -36,10 +33,9 @@ export default function FestivalCard({
 }: FestivalCardProps) {
   return (
     <button
-      type="button"
-      onClick={() => onSelect(festival)}
-      className="flex w-full gap-4 rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
-    >
+  type="button"
+  onClick={() => onSelect(festival)}
+  className="@container flex min-h-[164px] w-full gap-3 rounded-xl border border-slate-200 bg-white p-3 text-left transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
       <span
   className={[
     "w-2.5 shrink-0 rounded-full",
@@ -47,19 +43,19 @@ export default function FestivalCard({
   ].join(" ")}
 />
       {festival.thumbnail_url && (
-        <div className="flex aspect-[4/5] w-28 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100 sm:w-32">
-          <img
-            src={festival.thumbnail_url}
-            alt={`${festival.name} 썸네일`}
-            className="h-full w-full object-contain"
-          />
-        </div>
-      )}
+<div className="hidden aspect-[4/5] w-28 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100 @[500px]:flex">
+<img
+      src={festival.thumbnail_url}
+      alt={`${festival.name} 썸네일`}
+      className="h-full w-full object-contain"
+    />
+  </div>
+)}
 
       <div className="min-w-0 flex-1">
   <div className="flex flex-col items-start gap-3">
     <div className="flex w-full items-start gap-3">
-      <h3 className="min-w-0 flex-1 line-clamp-2 text-lg font-bold text-slate-900">
+      <h3 className="mt-3 min-w-0 flex-1 text-lg font-bold text-slate-700">
         {festival.name.replace(/^\d{4}\s*/, "")}
       </h3>
 
@@ -73,16 +69,16 @@ export default function FestivalCard({
       </span>
     </div>
 
-    <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">
-      <p className="flex items-center gap-1.5 text-base text-slate-500">
-        <MapPin className="h-4 w-4 shrink-0 text-slate-400" />
+    <div className="mt-3 flex flex-col items-start gap-3">
+      <p className="flex items-center gap-1.5 text-sm text-slate-700">
+        <MapPin className="h-4 w-4 shrink-0" />
 
         <span>
           {festival.location || "장소 확인 중"}
         </span>
       </p>
 
-      <p className="flex items-center gap-1.5 text-sm text-slate-400">
+      <p className="flex items-center gap-1.5 text-sm text-slate-700">
         <CalendarDays className="h-4 w-4 shrink-0" />
 
         <span>

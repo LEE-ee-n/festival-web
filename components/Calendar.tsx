@@ -160,7 +160,7 @@ export default function Calendar() {
       ].join(" ")}
     >
       <div className="min-w-0">
-      <div className="overflow-hidden rounded-3xl shadow-sm">
+      <div className="overflow-hidden shadow-sm">
         <div className="grid grid-cols-[1fr_auto_1fr] items-center px-4 py-5 sm:px-6">
           <div className="flex items-center gap-2 justify-self-start">
             <button
@@ -182,7 +182,7 @@ export default function Calendar() {
             </button>
           </div>
 
-          <h1 className="justify-self-center text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
+          <h1 className="mt-1 text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">
             {currentYear}년 {currentMonthIndex + 1}월
           </h1>
 
@@ -203,12 +203,12 @@ export default function Calendar() {
 
         <div>
   <div className="pt-4">
-    <div className="grid grid-cols-7 overflow-hidden rounded-2xl bg-sky-200">
+    <div className="grid grid-cols-7 overflow-hidden rounded-2xl">
       {WEEKDAYS.map((weekday, index) => (
         <div
           key={weekday}
           className={[
-            "flex h-11 items-center justify-center text-center text-sm font-semibold",
+            "flex h-11 items-center justify-center text-center text-[13px] font-semibold",
             index === 0
               ? "text-red-600"
               : index === 6
@@ -222,7 +222,7 @@ export default function Calendar() {
     </div>
   </div>
 
-        <div className="mt-2 overflow-hidden rounded-2xl border border-slate-200">
+        <div className="mt-0 overflow-hidden border border-slate-200">
             <div className="grid grid-cols-7 [&>*]:border-b [&>*]:border-r [&>*:nth-child(7n)]:border-r-0 [&>*:nth-last-child(-n+7)]:border-b-0">
             {calendarDays.map((day, dayIndex) => {
               const dayFestivals =
@@ -257,7 +257,7 @@ export default function Calendar() {
                 >
                   <span
                     className={[
-                      "absolute left-1/2 top-2 inline-flex h-6 min-w-6 -translate-x-1/2 items-center justify-center rounded-full px-1 text-xs font-semibold sm:h-7 sm:min-w-7 sm:text-sm",                      day.isToday
+                      "absolute left-2 top-2 inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-xs font-semibold sm:h-7 sm:min-w-7 sm:text-[15px]", day.isToday
                         ? "bg-slate-900 text-white"
                         : "",
                       dayIndex % 7 === 0 && !day.isToday
@@ -386,60 +386,79 @@ export default function Calendar() {
       </div>
     </div>
 
-       {isDatePanelOpen &&
-          (selectedFestival ? (
-            <div className="hidden lg:block">
-              <FestivalDetailDrawer
-                festivalId={selectedFestival.id}
-                isOpen={true}
-                onClose={() => setSelectedFestival(null)}
-              />
+      {isDatePanelOpen && (
+  <>
+    {/* 모바일 배경 */}
+    <button
+      type="button"
+      aria-label="패널 닫기"
+      onClick={() => {
+        setSelectedFestival(null);
+        setIsDatePanelOpen(false);
+      }}
+      className="fixed inset-0 z-40 bg-slate-950/40 lg:hidden"
+    />
+
+    {/* 모바일: 바텀시트 / PC: 오른쪽 패널 */}
+    <aside className="fixed inset-x-0 bottom-0 z-50 max-h-[85dvh] overflow-hidden rounded-t-3xl border border-slate-200 bg-white shadow-2xl lg:static lg:z-auto lg:max-h-none lg:rounded-none lg:shadow-sm">
+      <div className="mx-auto mt-3 h-1.5 w-12 rounded-full bg-slate-300 lg:hidden" />
+
+      {selectedFestival ? (
+        <div className="max-h-[calc(85dvh-18px)] overflow-y-auto lg:max-h-none">
+          <FestivalDetailDrawer
+            festivalId={selectedFestival.id}
+            isOpen={true}
+            onClose={() => setSelectedFestival(null)}
+          />
+        </div>
+      ) : (
+        <>
+          <div className="border-b border-slate-200 px-3 py-3">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold text-slate-700">
+                선택한 날짜
+              </p>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedFestival(null);
+                  setIsDatePanelOpen(false);
+                }}
+                className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                닫기
+              </button>
             </div>
-          ) : (
-            <aside className="hidden overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:block">
-              <div className="min-h-[80px] border-b border-slate-200 px-5 py-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold text-blue-600">
-                    선택한 날짜
-                  </p>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedFestival(null);
-                      setIsDatePanelOpen(false);
-                    }}
-                    className="rounded-full px-3 py-1 text-sm font-semibold text-slate-400 hover:bg-slate-100 hover:text-slate-700"
-                  >
-                    닫기
-                  </button>
-                </div>
+            <div className="mt-3 flex items-center gap-3">
+              <h2 className="text-sm font-bold text-slate-700">
+                {formatKoreanDate(selectedDateKey)}
+              </h2>
 
-                <div className="mt-1 flex items-center gap-2">
-                  <h2 className="text-lg font-bold text-slate-950">
-                    {formatKoreanDate(selectedDateKey)}
-                  </h2>
+              <span className="text-xs text-slate-700">
+                {selectedFestivals.length}개 축제
+              </span>
+            </div>
+          </div>
 
-                  <span className="text-sm text-slate-500">
-                    {selectedFestivals.length}개 축제
-                  </span>
-                </div>
-              </div>
-
-              <div className="p-5">
-                {isLoading ? (
-                  <div className="h-32 animate-pulse rounded-2xl bg-slate-100" />
-                ) : (
-                  <FestivalList
-                    festivals={selectedFestivals}
-                    onSelect={(festival) =>
-                      setSelectedFestival(festival)
-                    }
-                  />
-                )}
-              </div>
-            </aside>
-          ))}   
+          <div className="max-h-[calc(85dvh-100px)] overflow-y-auto px-6 py-3 lg:max-h-none">
+            {isLoading ? (
+              <div className="h-32 animate-pulse rounded-2xl bg-slate-100" />
+            ) : (
+              <FestivalList
+                festivals={selectedFestivals}
+                onSelect={(festival) =>
+                  setSelectedFestival(festival)
+                }
+              />
+            )}
+          </div>
+        </>
+      )}
+    </aside>
+  </>
+)}
     </div>
   </section>
   );
