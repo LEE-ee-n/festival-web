@@ -161,7 +161,7 @@ export default function Calendar() {
     >
       <div className="min-w-0">
       <div className="overflow-hidden shadow-sm">
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center px-4 py-5 sm:px-6">
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center px-4 pt-3 sm:px-6">
           <div className="flex items-center gap-2 justify-self-start">
             <button
               type="button"
@@ -182,7 +182,7 @@ export default function Calendar() {
             </button>
           </div>
 
-          <h1 className="mt-1 text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">
+          <h1 className="text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">
             {currentYear}년 {currentMonthIndex + 1}월
           </h1>
 
@@ -202,7 +202,7 @@ export default function Calendar() {
         )}
 
         <div>
-  <div className="pt-4">
+  <div className="pt-3">
     <div className="grid grid-cols-7 overflow-hidden rounded-2xl">
       {WEEKDAYS.map((weekday, index) => (
         <div
