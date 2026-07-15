@@ -2,6 +2,7 @@ import FestivalDetailDrawer from "@/components/FestivalDetailDrawer";
 import FestivalList from "@/components/FestivalList";
 import FestivalPanelHeader from "@/components/festival/FestivalPanelHeader";
 import type { Festival } from "@/lib/types";
+import { useEffect, useRef } from "react";
 
 type FestivalSidePanelProps = {
   isOpen: boolean;
@@ -37,6 +38,15 @@ export default function FestivalSidePanel({
     onClose();
   };
 
+  const contentScrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    contentScrollRef.current?.scrollTo({
+      top: 0,
+      behavior: "instant",
+    });
+  }, [selectedFestival]);
+
   return (
     <>
       {/* 모바일 배경 */}
@@ -60,7 +70,10 @@ export default function FestivalSidePanel({
           onClose={handleHeaderClose}
         />
 
-        <div className="max-h-[calc(85dvh-100px)] overflow-y-auto scrollbar-thin lg:max-h-[calc(100vh-8rem)]">
+        <div
+          ref={contentScrollRef}
+          className="max-h-[calc(85dvh-100px)] overflow-y-auto scrollbar-thin lg:max-h-[calc(100vh-8rem)]"
+        >
           {selectedFestival ? (
             <FestivalDetailDrawer
               festivalId={selectedFestival.id}
