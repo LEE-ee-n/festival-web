@@ -17,12 +17,46 @@ body {
   color: #0f172a;
   font-family:
     Arial,
-    "Apple SD Gothic Neo",
     "Noto Sans KR",
+    "Apple SD Gothic Neo",
     sans-serif;
 }
 
 button,
 a {
   -webkit-tap-highlight-color: transparent;
+}
+
+@keyframes note-bounce {
+  0%,
+  82%,
+  100% {
+    transform: translateY(0) rotate(-6deg) scale(1);
+  }
+
+  88% {
+    transform: translateY(-5px) rotate(-2deg) scale(1.08);
+  }
+
+  94% {
+    transform: translateY(1px) rotate(-8deg) scale(0.97);
+  }
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
 }

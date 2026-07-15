@@ -1,9 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-
-import FestivalList from "@/components/FestivalList";
-import FestivalDetailDrawer from "@/components/FestivalDetailDrawer";
+import { useEffect, useMemo, useState, useRef } from "react";
 import {
   formatKoreanDate,
   getCalendarDays,
@@ -12,15 +9,17 @@ import {
 } from "@/lib/calendar";
 import { supabase } from "@/lib/supabase/client";
 import type { Festival } from "@/lib/types";
+import FestivalSidePanel from "@/components/calendar/FestivalSidePanel";
+import CalendarHeader from "@/components/calendar/CalendarHeader";
+import CalendarWeekdays from "@/components/calendar/CalendarWeekdays";
+import CalendarGrid from "@/components/calendar/CalendarGrid";
 
-const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 const FESTIVAL_BAR_COLORS = [
-  "bg-indigo-500",
-  "bg-orange-500",
-  "bg-emerald-500",
-  "bg-rose-400",
-  "bg-purple-500",
-  "bg-sky-500",
+  "bg-festival-orange",
+  "bg-festival-coral",
+  "bg-festival-purple",
+  "bg-festival-indigo",
+  "bg-festival-night",
 ];
 
 function getFestivalColorClass(festivalId: number) {
@@ -129,6 +128,9 @@ export default function Calendar() {
     [festivals, selectedDateKey],
   );
 
+  const pointerStartX = useRef<number | null>(null);
+  const pointerStartY = useRef<number | null>(null);
+
   function moveMonth(amount: number) {
     const nextMonth = new Date(
       currentYear,
@@ -140,6 +142,45 @@ export default function Calendar() {
     setCurrentMonthIndex(nextMonth.getMonth());
     setSelectedDateKey(toDateKey(nextMonth));
   }
+
+  function handlePointerDown(
+  event: React.PointerEvent<HTMLDivElement>,
+) {
+  pointerStartX.current = event.clientX;
+  pointerStartY.current = event.clientY;
+}
+
+function handlePointerUp(
+  event: React.PointerEvent<HTMLDivElement>,
+) {
+  if (
+    pointerStartX.current === null ||
+    pointerStartY.current === null
+  ) {
+    return;
+  }
+
+  const deltaX = event.clientX - pointerStartX.current;
+  const deltaY = event.clientY - pointerStartY.current;
+
+  pointerStartX.current = null;
+  pointerStartY.current = null;
+
+  const isHorizontalSwipe =
+    Math.abs(deltaX) > Math.abs(deltaY);
+
+  const passedThreshold = Math.abs(deltaX) >= 50;
+
+  if (!isHorizontalSwipe || !passedThreshold) {
+    return;
+  }
+
+  if (deltaX < 0) {
+    moveMonth(1);
+  } else {
+    moveMonth(-1);
+  }
+}
 
   function moveToToday() {
     const today = new Date();
@@ -155,311 +196,65 @@ export default function Calendar() {
       className={[
         "grid items-start gap-6",
         isDatePanelOpen
-          ? "lg:grid-cols-[minmax(0,1.2fr)_minmax(360px,0.8fr)]"
+          ? "lg:grid-cols-[minmax(0,1.3fr)_minmax(340px,0.6fr)]"
           : "lg:grid-cols-1",
       ].join(" ")}
-    >
+      >
       <div className="min-w-0">
-      <div className="overflow-hidden shadow-sm">
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center px-4 pt-3 sm:px-6">
-          <div className="flex items-center gap-2 justify-self-start">
-            <button
-              type="button"
-              onClick={() => moveMonth(-1)}
-              aria-label="이전 달"
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-2xl leading-none text-slate-600 shadow-sm transition hover:bg-slate-50"
-            >
-              ‹
-            </button>
+        <div className="overflow-hidden shadow-sm">
+          <CalendarHeader
+            currentYear={currentYear}
+            currentMonthIndex={currentMonthIndex}
+            onPreviousMonth={() => moveMonth(-1)}
+            onNextMonth={() => moveMonth(1)}
+            onMoveToToday={moveToToday}
+          />
 
-            <button
-              type="button"
-              onClick={() => moveMonth(1)}
-              aria-label="다음 달"
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-2xl leading-none text-slate-600 shadow-sm transition hover:bg-slate-50"
-            >
-              ›
-            </button>
-          </div>
+          {errorMessage && (
+            <div className="border-b border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {errorMessage}
+            </div>
+          )}
 
-          <h1 className="text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">
-            {currentYear}년 {currentMonthIndex + 1}월
-          </h1>
-
-          <button
-            type="button"
-            onClick={moveToToday}
-            className="justify-self-end rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
-          >
-            오늘
-          </button>
-        </div>
-
-        {errorMessage && (
-          <div className="border-b border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {errorMessage}
-          </div>
-        )}
-
-        <div>
-  <div className="pt-3">
-    <div className="grid grid-cols-7 overflow-hidden rounded-2xl">
-      {WEEKDAYS.map((weekday, index) => (
-        <div
-          key={weekday}
-          className={[
-            "flex h-11 items-center justify-center text-center text-[13px] font-semibold",
-            index === 0
-              ? "text-red-600"
-              : index === 6
-                ? "text-blue-600"
-                : "text-black",
-          ].join(" ")}
-        >
-          {weekday}
-        </div>
-      ))}
-    </div>
-  </div>
-
-        <div className="mt-0 overflow-hidden border border-slate-200">
-            <div className="grid grid-cols-7 [&>*]:border-b [&>*]:border-r [&>*:nth-child(7n)]:border-r-0 [&>*:nth-last-child(-n+7)]:border-b-0">
-            {calendarDays.map((day, dayIndex) => {
-              const dayFestivals =
-                festivalsByDate.get(day.dateKey) ?? [];
-
-              const isSelected =
-                selectedDateKey === day.dateKey;
-
-              const hasFestivals = dayFestivals.length > 0;
-
-              return (
-                <button
-                  type="button"
-                  key={day.dateKey}
-                  onClick={() => {
-                    setSelectedDateKey(day.dateKey);
-                    setSelectedFestival(null);
-                    setIsDatePanelOpen(true);
-                  }}
-                  className={[
-                    "relative min-h-20 border-slate-200 text-center transition sm:min-h-40",
-                    day.isCurrentMonth
-                      ? "text-slate-800"
-                      : "bg-gray-100 text-gray-400",
-                    hasFestivals && day.isCurrentMonth
-                      ? "hover:bg-blue-50"
-                      : "hover:bg-slate-50",
-                    isSelected
-                      ? "z-10 ring-2 ring-inset ring-blue-500"
-                      : "",
-                  ].join(" ")}
-                >
-                  <span
-                    className={[
-                      "absolute left-2 top-2 inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-xs font-semibold sm:h-7 sm:min-w-7 sm:text-[15px]", day.isToday
-                        ? "bg-slate-900 text-white"
-                        : "",
-                      dayIndex % 7 === 0 && !day.isToday
-                        ? "text-red-600"
-                        : "",
-                      dayIndex % 7 === 6 && !day.isToday
-                        ? "text-blue-600"
-                        : "",
-                    ].join(" ")}
-                  >
-                    {day.dayNumber}
-                  </span>
-
-                  {isLoading ? (
-                    <div className="mx-auto mt-4 h-2 w-5 animate-pulse rounded-full bg-slate-200" />
-                  ) : (
-                    hasFestivals && (
-                      <div className="mt-11 space-y-1.5 text-left">
-                        {dayFestivals.slice(0, 2).map((festival) => {
-                          const startsToday =
-                            festival.start_date === day.dateKey;
-
-                          const endsToday =
-                            festival.end_date === day.dateKey;
-
-                          const isRowStart = dayIndex % 7 === 0;
-
-                          const showName =
-                            startsToday || isRowStart;
-
-                          const roundLeft =
-                            startsToday;
-
-                          const roundRight =
-                            endsToday;
-
-                          const currentDate = new Date(
-                            `${day.dateKey}T00:00:00`,
-                          );
-
-                          const festivalEndDate = new Date(
-                            `${festival.end_date}T00:00:00`,
-                          );
-
-                          const remainingFestivalDays =
-                            Math.floor(
-                              (festivalEndDate.getTime() -
-                                currentDate.getTime()) /
-                                (1000 * 60 * 60 * 24),
-                            ) + 1;
-
-                          const remainingDaysInRow =
-                            7 - (dayIndex % 7);
-
-                          const spanDays = Math.min(
-                            remainingFestivalDays,
-                            remainingDaysInRow,
-                          );
-
-                          return (
-                            <div
-                              key={`${day.dateKey}-${festival.id}`}
-                              className="relative"
-                            >
-                            
-                            {showName && (
-                              <div className="relative z-20 h-6">
-                                <div
-                                  role="button"
-                                  tabIndex={0}
-                                  title={festival.name.replace(/^\d{4}\s*/, "")}
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    setSelectedFestival(festival);
-                                  }}
-                                  onKeyDown={(event) => {
-                                    if (
-                                      event.key === "Enter" ||
-                                      event.key === " "
-                                    ) {
-                                      event.preventDefault();
-                                      event.stopPropagation();
-                                      setSelectedFestival(festival);
-                                    }
-                                  }}
-                                  style={{
-                                    width: `calc(${spanDays * 100}% + ${
-                                      spanDays - 1
-                                    }px)`,
-                                  }}
-                                  className={[
-                                    "absolute left-0 top-0 flex h-6 cursor-pointer items-center gap-1.5 overflow-hidden px-2 text-left hover:opacity-90",
-                                    getFestivalColorClass(festival.id),
-                                    roundLeft ? "rounded-l-full" : "",
-                                    roundRight ? "rounded-r-full" : "",
-                                  ].join(" ")}
-                                >
-                                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-white/80" />
-
-                                  <span className="whitespace-nowrap text-[11px] font-semibold text-white">
-                                    {festival.name.replace(/^\d{4}\s*/, "")}
-                                  </span>
-                                </div>
-                              </div>
-                            )}
-
-                              
-                            </div>
-                          );
-                        })}
-
-                        {dayFestivals.length > 2 && (
-                          <span className="block px-1 text-[10px] font-medium text-slate-500">
-                            +{dayFestivals.length - 2}개
-                          </span>
-                        )}
-                      </div>
-                    )
-                  )}
-                </button>
-              );
-            })}
-           </div>
+          <div>
+            <CalendarWeekdays />
+            <CalendarGrid
+              calendarDays={calendarDays}
+              festivalsByDate={festivalsByDate}
+              selectedDateKey={selectedDateKey}
+              isLoading={isLoading}
+              getFestivalColorClass={getFestivalColorClass}
+              onPointerDown={handlePointerDown}
+              onPointerUp={handlePointerUp}
+              onSelectDate={(dateKey) => {
+                setSelectedDateKey(dateKey);
+                setSelectedFestival(null);
+                setIsDatePanelOpen(true);
+              }}
+              onSelectFestival={(festival) => {
+                setSelectedFestival(festival);
+                setIsDatePanelOpen(true);
+              }}
+            />            
           </div>
         </div>
       </div>
+        <FestivalSidePanel
+          isOpen={isDatePanelOpen}
+          dateText={formatKoreanDate(selectedDateKey)}
+          festivals={selectedFestivals}
+          selectedFestival={selectedFestival}
+          isLoading={isLoading}
+          onSelectFestival={setSelectedFestival}
+          onBackToList={() => setSelectedFestival(null)}
+          onClose={() => {
+            setSelectedFestival(null);
+            setIsDatePanelOpen(false);
+          }}
+        />
+      
     </div>
 
-      {isDatePanelOpen && (
-  <>
-    {/* 모바일 배경 */}
-    <button
-      type="button"
-      aria-label="패널 닫기"
-      onClick={() => {
-        setSelectedFestival(null);
-        setIsDatePanelOpen(false);
-      }}
-      className="fixed inset-0 z-40 bg-slate-950/40 lg:hidden"
-    />
-
-    {/* 모바일: 바텀시트 / PC: 오른쪽 패널 */}
-    <aside className="fixed inset-x-0 bottom-0 z-50 max-h-[85dvh] overflow-hidden rounded-t-3xl border border-slate-200 bg-white shadow-2xl lg:static lg:z-auto lg:max-h-none lg:rounded-none lg:shadow-sm">
-      <div className="mx-auto mt-3 h-1.5 w-12 rounded-full bg-slate-300 lg:hidden" />
-
-      {selectedFestival ? (
-        <div className="max-h-[calc(85dvh-18px)] overflow-y-auto lg:max-h-none">
-          <FestivalDetailDrawer
-            festivalId={selectedFestival.id}
-            isOpen={true}
-            onClose={() => setSelectedFestival(null)}
-          />
-        </div>
-      ) : (
-        <>
-          <div className="border-b border-slate-200 px-3 py-3">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold text-slate-700">
-                선택한 날짜
-              </p>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedFestival(null);
-                  setIsDatePanelOpen(false);
-                }}
-                className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-              >
-                닫기
-              </button>
-            </div>
-
-            <div className="mt-3 flex items-center gap-3">
-              <h2 className="text-sm font-bold text-slate-700">
-                {formatKoreanDate(selectedDateKey)}
-              </h2>
-
-              <span className="text-xs text-slate-700">
-                {selectedFestivals.length}개 축제
-              </span>
-            </div>
-          </div>
-
-          <div className="max-h-[calc(85dvh-100px)] overflow-y-auto px-6 py-3 lg:max-h-none">
-            {isLoading ? (
-              <div className="h-32 animate-pulse rounded-2xl bg-slate-100" />
-            ) : (
-              <FestivalList
-                festivals={selectedFestivals}
-                onSelect={(festival) =>
-                  setSelectedFestival(festival)
-                }
-              />
-            )}
-          </div>
-        </>
-      )}
-    </aside>
-  </>
-)}
-    </div>
   </section>
   );
 }

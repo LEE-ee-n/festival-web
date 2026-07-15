@@ -65,8 +65,10 @@ export default function CommonHeader() {
         href="/"
         className="flex items-center gap-2.5 font-bold tracking-tight"
       >
-        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/20 text-indigo-400">
-          ♪
+        <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg bg-festival-coral">
+          <span className="inline-block text-xl leading-none text-white animate-[note-bounce_6s_ease-in-out_infinite]">
+            ♪
+          </span>
         </span>
 
         <span>Festival Calendar</span>

@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Music, Ticket, HandMetal, CalendarDays, Tag } from "lucide-react";
 
 import { formatFestivalPeriod } from "@/lib/calendar";
 import {
@@ -11,6 +9,10 @@ import {
 } from "@/lib/categories";
 import { supabase } from "@/lib/supabase/client";
 import type { Festival } from "@/lib/types";
+import FestivalTimetable from "@/components/festival/FestivalTimetable";
+import FestivalDetailSummary from "@/components/festival/FestivalDetailSummary";
+import FestivalTicketSection from "@/components/festival/FestivalTicketSection";
+import FestivalOfficialLink from "@/components/festival/FestivalOfficialLink";
 
 type FestivalTicketRound = {
   id: number;
@@ -283,21 +285,7 @@ export default function FestivalDetailDrawer({
   });
 
     return (
-      <aside className="h-fit max-h-[calc(100vh-2rem)] overflow-y-auto rounded-3xl border border-slate-200 bg-slate-50 shadow-sm lg:rounded-none lg:sticky lg:top-4">
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white/95 px-3 py-3 backdrop-blur">
-          <p className="text-sm font-semibold text-slate-700">
-            축제 상세정보
-          </p>
-          
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-          >
-            닫기
-          </button>
-        </div>
-
+      <div className="bg-white">
         {isLoading ? (
           <div className="p-6 sm:p-8">
             <div className="animate-pulse rounded-3xl bg-white p-8 shadow-sm">
@@ -320,286 +308,50 @@ export default function FestivalDetailDrawer({
           </div>
         ) : (
           <article className="bg-white">
-            <div>
-              <header className="px-3 pt-3 pb-3">
-                <span
-                  className={[
-                    "inline-flex rounded-full border px-3 py-3 text-sm font-medium",
-                    categoryBadgeClasses[festival.category],
-                  ].join(" ")}
-                >
-                  {categoryLabels[festival.category]}
-                </span>
+            <FestivalDetailSummary
+              festival={festival}
+              categoryLabel={categoryLabels[festival.category]}
+              categoryClassName={
+                categoryBadgeClasses[festival.category]
+              }
+              periodText={formatFestivalPeriod(
+                festival.start_date,
+                festival.end_date,
+              )}
+            />
 
-                <h1 className="mt-3 text-center text-2xl font-bold leading-tight tracking-tight text-slate-700">
-                  {festival.name}
-                </h1>
-              </header>
+            <FestivalTimetable
+              artistsByDateAndStage={artistsByDateAndStage}
+              artistCount={festivalArtists.length}
+            />
 
-              <div className="space-y-3 px-6 pb-3">
-                <dl className="space-y-3">
-                  <div className="grid grid-cols-[44px_minmax(0,1fr)] items-start gap-3 text-sm">
-                    <dt className="text-slate-700">
-                      기간
-                    </dt>
-                    <dd className="font-semibold text-slate-700">
-                      {formatFestivalPeriod(
-                        festival.start_date,
-                        festival.end_date,
-                      )}
-                    </dd>
-                  </div>
+            {festival.program_info && (
+              <section>
+                <h2 className="text-sm font-bold text-slate-700">
+                  프로그램
+                </h2>
 
-                  <div className="grid grid-cols-[44px_minmax(0,1fr)] items-start gap-3 text-sm">
-                    <dt className="text-slate-700">
-                      장소
-                    </dt>
-                    <dd className="font-semibold text-slate-700">
-                      {festival.location || "장소 확인 중"}
-                    </dd>
-                  </div>
+                <p className="mt-3 whitespace-pre-line text-sm leading-7 text-slate-700">
+                  {festival.program_info}
+                </p>
+              </section>
+            )}
 
-                  <div className="grid grid-cols-[44px_minmax(0,1fr)] items-start gap-3 text-sm">
-                    <dt className="text-slate-700">
-                      주소
-                    </dt>
-                    <dd className="break-words font-semibold text-slate-700">
-                      {festival.address || "주소 확인 중"}
-                    </dd>
-                  </div>
+            <FestivalTicketSection
+              ticketRounds={latestTicketRounds}
+              latestOpenAt={latestOpenAt}
+              openAtText={
+                latestOpenAt
+                  ? formatTicketOpenAt(latestOpenAt)
+                  : null
+              }
+            />
 
-                  <div className="grid grid-cols-[44px_minmax(0,1fr)] items-start gap-3 text-sm">
-                    <dt className="text-slate-700">
-                      지역
-                    </dt>
-                    <dd className="font-semibold text-slate-700">
-                      {festival.region || "지역 확인 중"}
-                    </dd>
-                  </div>
-
-                  {festival.price_type && (
-                    <div className="grid grid-cols-[44px_minmax(0,1fr)] items-start gap-3 text-sm">
-                      <dt className="text-slate-700">
-                        요금
-                      </dt>
-                      <dd className="font-semibold text-slate-700">
-                        {festival.price_type === "free" && "무료"}
-                        {festival.price_type === "paid" && "유료"}
-                        {festival.price_type === "partial_free" &&
-                          "부분 무료"}
-                        {festival.price_type === "unknown" &&
-                          "확인 필요"}
-                      </dd>
-                    </div>
-                  )}
-
-                  {festival.price_info && (
-                    <div className="grid grid-cols-[44px_minmax(0,1fr)] items-start gap-3 text-sm">
-                      <dt className="text-slate-700">
-                        가격
-                      </dt>
-                      <dd className="break-words font-semibold text-slate-700">
-                        {festival.price_info}
-                      </dd>
-                    </div>
-                  )}
-                </dl>
-
-                <div>
-                  <div className="border-b border-slate-200" />
-                </div>
- 
-                {festivalArtists.length > 0 && (
-                  <section>
-                    <h2 className="flex items-center justify-center gap-3 text-sm font-bold text-slate-700">
-                      <Music size={16} />
-                      <span>출연진</span>
-                    </h2>
-
-                    <div className="mt-3 space-y-3">
-                      {Object.entries(artistsByDateAndStage).map(
-                        ([date, stageGroups]) => (
-                          <div key={date}>
-                            <h3 className="inline-flex items-center gap-2 rounded-xl bg-slate-800 px-3 py-3 text-sm font-bold text-white">
-                              <CalendarDays size={16} />
-
-                              <span>
-                                {date === "날짜 미정"
-                                  ? date
-                                  : new Intl.DateTimeFormat("ko-KR", {
-                                      timeZone: "Asia/Seoul",
-                                      month: "long",
-                                      day: "numeric",
-                                      weekday: "short",
-                                    }).format(
-                                      new Date(`${date}T00:00:00+09:00`),
-                                    )}
-                              </span>
-                            </h3>
-
-                            <div className="mt-3 space-y-3">
-                              {Object.entries(stageGroups).map(
-                                ([stage, artists]) => (
-                                  <div key={stage}>
-                                    <h4 className="flex items-center gap-2 overflow-hidden rounded-xl border border-slate-200 bg-blue-100 px-3 py-3 text-sm font-bold text-slate-700">
-                                      <HandMetal size={14} />
-                                      <span>{stage}</span>
-                                    </h4>
-
-                                    <div className="divide-y divide-slate-300">
-                                          {artists.map((item) => {
-                                        const artist = Array.isArray(
-                                          item.artists,
-                                        )
-                                          ? item.artists[0]
-                                          : item.artists;
-
-                                        return (
-                                          <div
-                                              key={item.artist_id}
-                                              className="flex items-center justify-between px-6 py-3"
-                                            >
-                                            <div>
-                                              {artist ? (
-                                                <Link
-                                                  href={`/artist/${artist.id}`}
-                                                  className="text-sm font-semibold text-slate-700 hover:text-slate-700 hover:underline"
-                                                >
-                                                  {artist.name}
-                                                </Link>
-                                              ) : (
-                                                <p className="text-sm font-semibold text-slate-700">
-                                                  아티스트 정보 없음
-                                                </p>
-                                              )}
-                                            </div>
-
-                                            {(item.performance_time ||
-                                              item.performance_end_time) && (
-                                              <span className="shrink-0 font-mono text-sm font-medium text-indigo-600">
-                                                {item.performance_time
-                                                  ? item.performance_time.slice(
-                                                      0,
-                                                      5,
-                                                    )
-                                                  : "시작 미정"}
-
-                                                {item.performance_end_time &&
-                                                  ` ~ ${item.performance_end_time.slice(0, 5)}`}
-                                              </span>
-                                            )}
-                                          </div>
-                                        );
-                                      })}
-                                    </div>
-                                  </div>
-                                ),
-                              )}
-                            </div>
-                          </div>
-                        ),
-                      )}
-                    </div>
-                  </section>
-                )}
-
-                {festival.program_info && (
-                  <section>
-                    <h2 className="text-sm font-bold text-slate-700">
-                      프로그램
-                    </h2>
-                    <p className="mt-3 whitespace-pre-line text-sm leading-7 text-slate-700">
-                      {festival.program_info}
-                    </p>
-                  </section>
-                )}
-
-                {latestTicketRounds.length > 0 && (
-  <section>
-    <div>
-      <div className="border-b border-slate-200" />
-    </div>
-
-    <h2 className="mt-3 flex items-center justify-center gap-3 text-sm font-bold text-slate-700">
-      <Ticket size={16} />
-      <span>티켓 안내</span>
-    </h2>
-
-    <div className="mt-3">
-      <h3 className="flex items-center gap-3 overflow-hidden rounded-xl bg-teal-100 px-3 py-3 text-sm font-bold text-slate-700">
-        <Tag size={16} />
-
-        <span>
-          {latestTicketRounds[0].round_name}
-        </span>
-      </h3>
-
-      <div className="mt-3 space-y-3">
-        {latestOpenAt &&
-          new Date(latestOpenAt).getTime() > Date.now() && (
-            <p className="text-sm font-semibold text-slate-700">
-              {formatTicketOpenAt(latestOpenAt)}
-            </p>
-          )}
-
-                      {latestTicketRounds[0].price_info && (
-                        <p className="whitespace-pre-line text-sm leading-6 text-slate-700">
-                          {latestTicketRounds[0].price_info}
-                        </p>
-                      )}
-
-                      {latestOpenAt &&
-                      new Date(latestOpenAt).getTime() <=
-                        Date.now() ? (
-                        <div
-                          className={[
-                            "grid gap-3",
-                            latestTicketRounds.filter((round) => round.ticket_url)
-                              .length === 1
-                              ? "grid-cols-1"
-                              : latestTicketRounds.filter((round) => round.ticket_url)
-                                    .length === 2
-                                ? "grid-cols-2"
-                                : "grid-cols-3",
-                          ].join(" ")}
-                        >
-                          {latestTicketRounds
-                            .filter((round) => round.ticket_url)
-                            .map((round) => (
-                              <a
-                                key={round.id}
-                                href={round.ticket_url || "#"}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="flex w-full items-center justify-center rounded-xl bg-slate-800 px-3 py-3 text-center text-sm font-semibold text-white hover:bg-slate-700"
-                              >
-                                {round.ticket_platform || "예매하기"}
-                              </a>
-                            ))}
-                        </div>
-                      ) : null}
-                    </div>
-                    </div>
-                  </section>
-                )}
-
-                {festival.official_url && (
-                  <section>
-                    <a
-                      href={festival.official_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex w-full items-center justify-center rounded-xl bg-slate-800 px-3 py-3 text-center text-sm font-semibold text-white hover:bg-slate-700"
-
-                    >
-                      공식 홈페이지
-                    </a>
-                  </section>
-                )}
-              </div>
-            </div>
+            <FestivalOfficialLink
+              officialUrl={festival.official_url}
+            />
           </article>
         )}
-      </aside>
-  );
+      </div>
+    );
 }
