@@ -71,7 +71,12 @@ export default function FestivalDetailDrawer({
   const [ticketRounds, setTicketRounds] = useState<
     FestivalTicketRound[]
   >([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isFestivalLoading, setIsFestivalLoading] =
+    useState(false);
+  const [isArtistsLoading, setIsArtistsLoading] =
+    useState(false);
+  const [isTicketsLoading, setIsTicketsLoading] =
+    useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(
     null,
   );
@@ -95,133 +100,171 @@ export default function FestivalDetailDrawer({
   }, [isOpen, onClose]);
 
   useEffect(() => {
-    async function fetchFestivalDetail() {
-      if (!festivalId || !isOpen) {
-        return;
+  if (!festivalId || !isOpen) {
+    return;
+  }
+
+  let isCancelled = false;
+
+  setFestival(null);
+  setFestivalArtists([]);
+  setTicketRounds([]);
+  setErrorMessage(null);
+
+  setIsFestivalLoading(true);
+  setIsArtistsLoading(true);
+  setIsTicketsLoading(true);
+
+  async function fetchFestival() {
+    try {
+      const { data, error } = await supabase
+        .from("festivals")
+        .select(`
+          id,
+          name,
+          start_date,
+          end_date,
+          location,
+          address,
+          region,
+          category,
+          description,
+          official_url,
+          thumbnail_url,
+          price_info,
+          price_type,
+          program_info,
+          source_url,
+          slug,
+          status,
+          confidence_score,
+          verification_status,
+          created_at,
+          updated_at
+        `)
+        .eq("id", festivalId)
+        .eq("verification_status", "approved")
+        .neq("status", "cancelled")
+        .maybeSingle();
+
+      if (error) {
+        throw error;
       }
 
-      try {
-        setIsLoading(true);
-        setErrorMessage(null);
-        setFestival(null);
-        setFestivalArtists([]);
-        setTicketRounds([]);
+      if (!data) {
+        throw new Error("축제를 찾을 수 없습니다.");
+      }
 
-        const [
-          festivalResult,
-          ticketRoundsResult,
-          festivalArtistsResult,
-        ] = await Promise.all([
-          supabase
-            .from("festivals")
-            .select(`
-              id,
-              name,
-              start_date,
-              end_date,
-              location,
-              address,
-              region,
-              category,
-              description,
-              official_url,
-              thumbnail_url,
-              price_info,
-              price_type,
-              program_info,
-              source_url,
-              slug,
-              status,
-              confidence_score,
-              verification_status,
-              created_at,
-              updated_at
-            `)
-            .eq("id", festivalId)
-            .eq("verification_status", "approved")
-            .neq("status", "cancelled")
-            .maybeSingle(),
+      if (!isCancelled) {
+        setFestival(data as Festival);
+      }
+    } catch (error) {
+      console.error(error);
 
-          supabase
-            .from("festival_ticket_rounds")
-            .select(`
-              id,
-              round_type,
-              round_name,
-              open_at,
-              price_info,
-              ticket_url,
-              ticket_platform
-            `)
-            .eq("festival_id", festivalId)
-            .order("open_at", {
-              ascending: true,
-              nullsFirst: false,
-            }),
-
-          supabase
-            .from("festival_artists")
-            .select(`
-              artist_id,
-              performance_date,
-              performance_time,
-              performance_end_time,
-              stage_name,
-              status,
-              artists (
-                id,
-                name
-              )
-            `)
-            .eq("festival_id", festivalId)
-            .neq("status", "cancelled")
-            .order("performance_date", {
-              ascending: true,
-              nullsFirst: false,
-            })
-            .order("performance_time", {
-              ascending: true,
-              nullsFirst: false,
-            }),
-        ]);
-
-        if (festivalResult.error) {
-          throw festivalResult.error;
-        }
-
-        if (ticketRoundsResult.error) {
-          throw ticketRoundsResult.error;
-        }
-
-        if (festivalArtistsResult.error) {
-          throw festivalArtistsResult.error;
-        }
-
-        if (!festivalResult.data) {
-          throw new Error("축제를 찾을 수 없습니다.");
-        }
-
-        setFestival(festivalResult.data as Festival);
-        setTicketRounds(
-          (ticketRoundsResult.data || []) as FestivalTicketRound[],
-        );
-        setFestivalArtists(
-          (festivalArtistsResult.data || []) as FestivalArtist[],
-        );
-      } catch (error) {
-        console.error(error);
+      if (!isCancelled) {
         setErrorMessage(
           error instanceof Error
             ? error.message
             : "축제 정보를 불러오지 못했습니다.",
         );
-      } finally {
-        setIsLoading(false);
+      }
+    } finally {
+      if (!isCancelled) {
+        setIsFestivalLoading(false);
       }
     }
+  }
 
-    void fetchFestivalDetail();
-  }, [festivalId, isOpen]);
+  async function fetchFestivalArtists() {
+    try {
+      const { data, error } = await supabase
+        .from("festival_artists")
+        .select(`
+          artist_id,
+          performance_date,
+          performance_time,
+          performance_end_time,
+          stage_name,
+          status,
+          artists (
+            id,
+            name
+          )
+        `)
+        .eq("festival_id", festivalId)
+        .neq("status", "cancelled")
+        .order("performance_date", {
+          ascending: true,
+          nullsFirst: false,
+        })
+        .order("performance_time", {
+          ascending: true,
+          nullsFirst: false,
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      if (!isCancelled) {
+        setFestivalArtists(
+          (data || []) as FestivalArtist[],
+        );
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      if (!isCancelled) {
+        setIsArtistsLoading(false);
+      }
+    }
+  }
+
+  async function fetchTicketRounds() {
+    try {
+      const { data, error } = await supabase
+        .from("festival_ticket_rounds")
+        .select(`
+          id,
+          round_type,
+          round_name,
+          open_at,
+          price_info,
+          ticket_url,
+          ticket_platform
+        `)
+        .eq("festival_id", festivalId)
+        .order("open_at", {
+          ascending: true,
+          nullsFirst: false,
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      if (!isCancelled) {
+        setTicketRounds(
+          (data || []) as FestivalTicketRound[],
+        );
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      if (!isCancelled) {
+        setIsTicketsLoading(false);
+      }
+    }
+  }
+
+  void fetchFestival();
+  void fetchFestivalArtists();
+  void fetchTicketRounds();
+
+  return () => {
+    isCancelled = true;
+  };
+}, [festivalId, isOpen]);
 
   if (!isOpen || festivalId === null) {
     return null;
@@ -287,7 +330,7 @@ export default function FestivalDetailDrawer({
 
     return (
       <div className="bg-white">
-        {isLoading ? (
+        {isFestivalLoading ? (
           <div className="p-6 sm:p-8">
             <div className="animate-pulse rounded-3xl bg-white p-8 shadow-sm">
               <div className="h-8 w-2/3 rounded bg-slate-200" />
@@ -314,10 +357,21 @@ export default function FestivalDetailDrawer({
               periodText={periodText}
             />
 
-            <FestivalTimetable
-              artistsByDateAndStage={artistsByDateAndStage}
-              artistCount={festivalArtists.length}
-            />
+            {isArtistsLoading ? (
+              <section className="animate-pulse border-b border-slate-200 pt-3">
+                <div className="mx-auto h-5 w-20 rounded bg-slate-200" />
+
+                <div className="space-y-3 pt-3">
+                  <div className="h-20 rounded-xl bg-slate-100" />
+                  <div className="h-20 rounded-xl bg-slate-100" />
+                </div>
+              </section>
+            ) : (
+              <FestivalTimetable
+                artistsByDateAndStage={artistsByDateAndStage}
+                artistCount={festivalArtists.length}
+              />
+            )}
 
             {festival.program_info && (
               <section>
@@ -331,15 +385,25 @@ export default function FestivalDetailDrawer({
               </section>
             )}
 
-            <FestivalTicketSection
-              ticketRounds={latestTicketRounds}
-              latestOpenAt={latestOpenAt}
-              openAtText={
-                latestOpenAt
-                  ? formatTicketOpenAt(latestOpenAt)
-                  : null
-              }
-            />
+            {isTicketsLoading ? (
+              <section className="animate-pulse border-b border-slate-200 pt-3">
+                <div className="mx-auto h-5 w-20 rounded bg-slate-200" />
+
+                <div className="pt-3">
+                  <div className="h-24 rounded-xl bg-slate-100" />
+                </div>
+              </section>
+            ) : (
+              <FestivalTicketSection
+                ticketRounds={latestTicketRounds}
+                latestOpenAt={latestOpenAt}
+                openAtText={
+                  latestOpenAt
+                    ? formatTicketOpenAt(latestOpenAt)
+                    : null
+                }
+              />
+            )}
 
             <FestivalOfficialLink
               officialUrl={festival.official_url}
