@@ -6,6 +6,7 @@ import { useEffect, useRef } from "react";
 
 type FestivalSidePanelProps = {
   isOpen: boolean;
+  hasListContext: boolean;
   dateText: string;
   festivals: Festival[];
   selectedFestival: Festival | null;
@@ -17,6 +18,7 @@ type FestivalSidePanelProps = {
 
 export default function FestivalSidePanel({
   isOpen,
+  hasListContext,
   dateText,
   festivals,
   selectedFestival,
@@ -25,12 +27,17 @@ export default function FestivalSidePanel({
   onBackToList,
   onClose,
 }: FestivalSidePanelProps) {
-  if (!isOpen) {
-    return null;
-  }
+  const contentScrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    contentScrollRef.current?.scrollTo({
+      top: 0,
+      behavior: "auto",
+    });
+  }, [selectedFestival]);
 
   const handleHeaderClose = () => {
-    if (selectedFestival) {
+    if (selectedFestival && hasListContext) {
       onBackToList();
       return;
     }
@@ -38,14 +45,9 @@ export default function FestivalSidePanel({
     onClose();
   };
 
-  const contentScrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    contentScrollRef.current?.scrollTo({
-      top: 0,
-      behavior: "instant",
-    });
-  }, [selectedFestival]);
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <>
@@ -62,15 +64,12 @@ export default function FestivalSidePanel({
         <div className="mx-auto h-1.5 w-12 rounded-full bg-slate-300 lg:hidden" />
 
         <FestivalPanelHeader
-          title={
-            selectedFestival
-              ? "축제 상세정보"
-              : "선택한 날짜"
-          }
+          title={selectedFestival ? "축제 상세정보" : "선택한 날짜"}
           onClose={handleHeaderClose}
         />
 
         <div
+          key={selectedFestival?.id ?? "festival-list"}
           ref={contentScrollRef}
           className="max-h-[calc(85dvh-100px)] overflow-y-auto scrollbar-thin lg:max-h-[calc(100vh-8rem)]"
         >

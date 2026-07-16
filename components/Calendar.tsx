@@ -45,6 +45,8 @@ export default function Calendar() {
   const [festivals, setFestivals] = useState<Festival[]>([]);
   const [selectedFestival, setSelectedFestival] =
     useState<Festival | null>(null);
+  const [hasListContext, setHasListContext] =
+    useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(
     null,
@@ -229,10 +231,12 @@ function handlePointerUp(
               onSelectDate={(dateKey) => {
                 setSelectedDateKey(dateKey);
                 setSelectedFestival(null);
+                setHasListContext(true);
                 setIsDatePanelOpen(true);
               }}
               onSelectFestival={(festival) => {
                 setSelectedFestival(festival);
+                setHasListContext(false);
                 setIsDatePanelOpen(true);
               }}
             />            
@@ -241,11 +245,15 @@ function handlePointerUp(
       </div>
         <FestivalSidePanel
           isOpen={isDatePanelOpen}
+          hasListContext={hasListContext}
           dateText={formatKoreanDate(selectedDateKey)}
           festivals={selectedFestivals}
           selectedFestival={selectedFestival}
           isLoading={isLoading}
-          onSelectFestival={setSelectedFestival}
+          onSelectFestival={(festival) => {
+            setSelectedFestival(festival);
+            setHasListContext(true);
+          }}          
           onBackToList={() => setSelectedFestival(null)}
           onClose={() => {
             setSelectedFestival(null);
