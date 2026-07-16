@@ -9,15 +9,11 @@ type FestivalSummary = {
 
 type FestivalDetailSummaryProps = {
   festival: FestivalSummary;
-  categoryLabel: string;
-  categoryClassName: string;
   periodText: string;
 };
 
 export default function FestivalDetailSummary({
   festival,
-  categoryLabel,
-  categoryClassName,
   periodText,
 }: FestivalDetailSummaryProps) {
   const summaryRowClass =
@@ -25,17 +21,8 @@ export default function FestivalDetailSummary({
 
     return (
     <>
-      <header className="pt-3">
-        <span
-          className={[
-            "inline-flex rounded-full border px-3 py-3 text-sm font-medium",
-            categoryClassName,
-          ].join(" ")}
-        >
-          {categoryLabel}
-        </span>
-
-        <h1 className="pt-3 text-center text-2xl font-bold leading-tight tracking-tight text-slate-700">
+      <header className="pt-6">
+        <h1 className="text-center text-2xl font-bold leading-tight tracking-tight text-slate-700">
           {festival.name}
         </h1>
       </header>
@@ -90,7 +77,7 @@ export default function FestivalDetailSummary({
                 </div>
             )}
             </dl>
-        <div className="pt-3 border-b border-slate-200" />
+        <div className="pt-6 border-b border-slate-200" />
       </>
   );
 }

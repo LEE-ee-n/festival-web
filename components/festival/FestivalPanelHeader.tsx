@@ -17,7 +17,7 @@ export default function FestivalPanelHeader({
         <button
           type="button"
           onClick={onClose}
-          className="rounded-xl border border-slate-200 px-6 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+          className="rounded-xl px-6 py-2 text-sm font-semibold text-slate-700"
         >
           닫기
         </button>

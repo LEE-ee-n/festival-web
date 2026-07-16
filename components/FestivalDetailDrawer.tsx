@@ -3,10 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { formatFestivalPeriod } from "@/lib/calendar";
-import {
-  categoryBadgeClasses,
-  categoryLabels,
-} from "@/lib/categories";
+
 import { supabase } from "@/lib/supabase/client";
 import type { Festival } from "@/lib/types";
 import FestivalTimetable from "@/components/festival/FestivalTimetable";
@@ -230,6 +227,10 @@ export default function FestivalDetailDrawer({
     return null;
   }
 
+  const periodText = festival
+  ? formatFestivalPeriod(festival.start_date, festival.end_date)
+  : "";
+
   const latestOpenAt =
     ticketRounds
       .filter((round) => round.open_at)
@@ -310,14 +311,7 @@ export default function FestivalDetailDrawer({
           <article className="bg-white">
             <FestivalDetailSummary
               festival={festival}
-              categoryLabel={categoryLabels[festival.category]}
-              categoryClassName={
-                categoryBadgeClasses[festival.category]
-              }
-              periodText={formatFestivalPeriod(
-                festival.start_date,
-                festival.end_date,
-              )}
+              periodText={periodText}
             />
 
             <FestivalTimetable

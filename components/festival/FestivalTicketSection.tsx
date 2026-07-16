@@ -34,18 +34,18 @@ export default function FestivalTicketSection({
   return (
     <section>
 
-      <h2 className="mt-6 flex items-center justify-center gap-2 text-sm font-bold text-slate-700">
+      <h2 className="pt-6 flex items-center justify-center gap-2 text-sm font-bold text-slate-700">
         <Ticket size={16} />
         <span>티켓 안내</span>
       </h2>
 
-      <div className="mt-3">
+      <div className="pt-3">
         <h3 className="flex items-center gap-2 px-3 overflow-hidden rounded-xl bg-teal-100 py-3 text-sm font-bold text-slate-700">
           <Tag size={16} />
           <span>{ticketRounds[0].round_name}</span>
         </h3>
 
-        <div className="mt-3">
+        <div className="pt-3">
           {!isOpen && openAtText && (
             <p className="text-sm font-semibold text-slate-700">
               {openAtText}

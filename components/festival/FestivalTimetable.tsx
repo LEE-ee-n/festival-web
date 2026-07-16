@@ -41,7 +41,7 @@ export default function FestivalTimetable({
 
   return (
     <section>
-      <h2 className="flex items-center justify-center gap-2 text-sm mt-6 font-bold text-slate-700">
+      <h2 className="pt-6 flex items-center justify-center gap-2 text-sm font-bold text-slate-700">
         <Music size={16} />
         <span>출연진</span>
       </h2>
@@ -83,7 +83,7 @@ export default function FestivalTimetable({
         )}
       </div>
 
-      <div className="border-b border-slate-200" />
+      <div className="pt-6 border-b border-slate-200" />
 
     </section>
   );

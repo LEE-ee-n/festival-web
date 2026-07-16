@@ -1,5 +1,6 @@
 import FestivalCard from "@/components/FestivalCard";
 import type { Festival } from "@/lib/types";
+import Image from "next/image";
 
 interface FestivalListProps {
   dateText: string;
@@ -30,8 +31,16 @@ export default function FestivalList({
         {isLoading ? (
           <div className="h-32 animate-pulse rounded-2xl bg-slate-100" />
         ) : festivals.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-5 py-12 text-center">
-            <p className="font-medium text-slate-700">
+          <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-center">
+            <Image
+              src="/images/empty/calendar_empty.svg"
+              alt="등록된 축제가 없습니다"
+              width={120}
+              height={120}
+              className="mx-auto"
+            />
+
+            <p className="pt-3 font-medium text-slate-700">
               등록된 축제가 없습니다.
             </p>
 
