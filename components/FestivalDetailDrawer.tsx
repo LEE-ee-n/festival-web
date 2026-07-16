@@ -10,6 +10,9 @@ import FestivalTimetable from "@/components/festival/FestivalTimetable";
 import FestivalDetailSummary from "@/components/festival/FestivalDetailSummary";
 import FestivalTicketSection from "@/components/festival/FestivalTicketSection";
 import FestivalOfficialLink from "@/components/festival/FestivalOfficialLink";
+import FestivalTimetableSkeleton from "@/components/festival/loading/FestivalTimetableSkeleton";
+import FestivalTicketSkeleton from "@/components/festival/loading/FestivalTicketSkeleton";
+import FestivalDetailSkeleton from "@/components/festival/loading/FestivalDetailSkeleton";
 
 type FestivalTicketRound = {
   id: number;
@@ -331,13 +334,7 @@ export default function FestivalDetailDrawer({
     return (
       <div className="bg-white">
         {isFestivalLoading ? (
-          <div className="p-6 sm:p-8">
-            <div className="animate-pulse rounded-3xl bg-white p-8 shadow-sm">
-              <div className="h-8 w-2/3 rounded bg-slate-200" />
-              <div className="mt-6 h-5 w-1/2 rounded bg-slate-100" />
-              <div className="mt-10 h-32 rounded bg-slate-100" />
-            </div>
-          </div>
+          <FestivalDetailSkeleton />
         ) : errorMessage || !festival ? (
           <div className="p-6 sm:p-8">
             <div className="rounded-3xl border border-red-200 bg-white p-8 text-center shadow-sm">
@@ -358,14 +355,7 @@ export default function FestivalDetailDrawer({
             />
 
             {isArtistsLoading ? (
-              <section className="animate-pulse border-b border-slate-200 pt-3">
-                <div className="mx-auto h-5 w-20 rounded bg-slate-200" />
-
-                <div className="space-y-3 pt-3">
-                  <div className="h-20 rounded-xl bg-slate-100" />
-                  <div className="h-20 rounded-xl bg-slate-100" />
-                </div>
-              </section>
+              <FestivalTimetableSkeleton />
             ) : (
               <FestivalTimetable
                 artistsByDateAndStage={artistsByDateAndStage}
@@ -386,13 +376,7 @@ export default function FestivalDetailDrawer({
             )}
 
             {isTicketsLoading ? (
-              <section className="animate-pulse border-b border-slate-200 pt-3">
-                <div className="mx-auto h-5 w-20 rounded bg-slate-200" />
-
-                <div className="pt-3">
-                  <div className="h-24 rounded-xl bg-slate-100" />
-                </div>
-              </section>
+              <FestivalTicketSkeleton />
             ) : (
               <FestivalTicketSection
                 ticketRounds={latestTicketRounds}
