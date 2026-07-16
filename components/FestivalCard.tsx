@@ -41,6 +41,8 @@ export default function FestivalCard({
 
     {festival.thumbnail_url && (
       <div className="hidden aspect-[4/5] w-28 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100 @[360px]:flex">
+        {/* Thumbnail hosts are user-configurable, so keep the original external URL. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={festival.thumbnail_url}
           alt={`${festival.name} 썸네일`}

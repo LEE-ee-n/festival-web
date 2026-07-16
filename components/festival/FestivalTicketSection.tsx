@@ -1,4 +1,5 @@
 import { Tag, Ticket } from "lucide-react";
+import { useState } from "react";
 
 type FestivalTicketRound = {
   id: number;
@@ -19,6 +20,8 @@ export default function FestivalTicketSection({
   latestOpenAt,
   openAtText,
 }: FestivalTicketSectionProps) {
+  const [currentTime] = useState(() => Date.now());
+
   if (ticketRounds.length === 0) {
     return null;
   }
@@ -29,7 +32,7 @@ export default function FestivalTicketSection({
 
   const isOpen =
     latestOpenAt !== null &&
-    new Date(latestOpenAt).getTime() <= Date.now();
+    new Date(latestOpenAt).getTime() <= currentTime;
 
   return (
     <section>

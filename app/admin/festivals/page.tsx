@@ -25,11 +25,9 @@ export default function AdminFestivalsPage() {
     string | null
   >(null);
 
-  useEffect(() => {
-    loadFestivals();
-  }, []);
-
   async function loadFestivals() {
+    await Promise.resolve();
+
     try {
       setIsLoading(true);
       setErrorMessage(null);
@@ -63,6 +61,12 @@ export default function AdminFestivalsPage() {
       setIsLoading(false);
     }
   }
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      void loadFestivals();
+    });
+  }, []);
 
   async function handleDeleteFestival(festival: Festival) {
     const confirmed = window.confirm(

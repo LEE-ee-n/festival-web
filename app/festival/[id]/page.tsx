@@ -73,6 +73,7 @@ export default function FestivalDetailPage() {
     null,
   );
   const [isAdmin, setIsAdmin] = useState(false);
+  const [currentTime] = useState(() => Date.now());
 
   const latestOpenAt =
     ticketRounds
@@ -545,7 +546,7 @@ export default function FestivalDetailPage() {
                   </h3>
 
                   {latestOpenAt &&
-                    new Date(latestOpenAt).getTime() > Date.now() && (
+                    new Date(latestOpenAt).getTime() > currentTime && (
                       <p className="mt-3 font-semibold text-slate-800">
                         {formatTicketOpenAt(latestOpenAt)}
                       </p>
@@ -558,7 +559,7 @@ export default function FestivalDetailPage() {
                   )}
 
                   {latestOpenAt &&
-                  new Date(latestOpenAt).getTime() <= Date.now() ? (
+                  new Date(latestOpenAt).getTime() <= currentTime ? (
                     <div className="mt-4 flex flex-wrap gap-2">
                       {latestTicketRounds
                         .filter((round) => round.ticket_url)

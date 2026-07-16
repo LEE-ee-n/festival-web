@@ -122,6 +122,13 @@ export default function FestivalJsonImportPage() {
       }
 
       if (
+        parsed.artists !== undefined &&
+        !Array.isArray(parsed.artists)
+      ) {
+        throw new Error("artists는 배열이어야 합니다.");
+      }
+
+      if (
         parsed.tickets !== undefined &&
         !Array.isArray(parsed.tickets)
       ) {
@@ -130,7 +137,7 @@ export default function FestivalJsonImportPage() {
 
       setJsonData(parsed);
       setMatchedArtists(
-        parsed.artists.map((artist) => ({
+        (parsed.artists ?? []).map((artist) => ({
             ...artist,
             matchedArtist: null,
             matchStatus: "pending"
@@ -311,6 +318,7 @@ export default function FestivalJsonImportPage() {
                     festival.thumbnail_url || null,
                     price_type: festival.price_type || null,
                     status: festival.status || "scheduled",
+                    verification_status: "approved",
                 })
                 .select("id")
                 .single();
@@ -405,14 +413,19 @@ export default function FestivalJsonImportPage() {
   
   
     function resetPage() {
-    setFileName("");
-    setJsonData(null);
-    setErrorMessage(null);
+      setFileName("");
+      setJsonData(null);
+      setErrorMessage(null);
 
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+      setMatchedArtists([]);
+      setIsMatching(false);
+      setIsImporting(false);
+      setImportResult(null);
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
-  }
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-10">

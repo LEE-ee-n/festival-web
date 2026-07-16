@@ -109,14 +109,19 @@ export default function FestivalDetailDrawer({
 
   let isCancelled = false;
 
-  setFestival(null);
-  setFestivalArtists([]);
-  setTicketRounds([]);
-  setErrorMessage(null);
+  queueMicrotask(() => {
+    if (isCancelled) {
+      return;
+    }
 
-  setIsFestivalLoading(true);
-  setIsArtistsLoading(true);
-  setIsTicketsLoading(true);
+    setFestival(null);
+    setFestivalArtists([]);
+    setTicketRounds([]);
+    setErrorMessage(null);
+    setIsFestivalLoading(true);
+    setIsArtistsLoading(true);
+    setIsTicketsLoading(true);
+  });
 
   async function fetchFestival() {
     try {
