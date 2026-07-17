@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 
 import { supabase } from "@/lib/supabase/client";
 
@@ -21,7 +20,6 @@ function normalizePreview(value: string) {
 }
 
 export default function AdminArtistsPage() {
-  const router = useRouter();
   const [artistName, setArtistName] = useState("");
   const [officialEnglishName, setOfficialEnglishName] =
     useState("");
@@ -54,36 +52,8 @@ export default function AdminArtistsPage() {
   const [isSettingDisplayName, setIsSettingDisplayName] =
     useState(false);
 
-  const [isCheckingSession, setIsCheckingSession] =
-    useState(true);
-
   const searchName =
     officialEnglishName.trim() || artistName.trim();
-      useEffect(() => {
-        async function checkSession() {
-          const {
-            data: { session },
-          } = await supabase.auth.getSession();
-
-          if (!session) {
-            router.replace("/admin/login");
-            return;
-          }
-
-          const { data: isAdmin, error } =
-            await supabase.rpc("is_admin");
-
-          if (error || !isAdmin) {
-            await supabase.auth.signOut();
-            router.replace("/admin/login");
-            return;
-          }
-
-          setIsCheckingSession(false);
-        }
-
-        void checkSession();
-      }, [router]);
 
   
   
@@ -367,17 +337,6 @@ export default function AdminArtistsPage() {
       setIsCreating(false);
     }
   }
-
-    if (isCheckingSession) {
-      return (
-        <main className="flex min-h-screen items-center justify-center bg-slate-50">
-          <p className="text-sm text-slate-500">
-            관리자 권한 확인 중...
-          </p>
-        </main>
-      );
-    }
-
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-8 sm:py-12">

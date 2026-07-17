@@ -1,21 +1,4 @@
-type FestivalArtist = {
-  artist_id: number;
-  performance_date: string | null;
-  performance_time: string | null;
-  performance_end_time: string | null;
-  stage_name: string | null;
-  status: string;
-  artists:
-    | {
-        id: number;
-        name: string;
-      }
-    | {
-        id: number;
-        name: string;
-      }[]
-    | null;
-};
+import type { FestivalArtist } from "@/lib/types";
 
 type LineupByDateAndStage = Record<
   string,

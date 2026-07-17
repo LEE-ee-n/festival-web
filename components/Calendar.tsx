@@ -2,6 +2,11 @@
 
 import { useEffect, useMemo, useState, useRef } from "react";
 import {
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
+import {
   formatKoreanDate,
   getCalendarDays,
   getFestivalsForDate,
@@ -28,35 +33,101 @@ function getFestivalColorClass(festivalId: number) {
   ];
 }
 
-const INITIAL_YEAR = 2026;
-const INITIAL_MONTH_INDEX = 6;
+function getCalendarMonth(
+  searchParams: URLSearchParams,
+  today: Date,
+) {
+  const year = Number(searchParams.get("year"));
+  const month = Number(searchParams.get("month"));
+
+  const hasValidYear =
+    Number.isInteger(year) && year >= 1900 && year <= 2100;
+  const hasValidMonth =
+    Number.isInteger(month) && month >= 1 && month <= 12;
+
+  return {
+    year: hasValidYear ? year : today.getFullYear(),
+    monthIndex: hasValidMonth ? month - 1 : today.getMonth(),
+  };
+}
 
 export default function Calendar() {
-  const [currentYear, setCurrentYear] = useState(INITIAL_YEAR);
-  const [currentMonthIndex, setCurrentMonthIndex] = useState(
-    INITIAL_MONTH_INDEX,
-  );
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const today = useMemo(() => new Date(), []);
+  const { year: currentYear, monthIndex: currentMonthIndex } =
+    useMemo(
+      () => getCalendarMonth(searchParams, today),
+      [searchParams, today],
+    );
 
-  const [selectedDateKey, setSelectedDateKey] =
-    useState("2026-07-01");
-  const [isDatePanelOpen, setIsDatePanelOpen] =
-    useState(false);
+  const [selectedDateKey, setSelectedDateKey] = useState(() => {
+    const initialMonth = getCalendarMonth(searchParams, today);
+    const isCurrentMonth =
+      initialMonth.year === today.getFullYear() &&
+      initialMonth.monthIndex === today.getMonth();
 
+    return isCurrentMonth
+      ? toDateKey(today)
+      : toDateKey(
+          new Date(initialMonth.year, initialMonth.monthIndex, 1),
+        );
+  });
+
+  const [isDatePanelOpen, setIsDatePanelOpen] = useState(false);
   const [festivals, setFestivals] = useState<Festival[]>([]);
   const [selectedFestival, setSelectedFestival] =
     useState<Festival | null>(null);
-  const [hasListContext, setHasListContext] =
-    useState(false);
+  const [hasListContext, setHasListContext] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(
     null,
   );
 
+  const selectedDate = new Date(`${selectedDateKey}T00:00:00`);
+  const isSelectedDateInCurrentMonth =
+    selectedDate.getFullYear() === currentYear &&
+    selectedDate.getMonth() === currentMonthIndex;
+  const activeSelectedDateKey = isSelectedDateInCurrentMonth
+    ? selectedDateKey
+    : toDateKey(new Date(currentYear, currentMonthIndex, 1));
+  const activeSelectedFestival = isSelectedDateInCurrentMonth
+    ? selectedFestival
+    : null;
+  const isActiveDatePanelOpen =
+    isSelectedDateInCurrentMonth && isDatePanelOpen;
+
+  function navigateToMonth(year: number, monthIndex: number) {
+    const nextSearchParams = new URLSearchParams(
+      searchParams.toString(),
+    );
+
+    nextSearchParams.set("year", String(year));
+    nextSearchParams.set("month", String(monthIndex + 1));
+
+    setSelectedDateKey(toDateKey(new Date(year, monthIndex, 1)));
+    setSelectedFestival(null);
+    setIsDatePanelOpen(false);
+    router.push(`${pathname}?${nextSearchParams.toString()}`, {
+      scroll: false,
+    });
+  }
+
   useEffect(() => {
+    let isCancelled = false;
+
     async function fetchFestivals() {
       try {
         setIsLoading(true);
         setErrorMessage(null);
+
+        const monthStart = toDateKey(
+          new Date(currentYear, currentMonthIndex, 1),
+        );
+        const monthEnd = toDateKey(
+          new Date(currentYear, currentMonthIndex + 1, 0),
+        );
 
         const { data, error } = await supabase
           .from("festivals")
@@ -81,31 +152,42 @@ export default function Calendar() {
             confidence_score,
             verification_status,
             created_at,
-            updated_at,
-            thumbnail_url
+            updated_at
           `)
           .eq("verification_status", "approved")
           .neq("status", "cancelled")
+          .lte("start_date", monthEnd)
+          .gte("end_date", monthStart)
           .order("start_date", { ascending: true });
 
         if (error) {
           throw error;
         }
 
-        setFestivals((data ?? []) as Festival[]);
+        if (!isCancelled) {
+          setFestivals((data ?? []) as Festival[]);
+        }
       } catch (error) {
         console.error(error);
 
-        setErrorMessage(
-          "축제 데이터를 불러오지 못했습니다. Supabase 설정을 확인하세요.",
-        );
+        if (!isCancelled) {
+          setErrorMessage(
+            "축제 데이터를 불러오지 못했습니다. Supabase 설정을 확인하세요.",
+          );
+        }
       } finally {
-        setIsLoading(false);
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
       }
     }
 
     void fetchFestivals();
-  }, []);
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [currentMonthIndex, currentYear]);
 
   const calendarDays = useMemo(
     () => getCalendarDays(currentYear, currentMonthIndex),
@@ -126,8 +208,8 @@ export default function Calendar() {
   }, [calendarDays, festivals]);
 
   const selectedFestivals = useMemo(
-    () => getFestivalsForDate(festivals, selectedDateKey),
-    [festivals, selectedDateKey],
+    () => getFestivalsForDate(festivals, activeSelectedDateKey),
+    [activeSelectedDateKey, festivals],
   );
 
   const pointerStartX = useRef<number | null>(null);
@@ -140,9 +222,7 @@ export default function Calendar() {
       1,
     );
 
-    setCurrentYear(nextMonth.getFullYear());
-    setCurrentMonthIndex(nextMonth.getMonth());
-    setSelectedDateKey(toDateKey(nextMonth));
+    navigateToMonth(nextMonth.getFullYear(), nextMonth.getMonth());
   }
 
   function handlePointerDown(
@@ -185,11 +265,20 @@ function handlePointerUp(
 }
 
   function moveToToday() {
-    const today = new Date();
-
-    setCurrentYear(today.getFullYear());
-    setCurrentMonthIndex(today.getMonth());
     setSelectedDateKey(toDateKey(today));
+    setSelectedFestival(null);
+    setIsDatePanelOpen(false);
+
+    const nextSearchParams = new URLSearchParams(
+      searchParams.toString(),
+    );
+    nextSearchParams.delete("year");
+    nextSearchParams.delete("month");
+
+    const query = nextSearchParams.toString();
+    router.push(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
   }
 
   return (
@@ -197,7 +286,7 @@ function handlePointerUp(
     <div
       className={[
         "grid items-start gap-6",
-        isDatePanelOpen
+        isActiveDatePanelOpen
           ? "lg:grid-cols-[minmax(0,1.3fr)_minmax(340px,0.6fr)]"
           : "lg:grid-cols-1",
       ].join(" ")}
@@ -223,7 +312,7 @@ function handlePointerUp(
             <CalendarGrid
               calendarDays={calendarDays}
               festivalsByDate={festivalsByDate}
-              selectedDateKey={selectedDateKey}
+              selectedDateKey={activeSelectedDateKey}
               isLoading={isLoading}
               getFestivalColorClass={getFestivalColorClass}
               onPointerDown={handlePointerDown}
@@ -244,11 +333,11 @@ function handlePointerUp(
         </div>
       </div>
         <FestivalSidePanel
-          isOpen={isDatePanelOpen}
+          isOpen={isActiveDatePanelOpen}
           hasListContext={hasListContext}
-          dateText={formatKoreanDate(selectedDateKey)}
+          dateText={formatKoreanDate(activeSelectedDateKey)}
           festivals={selectedFestivals}
-          selectedFestival={selectedFestival}
+          selectedFestival={activeSelectedFestival}
           isLoading={isLoading}
           onSelectFestival={(festival) => {
             setSelectedFestival(festival);

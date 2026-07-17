@@ -1,7 +1,7 @@
 # Festival Web
 
 ## 기술
-- Next.js 14
+- Next.js 16
 - TypeScript
 - Tailwind
 - Supabase
@@ -12,7 +12,7 @@
 - festivals
 - festival_artists
 - festival_ticket_rounds
-- admin_users
+- profiles (`role = 'admin'`이 관리자 권한의 기준)
 
 ## 현재 규칙
 - artists.name: 대표 표시 이름

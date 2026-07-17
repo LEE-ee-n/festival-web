@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { supabase } from "@/lib/supabase/client";
+import { getCurrentAdminAccess } from "@/lib/auth/getCurrentAdminAccess";
 
 export default function CommonHeader() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -12,26 +13,19 @@ export default function CommonHeader() {
 
   useEffect(() => {
     async function loadAuthState() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      try {
+        const { user, isAdmin: hasAdminAccess } =
+          await getCurrentAdminAccess();
 
-      setUserEmail(user?.email ?? null);
-
-      if (!user) {
+        setUserEmail(user?.email ?? null);
+        setIsAdmin(hasAdminAccess);
+      } catch (error) {
+        console.error("Failed to load authentication state", error);
+        setUserEmail(null);
         setIsAdmin(false);
+      } finally {
         setIsLoading(false);
-        return;
       }
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single();
-
-      setIsAdmin(profile?.role === "admin");
-      setIsLoading(false);
     }
 
     void loadAuthState();
@@ -39,7 +33,9 @@ export default function CommonHeader() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(() => {
-      void loadAuthState();
+      queueMicrotask(() => {
+        void loadAuthState();
+      });
     });
 
     return () => {

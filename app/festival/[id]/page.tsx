@@ -9,37 +9,13 @@ import {
   categoryBadgeClasses,
   categoryLabels,
 } from "@/lib/categories";
-import { supabase } from "@/lib/supabase/client";
-import type { Festival } from "@/lib/types";
-
-  type FestivalTicketRound = {
-    id: number;
-    round_type: string | null;
-    round_name: string;
-    open_at: string | null;
-    price_info: string | null;
-    ticket_url: string | null;
-    ticket_platform: string | null;
-  };
-
-  type FestivalArtist = {
-    artist_id: number;
-    performance_date: string | null;
-    performance_time: string | null;
-    performance_end_time: string | null;
-    stage_name: string | null;
-    status: string;
-    artists:
-      | {
-          id: number;
-          name: string;
-        }
-      | {
-          id: number;
-          name: string;
-        }[]
-      | null;
-  };
+import { getCurrentAdminAccess } from "@/lib/auth/getCurrentAdminAccess";
+import { useCurrentTimeAt } from "@/lib/hooks/useCurrentTimeAt";
+import { useFestivalDetail } from "@/lib/hooks/useFestivalDetail";
+import {
+  getLatestTicketRoundGroup,
+  getOpenTicketLinks,
+} from "@/lib/festivals/ticketDisplay";
 
   function formatTicketOpenAt(openAt: string) {
     return new Intl.DateTimeFormat("ko-KR", {
@@ -58,216 +34,39 @@ export default function FestivalDetailPage() {
   const params = useParams<{ id: string }>();
   const festivalId = params.id;
 
-  const [festival, setFestival] = useState<Festival | null>(null);
-
-  const [festivalArtists, setFestivalArtists] = useState<
-    FestivalArtist[]
-  >([]);
-
-  const [ticketRounds, setTicketRounds] = useState<
-    FestivalTicketRound[]
-  >([]);
-
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(
-    null,
-  );
+  const {
+    festival,
+    festivalArtists,
+    ticketRounds,
+    artistsByDateAndStage,
+    isLoading,
+    errorMessage,
+  } = useFestivalDetail(festivalId);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [currentTime] = useState(() => Date.now());
 
-  const latestOpenAt =
-    ticketRounds
-      .filter((round) => round.open_at)
-      .map((round) => round.open_at as string)
-      .sort(
-        (a, b) =>
-          new Date(b).getTime() - new Date(a).getTime(),
-      )[0] ?? null;
+  const {
+    latestOpenAt,
+    latestTicketRounds,
+    ticketInfo: latestTicketInfo,
+  } = getLatestTicketRoundGroup(ticketRounds);
 
-  const latestTicketRounds = latestOpenAt
-    ? ticketRounds.filter(
-        (round) => round.open_at === latestOpenAt,
-      )
-    : [];
+  const currentTime = useCurrentTimeAt(latestOpenAt);
+  const ticketLinks = getOpenTicketLinks(
+    latestTicketRounds,
+    latestOpenAt,
+    currentTime,
+  );
 
-    const artistsByDateAndStage = festivalArtists.reduce<
-      Record<string, Record<string, FestivalArtist[]>>
-    >((dateGroups, item) => {
-      const date = item.performance_date || "날짜 미정";
-      const stage = item.stage_name?.trim() || "무대 미정";
-
-      if (!dateGroups[date]) {
-        dateGroups[date] = {};
-      }
-
-      if (!dateGroups[date][stage]) {
-        dateGroups[date][stage] = [];
-      }
-
-      dateGroups[date][stage].push(item);
-
-      return dateGroups;
-    }, {});
-
-    Object.values(artistsByDateAndStage).forEach((stageGroups) => {
-      Object.values(stageGroups).forEach((artists) => {
-        artists.sort((a, b) => {
-          if (!a.performance_time && !b.performance_time) {
-            return 0;
-          }
-
-          if (!a.performance_time) {
-            return 1;
-          }
-
-          if (!b.performance_time) {
-            return -1;
-          }
-
-          return a.performance_time.localeCompare(b.performance_time);
-        });
-      });
-    });
-  
   useEffect(() => {
     async function checkAdminSession() {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { isAdmin: hasAdminAccess } =
+        await getCurrentAdminAccess();
 
-      setIsAdmin(Boolean(session));
+      setIsAdmin(hasAdminAccess);
     }
 
     void checkAdminSession();
   }, []);
-
-  useEffect(() => {
-    async function fetchFestival() {
-      try {
-        setIsLoading(true);
-        setErrorMessage(null);
-
-        const [
-          festivalResult,
-          ticketRoundsResult,
-          festivalArtistsResult,
-        ] = await Promise.all([
-          supabase
-            .from("festivals")
-            .select(`
-              id,
-              name,
-              start_date,
-              end_date,
-              location,
-              address,
-              region,
-              category,
-              description,
-              official_url,
-              thumbnail_url,
-              price_info,
-              price_type,
-              program_info,
-              source_url,
-              slug,
-              status,
-              confidence_score,
-              verification_status,
-              created_at,
-              updated_at
-            `)
-            .eq("id", festivalId)
-            .eq("verification_status", "approved")
-            .neq("status", "cancelled")
-            .maybeSingle(),
-
-          supabase
-            .from("festival_ticket_rounds")
-            .select(`
-              id,
-              round_type,
-              round_name,
-              open_at,
-              price_info,
-              ticket_url,
-              ticket_platform
-            `)
-            .eq("festival_id", festivalId)
-            .order("open_at", {
-              ascending: true,
-              nullsFirst: false,
-            }),
-
-          supabase
-            .from("festival_artists")
-            .select(`
-              artist_id,
-              performance_date,
-              performance_time,
-              performance_end_time,
-              stage_name,
-              status,
-              artists (
-                id,
-                name
-              )
-            `)
-            .eq("festival_id", festivalId)
-            .neq("status", "cancelled")
-            .order("performance_date", {
-              ascending: true,
-              nullsFirst: false,
-            })
-            .order("performance_time", {
-              ascending: true,
-              nullsFirst: false,
-            }),
-        ]);
-
-        if (festivalResult.error) {
-          throw festivalResult.error;
-        }
-
-        if (ticketRoundsResult.error) {
-          throw ticketRoundsResult.error;
-        }
-
-        if (festivalArtistsResult.error) {
-          throw festivalArtistsResult.error;
-        }
-
-        if (!festivalResult.data) {
-          throw new Error("축제를 찾을 수 없습니다.");
-        }
-
-        setFestival(festivalResult.data as Festival);
-
-        setTicketRounds(
-          (ticketRoundsResult.data || []) as FestivalTicketRound[],
-        );
-
-        setFestivalArtists(
-          (festivalArtistsResult.data || []) as FestivalArtist[],
-        );
-
-      } catch (error) {
-        console.error(error);
-
-        setErrorMessage(
-          error instanceof Error
-            ? error.message
-            : "축제 정보를 불러오지 못했습니다.",
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    if (festivalId) {
-      void fetchFestival();
-    }
-  }, [festivalId]);
 
   if (isLoading) {
     return (
@@ -541,29 +340,29 @@ export default function FestivalDetailPage() {
                 </h2>
 
                 <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                  <h3 className="font-bold text-slate-900">
-                    {latestTicketRounds[0].round_name}
-                  </h3>
+                  {latestTicketInfo && (
+                    <div className="mt-3 rounded-xl bg-white p-4">
+                      <h3 className="font-bold text-slate-900">
+                        {latestTicketInfo.round_name}
+                      </h3>
 
-                  {latestOpenAt &&
-                    new Date(latestOpenAt).getTime() > currentTime && (
-                      <p className="mt-3 font-semibold text-slate-800">
-                        {formatTicketOpenAt(latestOpenAt)}
-                      </p>
-                    )}
+                      {latestOpenAt && (
+                        <p className="mt-2 text-sm font-semibold text-slate-700">
+                          {formatTicketOpenAt(latestOpenAt)}
+                        </p>
+                      )}
 
-                  {latestTicketRounds[0].price_info && (
-                    <p className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-600">
-                      {latestTicketRounds[0].price_info}
-                    </p>
+                      {latestTicketInfo.price_info && (
+                        <p className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-600">
+                          {latestTicketInfo.price_info}
+                        </p>
+                      )}
+                    </div>
                   )}
 
-                  {latestOpenAt &&
-                  new Date(latestOpenAt).getTime() <= currentTime ? (
+                  {ticketLinks.length > 0 ? (
                     <div className="mt-4 flex flex-wrap gap-2">
-                      {latestTicketRounds
-                        .filter((round) => round.ticket_url)
-                        .map((round) => (
+                      {ticketLinks.map((round) => (
                           <a
                             key={round.id}
                             href={round.ticket_url || "#"}

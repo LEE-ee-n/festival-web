@@ -60,3 +60,28 @@ export interface CalendarDay {
   isCurrentMonth: boolean;
   isToday: boolean;
 }
+
+export interface ArtistReference {
+  id: number;
+  name: string;
+}
+
+export interface FestivalArtist {
+  artist_id: number;
+  performance_date: string | null;
+  performance_time: string | null;
+  performance_end_time: string | null;
+  stage_name: string | null;
+  status: string;
+  artists: ArtistReference | ArtistReference[] | null;
+}
+
+export interface FestivalTicketRound {
+  id: number;
+  round_type: string | null;
+  round_name: string;
+  open_at: string | null;
+  price_info: string | null;
+  ticket_url: string | null;
+  ticket_platform: string | null;
+}

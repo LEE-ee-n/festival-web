@@ -1,12 +1,4 @@
-type FestivalTicketRound = {
-  id: number;
-  round_type: string | null;
-  round_name: string;
-  open_at: string | null;
-  price_info: string | null;
-  ticket_url: string | null;
-  ticket_platform: string | null;
-};
+import type { FestivalTicketRound } from "@/lib/types";
 
 type TicketTabProps = {
   newRoundType: string;

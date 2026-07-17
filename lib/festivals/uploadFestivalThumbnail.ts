@@ -1,14 +1,16 @@
 import { supabase } from "@/lib/supabase/client";
+import {
+  getFestivalThumbnailExtension,
+  validateFestivalThumbnailFile,
+} from "@/lib/festivals/thumbnailValidation";
 
 export async function uploadFestivalThumbnail(
   festivalId: string,
   file: File,
 ) {
-  if (!file.type.startsWith("image/")) {
-    throw new Error("이미지 파일만 업로드할 수 있습니다.");
-  }
+  await validateFestivalThumbnailFile(file);
 
-  const extension = file.name.split(".").pop() || "webp";
+  const extension = getFestivalThumbnailExtension(file);
 
   const filePath = `${festivalId}/${Date.now()}.${extension}`;
 
@@ -16,6 +18,7 @@ export async function uploadFestivalThumbnail(
     .from("festival-thumbnails")
     .upload(filePath, file, {
       upsert: false,
+      contentType: file.type,
     });
 
   if (uploadError) {

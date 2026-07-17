@@ -1,36 +1,18 @@
 import { supabase } from "@/lib/supabase/client";
+import type { FestivalBasicInfoInput } from "@/lib/festivals/updateFestivalBasicInfo";
 import { validateFestivalThumbnailUrl } from "@/lib/festivals/thumbnailValidation";
 
-export type FestivalBasicInfoInput = {
-  name: string;
-  startDate: string;
-  endDate: string;
-  location: string;
-  address: string;
-  region: string;
-  category: string;
-  description: string;
-  thumbnailUrl: string;
-  officialUrl: string;
-  priceType: string;
-  priceInfo: string;
-  programInfo: string;
-  status: string;
-  verificationStatus: string;
-};
-
-export async function updateFestivalBasicInfo(
-  festivalId: string,
+export async function createFestival(
   input: FestivalBasicInfoInput,
 ) {
   validateFestivalThumbnailUrl(input.thumbnailUrl);
 
   const { data, error } = await supabase
     .from("festivals")
-    .update({
+    .insert({
       name: input.name.trim(),
-      start_date: input.startDate || null,
-      end_date: input.endDate || null,
+      start_date: input.startDate,
+      end_date: input.endDate,
       location: input.location.trim() || null,
       address: input.address.trim() || null,
       region: input.region.trim() || null,
@@ -41,19 +23,16 @@ export async function updateFestivalBasicInfo(
       price_type: input.priceType || null,
       price_info: input.priceInfo.trim() || null,
       program_info: input.programInfo.trim() || null,
-      status: input.status || null,
-      verification_status: input.verificationStatus || "pending",
+      status: input.status || "scheduled",
+      verification_status:
+        input.verificationStatus || "pending",
     })
-    .eq("id", festivalId)
-    .select("id");
+    .select("id")
+    .single();
 
   if (error) {
     throw error;
   }
 
-  if (!data || data.length === 0) {
-    throw new Error(
-      "수정된 데이터가 없습니다. festivals 테이블의 UPDATE 권한을 확인하세요.",
-    );
-  }
+  return data.id as number;
 }

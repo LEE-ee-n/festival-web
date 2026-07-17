@@ -1,20 +1,5 @@
 import Link from "next/link";
-
-type FestivalArtist = {
-  artist_id: number;
-  performance_time: string | null;
-  performance_end_time: string | null;
-  artists:
-    | {
-        id: number;
-        name: string;
-      }
-    | {
-        id: number;
-        name: string;
-      }[]
-    | null;
-};
+import type { FestivalArtist } from "@/lib/types";
 
 type ArtistScheduleRowProps = {
   item: FestivalArtist;

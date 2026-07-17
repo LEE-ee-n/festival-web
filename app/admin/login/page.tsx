@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { supabase } from "@/lib/supabase/client";
+import { getCurrentAdminAccess } from "@/lib/auth/getCurrentAdminAccess";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -38,32 +39,14 @@ export default function AdminLoginPage() {
         );
         }
 
-        const { error: sessionError } =
-        await supabase.auth.setSession({
-            access_token: data.session.access_token,
-            refresh_token: data.session.refresh_token,
-        });
+      const { isAdmin } = await getCurrentAdminAccess();
 
-        if (sessionError) {
-        throw sessionError;
-        }
+      if (!isAdmin) {
+        await supabase.auth.signOut();
+        throw new Error("관리자 권한이 없는 계정입니다.");
+      }
 
-        const {
-        data: { session: savedSession },
-        } = await supabase.auth.getSession();
-
-        console.log("로그인 직후 세션:", savedSession);
-
-        if (!savedSession) {
-        throw new Error(
-            "로그인 세션을 브라우저에 저장하지 못했습니다.",
-        );
-        }
-
-        router.replace("/");
-        router.refresh();
-
-      router.refresh();
+      router.replace("/admin");
     } catch (error) {
       console.error(error);
 

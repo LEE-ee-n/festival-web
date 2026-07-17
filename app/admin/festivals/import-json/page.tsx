@@ -246,126 +246,6 @@ export default function FestivalJsonImportPage() {
             setErrorMessage(null);
             setImportResult(null);
 
-            const festival = jsonData.festival;
-
-            const { data: existingFestivals, error: searchError } =
-            await supabase
-                .from("festivals")
-                .select("id")
-                .eq("name", festival.name)
-                .eq("start_date", festival.start_date)
-                .eq("end_date", festival.end_date)
-                .limit(1);
-
-            if (searchError) {
-            throw searchError;
-            }
-
-            let festivalId: number | null = null;
-
-            if (existingFestivals?.length) {
-              festivalId = existingFestivals[0].id;
-
-              const { error: updateError } = await supabase
-                .from("festivals")
-                .update({
-                  name: festival.name,
-                  normalized_name: festival.normalized_name || null,
-                  search_aliases: festival.search_aliases || null,
-                  start_date: festival.start_date,
-                  end_date: festival.end_date,
-                  location: festival.location || null,
-                  address: festival.address || null,
-                  region: festival.region || null,
-                  category: festival.category || null,
-                  description: festival.description || null,
-                  price_info: festival.price_info || null,
-                  program_info: festival.program_info || null,
-                  source_url: festival.source_url || null,
-                  official_url: festival.official_url || null,
-                  thumbnail_url: festival.thumbnail_url || null,
-                  price_type: festival.price_type || null,
-                  status: festival.status || "scheduled",
-                  verification_status: "approved",
-                })
-                .eq("id", festivalId);
-
-              if (updateError) {
-                throw updateError;
-              }
-            } else {
-            const { data: createdFestival, error: insertError } =
-                await supabase
-                .from("festivals")
-
-                .insert({
-                    name: festival.name,
-                    normalized_name: festival.normalized_name || null,
-                    search_aliases:
-                    festival.search_aliases || null,
-                    start_date: festival.start_date,
-                    end_date: festival.end_date,
-                    location: festival.location || null,
-                    address: festival.address || null,
-                    region: festival.region || null,
-                    category: festival.category || null,
-                    description: festival.description || null,
-                    price_info: festival.price_info || null,
-                    program_info: festival.program_info || null,
-                    source_url: festival.source_url || null,
-                    official_url: festival.official_url || null,
-                    thumbnail_url:
-                    festival.thumbnail_url || null,
-                    price_type: festival.price_type || null,
-                    status: festival.status || "scheduled",
-                    verification_status: "approved",
-                })
-                .select("id")
-                .single();
-
-            if (insertError) {
-                throw insertError;
-            }
-            
-            
-            festivalId = createdFestival.id;
-            }
-
-            if (festivalId === null) {
-              throw new Error("페스티벌 ID를 확인하지 못했습니다.");
-            }
-
-            if (jsonData.tickets) {
-              const { error: deleteTicketsError } = await supabase
-                .from("festival_ticket_rounds")
-                .delete()
-                .eq("festival_id", festivalId);
-
-              if (deleteTicketsError) {
-                throw deleteTicketsError;
-              }
-
-              if (jsonData.tickets.length > 0) {
-                const ticketsPayload = jsonData.tickets.map((ticket) => ({
-                  festival_id: festivalId,
-                  round_type: ticket.round_type || null,
-                  round_name: ticket.round_name || "일반 예매",
-                  open_at: ticket.open_at || null,
-                  price_info: ticket.price_info || null,
-                  ticket_url: ticket.ticket_url || null,
-                  ticket_platform: ticket.ticket_platform || null,
-                }));
-
-                const { error: ticketsError } = await supabase
-                  .from("festival_ticket_rounds")
-                  .insert(ticketsPayload);
-
-                if (ticketsError) {
-                  throw ticketsError;
-                }
-              }
-            }
-
             const artistsPayload = matchedArtists.map(
               (artist) => ({
                 input_name: artist.input_name,
@@ -384,11 +264,12 @@ export default function FestivalJsonImportPage() {
             );
 
             const { data, error } = await supabase.rpc(
-            "import_festival_lineup",
-            {
-                p_festival_id: festivalId,
+              "import_festival_json",
+              {
+                p_festival: jsonData.festival,
+                p_tickets: jsonData.tickets ?? null,
                 p_artists: artistsPayload,
-            },
+              },
             );
 
             if (error) {

@@ -1,4 +1,13 @@
+import {
+  FESTIVAL_THUMBNAIL_ACCEPT,
+  validateFestivalThumbnailFile,
+} from "@/lib/festivals/thumbnailValidation";
+
 type BasicInfoTabProps = {
+  title?: string;
+  saveButtonLabel?: string;
+  canManageThumbnail?: boolean;
+
   festivalName: string;
   setFestivalName: (value: string) => void;
 
@@ -45,6 +54,9 @@ type BasicInfoTabProps = {
   festivalStatus: string;
   setFestivalStatus: (value: string) => void;
 
+  verificationStatus: string;
+  setVerificationStatus: (value: string) => void;
+
   priceInfo: string;
   setPriceInfo: (value: string) => void;
 
@@ -56,6 +68,9 @@ type BasicInfoTabProps = {
 };
 
 export default function BasicInfoTab({
+  title = "기본정보 관리",
+  saveButtonLabel = "기본정보 저장",
+  canManageThumbnail = true,
   festivalName,
   setFestivalName,
   startDate,
@@ -87,6 +102,8 @@ export default function BasicInfoTab({
   setPriceType,
   festivalStatus,
   setFestivalStatus,
+  verificationStatus,
+  setVerificationStatus,
   priceInfo,
   setPriceInfo,
   programInfo,
@@ -99,7 +116,7 @@ export default function BasicInfoTab({
 
           <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-lg font-bold text-slate-900">
-              기본정보 관리
+              {title}
             </h2>
 
             <div className="mt-5">
@@ -215,45 +232,69 @@ export default function BasicInfoTab({
               />
             </div>
 
-            <div className="mt-3 flex flex-wrap items-center gap-3">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(event) => {
-                  const file = event.target.files?.[0] ?? null;
+            {canManageThumbnail ? (
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <input
+                  type="file"
+                  accept={FESTIVAL_THUMBNAIL_ACCEPT}
+                  onChange={async (event) => {
+                    const file = event.target.files?.[0] ?? null;
 
-                  setThumbnailFile(file);
+                    if (file) {
+                      try {
+                        await validateFestivalThumbnailFile(file);
+                      } catch (error) {
+                        setThumbnailFile(null);
+                        setThumbnailPreview("");
+                        event.target.value = "";
+                        window.alert(
+                          error instanceof Error
+                            ? error.message
+                            : "썸네일 파일을 확인할 수 없습니다.",
+                        );
+                        return;
+                      }
 
-                  if (file) {
-                    setThumbnailPreview(URL.createObjectURL(file));
-                  } else {
-                    setThumbnailPreview("");
-                  }
-                }}
-                className="block text-sm text-slate-600"
-              />
+                      setThumbnailFile(file);
+                      setThumbnailPreview(URL.createObjectURL(file));
+                    } else {
+                      setThumbnailFile(null);
+                      setThumbnailPreview("");
+                    }
+                  }}
+                  className="block text-sm text-slate-600"
+                />
 
-              <button
-                type="button"
-                onClick={uploadThumbnail}
-                disabled={isUploadingThumbnail || !thumbnailFile}
-                className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
-              >
-                {isUploadingThumbnail
-                  ? "업로드 중..."
-                  : "썸네일 업로드"}
-              </button>
+                <p className="w-full text-xs text-slate-500">
+                  JPG, PNG, WebP · 최대 5MB
+                </p>
 
-              {thumbnailUrl && (
                 <button
                   type="button"
-                  onClick={deleteThumbnail}
-                  className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white"
+                  onClick={uploadThumbnail}
+                  disabled={isUploadingThumbnail || !thumbnailFile}
+                  className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
                 >
-                  썸네일 삭제
+                  {isUploadingThumbnail
+                    ? "업로드 중..."
+                    : "썸네일 업로드"}
                 </button>
-              )}
-            </div>
+
+                {thumbnailUrl && (
+                  <button
+                    type="button"
+                    onClick={deleteThumbnail}
+                    className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white"
+                  >
+                    썸네일 삭제
+                  </button>
+                )}
+              </div>
+            ) : (
+              <p className="mt-2 text-sm text-slate-500">
+                파일 업로드는 축제를 등록한 뒤 관리 페이지에서 할 수 있습니다.
+              </p>
+            )}
             
             {(thumbnailPreview || thumbnailUrl) && (
               <div className="mt-4 flex aspect-[4/5] w-full max-w-sm items-center justify-center overflow-hidden rounded-xl bg-slate-100">
@@ -316,6 +357,23 @@ export default function BasicInfoTab({
                   <option value="cancelled">취소</option>
                 </select>
               </div>
+
+              <div>
+                <label className="text-sm font-semibold text-slate-700">
+                  공개 승인 상태
+                </label>
+                <select
+                  value={verificationStatus}
+                  onChange={(event) =>
+                    setVerificationStatus(event.target.value)
+                  }
+                  className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm"
+                >
+                  <option value="pending">비공개·검토 중</option>
+                  <option value="approved">공개 승인</option>
+                  <option value="rejected">공개 제외</option>
+                </select>
+              </div>
             </div>
 
             <div className="mt-5">
@@ -348,7 +406,7 @@ export default function BasicInfoTab({
                 disabled={isSavingBasic}
                 className="mt-4 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white disabled:opacity-50"
               >
-                {isSavingBasic ? "저장 중..." : "기본정보 저장"}
+                {isSavingBasic ? "저장 중..." : saveButtonLabel}
               </button>
             </div>
           </section>       

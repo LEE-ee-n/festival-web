@@ -1,4 +1,5 @@
 import type { Festival } from "@/lib/types";
+import { getFestivalBarSegment } from "@/lib/calendarFestivalBar";
 
 type CalendarDay = {
   dateKey: string;
@@ -71,34 +72,15 @@ export default function CalendarDayCell({
               const startsToday =
                 festival.start_date === day.dateKey;
 
-              const endsToday =
-                festival.end_date === day.dateKey;
-
               const isRowStart = dayIndex % 7 === 0;
               const showName = startsToday || isRowStart;
 
-              const currentDate = new Date(
-                `${day.dateKey}T00:00:00`,
-              );
-
-              const festivalEndDate = new Date(
-                `${festival.end_date}T00:00:00`,
-              );
-
-              const remainingFestivalDays =
-                Math.floor(
-                  (festivalEndDate.getTime() -
-                    currentDate.getTime()) /
-                    (1000 * 60 * 60 * 24),
-                ) + 1;
-
-              const remainingDaysInRow =
-                7 - (dayIndex % 7);
-
-              const spanDays = Math.min(
-                remainingFestivalDays,
-                remainingDaysInRow,
-              );
+              const { spanDays, endsInThisRow } =
+                getFestivalBarSegment(
+                  day.dateKey,
+                  festival.end_date,
+                  dayIndex,
+                );
 
               return (
                 <div
@@ -137,7 +119,7 @@ export default function CalendarDayCell({
                           "absolute left-0 top-0 flex h-6 cursor-pointer items-center gap-1.5 overflow-hidden px-2 text-left hover:opacity-90",
                           getFestivalColorClass(festival.id),
                           startsToday ? "rounded-l-full" : "",
-                          endsToday ? "rounded-r-full" : "",
+                          endsInThisRow ? "rounded-r-full" : "",
                         ].join(" ")}
                       >
                         <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-white/80" />

@@ -1,7 +1,13 @@
+# 운영 DB 칼럼
+
+2026-07-17 Supabase `information_schema.columns` 조회 결과 기준이다.
+
 | table_name             | column_name         | data_type                | is_nullable | column_default                            |
 | ---------------------- | ------------------- | ------------------------ | ----------- | ----------------------------------------- |
-| admin_users            | user_id             | uuid                     | NO          | null                                      |
-| admin_users            | created_at          | timestamp with time zone | NO          | now()                                     |
+| profiles               | id                  | uuid                     | NO          | null                                      |
+| profiles               | role                | text                     | NO          | 'user'::text                              |
+| profiles               | created_at          | timestamp with time zone | NO          | now()                                     |
+| profiles               | updated_at          | timestamp with time zone | NO          | now()                                     |
 | artist_aliases         | id                  | bigint                   | NO          | null                                      |
 | artist_aliases         | artist_id           | bigint                   | NO          | null                                      |
 | artist_aliases         | alias_name          | text                     | NO          | null                                      |
@@ -22,6 +28,7 @@
 | festival_artists       | status              | text                     | YES         | 'confirmed'::text                         |
 | festival_artists       | source_url          | text                     | YES         | null                                      |
 | festival_artists       | created_at          | timestamp with time zone | YES         | now()                                     |
+| festival_artists       | performance_end_time| time without time zone   | YES         | null                                      |
 | festival_candidates    | id                  | bigint                   | NO          | null                                      |
 | festival_candidates    | title               | text                     | NO          | null                                      |
 | festival_candidates    | source_url          | text                     | NO          | null                                      |
@@ -44,11 +51,9 @@
 | festival_ticket_rounds | round_type          | text                     | YES         | null                                      |
 | festival_ticket_rounds | round_name          | text                     | NO          | null                                      |
 | festival_ticket_rounds | open_at             | timestamp with time zone | YES         | null                                      |
-| festival_ticket_rounds | close_at            | timestamp with time zone | YES         | null                                      |
 | festival_ticket_rounds | price_info          | text                     | YES         | null                                      |
 | festival_ticket_rounds | ticket_url          | text                     | YES         | null                                      |
 | festival_ticket_rounds | ticket_platform     | text                     | YES         | null                                      |
-| festival_ticket_rounds | status              | text                     | NO          | 'scheduled'::text                         |
 | festival_ticket_rounds | created_at          | timestamp with time zone | NO          | now()                                     |
 | festival_ticket_rounds | updated_at          | timestamp with time zone | NO          | now()                                     |
 | festivals              | id                  | bigint                   | NO          | nextval('festivals_id_seq'::regclass)     |
@@ -58,8 +63,6 @@
 | festivals              | location            | text                     | YES         | null                                      |
 | festivals              | category            | text                     | YES         | null                                      |
 | festivals              | description         | text                     | YES         | null                                      |
-| festivals              | ticket_url          | text                     | YES         | null                                      |
-| festivals              | ticket_platform     | text                     | YES         | null                                      |
 | festivals              | price_info          | text                     | YES         | null                                      |
 | festivals              | program_info        | text                     | YES         | null                                      |
 | festivals              | source_url          | text                     | YES         | null                                      |
@@ -74,6 +77,8 @@
 | festivals              | thumbnail_url       | text                     | YES         | null                                      |
 | festivals              | price_type          | text                     | YES         | null                                      |
 | festivals              | slug                | text                     | YES         | null                                      |
+| festivals              | search_aliases      | text                     | YES         | null                                      |
+| festivals              | normalized_name     | text                     | YES         | null                                      |
 | pipeline_runs          | id                  | bigint                   | NO          | nextval('pipeline_runs_id_seq'::regclass) |
 | pipeline_runs          | started_at          | timestamp with time zone | YES         | now()                                     |
 | pipeline_runs          | finished_at         | timestamp with time zone | YES         | null                                      |

@@ -1,0 +1,41 @@
+{
+  "festival": {
+    "name": "test",
+    "normalized_name": "test",
+    "search_aliases": "test|테스트",
+    "start_date": "2026-07-17",
+    "end_date": "2026-07-18",
+    "location": "test",
+    "address": "test",
+    "region": "서울",
+    "category": "music_festival",
+    "description": "이 문구가 저장되면 롤백 실패",
+    "price_info": "변경되면 안 됨",
+    "program_info": "변경되면 안 됨",
+    "price_type": "paid",
+    "status": "scheduled"
+  },
+  "artists": [
+    {
+      "input_name": "test",
+      "display_name": "test",
+      "normalized_name": "test",
+      "aliases": ["롤백되면 안 되는 별칭"],
+      "performance_date": "2026-07-18",
+      "performance_time": "20:00:00",
+      "performance_end_time": "21:00:00",
+      "stage_name": "변경되면 안 됨",
+      "status": "confirmed"
+    }
+  ],
+  "tickets": [
+    {
+      "round_type": "general",
+      "round_name": "변경되면 안 되는 티켓",
+      "open_at": "invalid-date",
+      "price_info": "변경되면 안 됨",
+      "ticket_url": "https://example.com/rollback-failure",
+      "ticket_platform": "rollback-test"
+    }
+  ]
+}

@@ -33,7 +33,7 @@ export default function FestivalList({
         ) : festivals.length === 0 ? (
           <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-center">
             <Image
-              src="/images/empty/calendar_empty.svg"
+              src="/images/empty/calendar_empty.webp"
               alt="등록된 축제가 없습니다"
               width={120}
               height={120}

@@ -1,13 +1,8 @@
 import { Tag, Ticket } from "lucide-react";
-import { useState } from "react";
 
-type FestivalTicketRound = {
-  id: number;
-  round_name: string;
-  price_info: string | null;
-  ticket_url: string | null;
-  ticket_platform: string | null;
-};
+import { useCurrentTimeAt } from "@/lib/hooks/useCurrentTimeAt";
+import { getOpenTicketLinks } from "@/lib/festivals/ticketDisplay";
+import type { FestivalTicketRound } from "@/lib/types";
 
 type FestivalTicketSectionProps = {
   ticketRounds: FestivalTicketRound[];
@@ -20,19 +15,18 @@ export default function FestivalTicketSection({
   latestOpenAt,
   openAtText,
 }: FestivalTicketSectionProps) {
-  const [currentTime] = useState(() => Date.now());
+  const currentTime = useCurrentTimeAt(latestOpenAt);
 
   if (ticketRounds.length === 0) {
     return null;
   }
 
-  const ticketLinks = ticketRounds.filter(
-    (round) => round.ticket_url,
+  const ticketLinks = getOpenTicketLinks(
+    ticketRounds,
+    latestOpenAt,
+    currentTime,
   );
-
-  const isOpen =
-    latestOpenAt !== null &&
-    new Date(latestOpenAt).getTime() <= currentTime;
+  const ticketInfo = ticketRounds[0];
 
   return (
     <section>
@@ -43,25 +37,25 @@ export default function FestivalTicketSection({
       </h2>
 
       <div className="pt-3">
-        <h3 className="flex items-center gap-2 px-3 overflow-hidden rounded-xl bg-teal-100 py-3 text-sm font-bold text-slate-700">
-          <Tag size={16} />
-          <span>{ticketRounds[0].round_name}</span>
-        </h3>
-
         <div className="pt-3">
-          {!isOpen && openAtText && (
-            <p className="text-sm font-semibold text-slate-700">
+          <h3 className="flex items-center gap-2 overflow-hidden rounded-xl bg-teal-100 px-3 py-3 text-sm font-bold text-slate-700">
+            <Tag size={16} />
+            <span>{ticketInfo.round_name}</span>
+          </h3>
+
+          {openAtText && (
+            <p className="px-6 pt-2 text-sm font-semibold text-slate-700">
               {openAtText}
             </p>
           )}
 
-          {ticketRounds[0].price_info && (
-            <p className="whitespace-pre-line text-sm px-6 leading-6 text-slate-700">
-              {ticketRounds[0].price_info}
+          {ticketInfo.price_info && (
+            <p className="whitespace-pre-line px-6 pt-2 text-sm leading-6 text-slate-700">
+              {ticketInfo.price_info}
             </p>
           )}
 
-          {isOpen && ticketLinks.length > 0 && (
+          {ticketLinks.length > 0 && (
             <div
               className={[
                 "mt-3 grid gap-3",
