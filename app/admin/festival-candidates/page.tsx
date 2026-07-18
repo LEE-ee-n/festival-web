@@ -314,29 +314,29 @@ export default function FestivalCandidatesPage() {
           </div>
         )}
         {notice && (
-          <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">
-            {notice}
-          </div>
+          <p className="mt-5 text-sm font-semibold text-gray-950">{notice}</p>
         )}
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(280px,0.7fr)_minmax(0,1.5fr)]">
-          <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <section>
             {isLoading ? (
-              <p className="p-6 text-sm text-slate-500">불러오는 중...</p>
+              <p className="text-sm text-slate-500">불러오는 중...</p>
             ) : candidates.length === 0 ? (
-              <p className="p-6 text-sm text-slate-500">
+              <p className="text-sm text-slate-500">
                 해당 상태의 수집 후보가 없습니다.
               </p>
             ) : (
-              <div className="max-h-[75vh] divide-y divide-slate-100 overflow-y-auto">
+              <div className="max-h-[75vh] space-y-3 overflow-y-auto p-1 pr-2">
                 {candidates.map((candidate) => (
                   <button
                     key={candidate.id}
                     type="button"
                     onClick={() => void selectCandidate(candidate)}
                     className={[
-                      "w-full p-5 text-left transition hover:bg-slate-50",
-                      selectedId === candidate.id ? "bg-blue-50" : "",
+                      "w-full rounded-2xl border bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md",
+                      selectedId === candidate.id
+                        ? "border-blue-400 ring-2 ring-blue-100"
+                        : "border-gray-200",
                     ].join(" ")}
                   >
                     <div className="flex items-start justify-between gap-3">

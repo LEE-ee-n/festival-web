@@ -79,7 +79,7 @@ function ArtistMatchControl({
   }
 
   return (
-    <div className="mb-4 rounded-xl border border-blue-200 bg-blue-50 p-4">
+    <div className="mb-4 rounded-xl border border-gray-300 bg-gray-100 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm font-bold text-slate-800">
           normalized_name 중복 확인
@@ -169,7 +169,7 @@ export default function CandidateLineupTab({
   onDelete,
 }: Props) {
   return (
-    <section className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 sm:p-6">
+    <section className="mt-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-lg font-bold text-slate-900">라인업 관리</h3>

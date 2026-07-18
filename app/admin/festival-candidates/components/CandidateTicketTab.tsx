@@ -33,7 +33,7 @@ export default function CandidateTicketTab({
   onDelete,
 }: Props) {
   return (
-    <section className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 sm:p-6">
+    <section className="mt-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-lg font-bold text-slate-900">티켓 관리</h3>

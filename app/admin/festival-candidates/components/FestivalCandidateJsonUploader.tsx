@@ -134,16 +134,13 @@ export default function FestivalCandidateJsonUploader({ onCreated }: Props) {
         </div>
       )}
 
-      {(errorMessage || message) && (
-        <p
-          className={`mt-3 rounded-xl p-3 text-sm font-semibold ${
-            errorMessage
-              ? "bg-red-100 text-red-700"
-              : "bg-emerald-100 text-emerald-700"
-          }`}
-        >
-          {errorMessage || message}
+      {errorMessage && (
+        <p className="mt-3 rounded-xl bg-red-100 p-3 text-sm font-semibold text-red-700">
+          {errorMessage}
         </p>
+      )}
+      {message && (
+        <p className="mt-3 text-sm font-semibold text-gray-950">{message}</p>
       )}
     </section>
   );

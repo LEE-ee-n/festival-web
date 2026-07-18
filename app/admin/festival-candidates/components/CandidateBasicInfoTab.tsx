@@ -13,7 +13,7 @@ const inputClass =
 
 export default function CandidateBasicInfoTab({ festival, onChange }: Props) {
   return (
-    <section className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 sm:p-6">
+    <section className="mt-6">
       <h3 className="text-lg font-bold text-slate-900">기본정보 관리</h3>
 
       <div className="mt-5">
