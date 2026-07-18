@@ -1,8 +1,14 @@
 import { supabase } from "@/lib/supabase/client";
+import {
+  isValidNormalizedName,
+  normalizeNormalizedName,
+} from "@/lib/normalizedName";
 import { validateFestivalThumbnailUrl } from "@/lib/festivals/thumbnailValidation";
 
 export type FestivalBasicInfoInput = {
   name: string;
+  normalizedName: string;
+  searchAliases: string;
   startDate: string;
   endDate: string;
   location: string;
@@ -24,13 +30,32 @@ export async function updateFestivalBasicInfo(
   input: FestivalBasicInfoInput,
 ) {
   validateFestivalThumbnailUrl(input.thumbnailUrl);
+  const normalizedName = normalizeNormalizedName(input.normalizedName);
+
+  if (!isValidNormalizedName(normalizedName)) {
+    throw new Error(
+      "축제 normalized_name은 영문 소문자와 숫자로 입력해 주세요.",
+    );
+  }
+
+  if (!input.name.trim() || !input.startDate || !input.endDate) {
+    throw new Error(
+      "축제명, normalized_name, 시작일, 종료일은 필수입니다.",
+    );
+  }
+
+  if (input.endDate < input.startDate) {
+    throw new Error("종료일은 시작일보다 빠를 수 없습니다.");
+  }
 
   const { data, error } = await supabase
     .from("festivals")
     .update({
       name: input.name.trim(),
-      start_date: input.startDate || null,
-      end_date: input.endDate || null,
+      normalized_name: normalizedName,
+      search_aliases: input.searchAliases.trim() || null,
+      start_date: input.startDate,
+      end_date: input.endDate,
       location: input.location.trim() || null,
       address: input.address.trim() || null,
       region: input.region.trim() || null,

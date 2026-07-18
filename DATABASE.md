@@ -78,7 +78,7 @@
 | festivals              | price_type          | text                     | YES         | null                                      |
 | festivals              | slug                | text                     | YES         | null                                      |
 | festivals              | search_aliases      | text                     | YES         | null                                      |
-| festivals              | normalized_name     | text                     | YES         | null                                      |
+| festivals              | normalized_name     | text                     | NO          | null                                      |
 | pipeline_runs          | id                  | bigint                   | NO          | nextval('pipeline_runs_id_seq'::regclass) |
 | pipeline_runs          | started_at          | timestamp with time zone | YES         | now()                                     |
 | pipeline_runs          | finished_at         | timestamp with time zone | YES         | null                                      |

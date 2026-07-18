@@ -13,6 +13,7 @@ test("축제·아티스트·티켓 초안 JSON을 검증한다", () => {
     JSON.stringify({
       festival: {
         name: "테스트 페스티벌",
+        normalized_name: "testfestival",
         start_date: "2026-08-01",
         end_date: "2026-08-02",
       },
@@ -31,6 +32,7 @@ test("종료일이 시작일보다 빠른 초안을 거부한다", () => {
         JSON.stringify({
           festival: {
             name: "테스트",
+            normalized_name: "test",
             start_date: "2026-08-02",
             end_date: "2026-08-01",
           },
@@ -51,6 +53,7 @@ test("헤르메스 검토 메타데이터를 함께 읽는다", () => {
       },
       festival: {
         name: "테스트 페스티벌",
+        normalized_name: "testfestival",
         start_date: "2026-08-01",
         end_date: "2026-08-02",
       },
@@ -70,6 +73,7 @@ test("헤르메스 신뢰도가 범위를 벗어나면 거부한다", () => {
           candidate: { score: 101 },
           festival: {
             name: "테스트 페스티벌",
+            normalized_name: "testfestival",
             start_date: "2026-08-01",
             end_date: "2026-08-02",
           },
@@ -85,6 +89,7 @@ test("문자열로 들어온 아티스트 별칭을 배열로 정규화한다", 
     JSON.stringify({
       festival: {
         name: "테스트 페스티벌",
+        normalized_name: "testfestival",
         start_date: "2026-08-01",
         end_date: "2026-08-02",
       },
@@ -108,6 +113,7 @@ test("아티스트 매칭 확인 전에는 후보 승인을 거부한다", () =>
     JSON.stringify({
       festival: {
         name: "테스트 페스티벌",
+        normalized_name: "testfestival",
         start_date: "2026-08-01",
         end_date: "2026-08-02",
       },
@@ -141,6 +147,7 @@ test("신규 아티스트의 normalized_name 중복을 거부한다", () => {
       validateFestivalDraftForApproval({
         festival: {
           name: "테스트 페스티벌",
+          normalized_name: "testfestival",
           start_date: "2026-08-01",
           end_date: "2026-08-02",
         },
@@ -156,6 +163,7 @@ test("축제명을 안전한 JSON 파일명으로 바꾼다", () => {
     getFestivalDraftFileName({
       festival: {
         name: "2026 테스트:페스티벌",
+        normalized_name: "testfestival2026",
         start_date: "2026-08-01",
         end_date: "2026-08-02",
       },
@@ -169,6 +177,7 @@ test("JSON 초안에서 시작일 다음에 종료일을 표시한다", () => {
   const formatted = formatFestivalDraftJson({
     festival: {
       name: "테스트",
+      normalized_name: "test",
       end_date: "2026-08-02",
       start_date: "2026-08-01",
     },
@@ -176,4 +185,37 @@ test("JSON 초안에서 시작일 다음에 종료일을 표시한다", () => {
   });
 
   assert.ok(formatted.indexOf('"start_date"') < formatted.indexOf('"end_date"'));
+});
+
+test("축제 normalized_name을 영문 소문자와 숫자로 정리한다", () => {
+  const draft = parseFestivalDraftJson(
+    JSON.stringify({
+      festival: {
+        name: "테스트 축제",
+        normalized_name: "Test Festival 2026!",
+        start_date: "2026-08-01",
+        end_date: "2026-08-02",
+      },
+      artists: [],
+    }),
+  );
+
+  assert.equal(draft.festival.normalized_name, "testfestival2026");
+});
+
+test("축제 normalized_name이 없으면 JSON을 거부한다", () => {
+  assert.throws(
+    () =>
+      parseFestivalDraftJson(
+        JSON.stringify({
+          festival: {
+            name: "테스트 축제",
+            start_date: "2026-08-01",
+            end_date: "2026-08-02",
+          },
+          artists: [],
+        }),
+      ),
+    /festival\.normalized_name/,
+  );
 });

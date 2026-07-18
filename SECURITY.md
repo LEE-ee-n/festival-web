@@ -50,6 +50,9 @@ RLS 정책은 2026-07-17 운영 DB 조회 결과를 기준으로 정리했다.
 - 티켓 회차: 공개 축제에 속한 행만 공개
 - 관리자는 승인 전·취소 데이터를 포함해 축제, 출연진, 티켓 회차 전체 조회
 
+JSON·XLSX 등록 함수는 `SECURITY INVOKER`로 실행하며 함수 내부에서도
+`public.is_admin()`을 확인한다. 로그인만 한 일반 사용자는 실행할 수 없다.
+
 정책 정의는
 [`supabase/migrations/005_profiles_admin_authorization.sql`](supabase/migrations/005_profiles_admin_authorization.sql)에 있다.
 

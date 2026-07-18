@@ -44,6 +44,7 @@ function createInitialDraft(candidate: FestivalCandidate): FestivalDraftJson {
   return {
     festival: {
       name: candidate.festival_name ?? "",
+      normalized_name: "",
       start_date: candidate.start_date ?? "",
       end_date: candidate.end_date ?? "",
       location: candidate.location ?? undefined,
@@ -451,6 +452,7 @@ export default function FestivalCandidatesPage() {
                   {activeTab === "basic" && (
                     <CandidateBasicInfoTab
                       festival={draft.festival}
+                      excludeFestivalId={selectedCandidate.festival_id}
                       onChange={(field, value) => {
                         updateFestival(field, value);
                         setEditorError(null);

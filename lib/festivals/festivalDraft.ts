@@ -3,6 +3,10 @@ import {
   isValidArtistNormalizedName,
   normalizeArtistName,
 } from "../artists/normalizeArtistName.ts";
+import {
+  isValidNormalizedName,
+  normalizeNormalizedName,
+} from "../normalizedName.ts";
 
 function normalizeAliases(value: unknown): string[] {
   if (Array.isArray(value)) {
@@ -22,6 +26,12 @@ export function normalizeFestivalDraft(
 ): FestivalDraftJson {
   return {
     ...draft,
+    festival: {
+      ...draft.festival,
+      normalized_name: normalizeNormalizedName(
+        String(draft.festival.normalized_name ?? ""),
+      ),
+    },
     artists: draft.artists.map((artist) => ({
       ...artist,
       normalized_name: normalizeArtistName(artist.normalized_name),
@@ -42,6 +52,12 @@ export function validateFestivalDraftForApproval(
   draft: FestivalDraftJson,
 ) {
   const normalizedDraft = normalizeFestivalDraft(draft);
+
+  if (!isValidNormalizedName(normalizedDraft.festival.normalized_name)) {
+    throw new Error(
+      "축제 normalized_name은 영문 소문자와 숫자로 입력해 주세요.",
+    );
+  }
   const unresolvedArtist = normalizedDraft.artists.find(
     (artist) =>
       artist.match_status !== "new"
@@ -125,6 +141,10 @@ export function parseFestivalDraftJson(value: string): FestivalDraftJson {
 
   if (!festival.name?.trim()) {
     throw new Error("festival.name이 필요합니다.");
+  }
+
+  if (!festival.normalized_name?.trim()) {
+    throw new Error("festival.normalized_name이 필요합니다.");
   }
 
   if (!festival.start_date || !festival.end_date) {

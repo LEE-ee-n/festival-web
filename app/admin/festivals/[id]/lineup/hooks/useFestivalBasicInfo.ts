@@ -9,6 +9,8 @@ type SetErrorMessage = Dispatch<SetStateAction<string | null>>;
 
 export type FestivalBasicInfoRecord = {
   name: string;
+  normalized_name: string;
+  search_aliases: string | null;
   start_date: string | null;
   end_date: string | null;
   location: string | null;
@@ -30,6 +32,8 @@ export function useFestivalBasicInfo(
   setErrorMessage: SetErrorMessage,
 ) {
   const [festivalName, setFestivalName] = useState("");
+  const [normalizedName, setNormalizedName] = useState("");
+  const [searchAliases, setSearchAliases] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [location, setLocation] = useState("");
@@ -55,6 +59,8 @@ export function useFestivalBasicInfo(
   const initializeBasicInfo = useCallback(
     (festival: FestivalBasicInfoRecord) => {
       setFestivalName(festival.name);
+      setNormalizedName(festival.normalized_name);
+      setSearchAliases(festival.search_aliases ?? "");
       setStartDate(festival.start_date ?? "");
       setEndDate(festival.end_date ?? "");
       setLocation(festival.location ?? "");
@@ -145,6 +151,8 @@ export function useFestivalBasicInfo(
       setErrorMessage(null);
       await updateFestivalBasicInfo(festivalId, {
         name: festivalName,
+        normalizedName,
+        searchAliases,
         startDate,
         endDate,
         location,
@@ -176,8 +184,13 @@ export function useFestivalBasicInfo(
     festivalName,
     initializeBasicInfo,
     tabProps: {
+      festivalId,
       festivalName,
       setFestivalName,
+      normalizedName,
+      setNormalizedName,
+      searchAliases,
+      setSearchAliases,
       startDate,
       setStartDate,
       endDate,

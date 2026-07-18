@@ -26,6 +26,11 @@
 
 - `candidate`: 검토용 출처 정보다. 정식 축제 등록에는 사용하지 않는다.
 - `festival`: 축제명, 기간, 장소 등 기본정보다.
+- `festival.normalized_name`: 축제 중복 판별값이다.
+  - 공식 영문명을 기준으로 영문 소문자와 숫자만 사용한다.
+  - 공백과 특수문자는 제거하고 `&`는 `and`로 바꾼다.
+  - 같은 `normalized_name + start_date + end_date`는 같은 축제로 처리한다.
+  - 매년 열리는 축제는 가급적 연도를 제외한다. `19xx`·`20xx`가 포함되면 관리자 화면에서 경고하지만 저장은 허용한다.
 - `artists`: 출연진과 공연 날짜·시간·무대 목록이다.
 - `artists[].matched_artist_id`: 관리자 검토 화면에서 선택하는 기존 `artists.id`다. 헤르메스는 항상 `null`로 작성한다.
 - `artists[].match_status`: 헤르메스는 `pending`으로 작성하며 관리자가 기존 아티스트 또는 신규 등록 여부를 결정한다.
@@ -36,7 +41,7 @@
 - `tickets`: 티켓 회차, 오픈 시간, 가격, 판매처 목록이다.
 - `candidate.score`: 추출 신뢰도를 0부터 100 사이 정수로 기록한다.
 - `candidate.raw_text`: 포스터와 게시글에서 읽은 핵심 원문을 보존한다.
-- 정식 등록 필수값은 `festival.name`, `festival.start_date`, `festival.end_date` 세 개다.
+- 정식 등록 필수값은 `festival.name`, `festival.normalized_name`, `festival.start_date`, `festival.end_date` 네 개다.
 - 출연진이나 티켓을 확인할 수 없으면 `artists: []`, `tickets: []`로 작성해도 등록할 수 있다.
 
 전체 예시는 `test-data/hermes-festival-candidate.json`을 사용한다.

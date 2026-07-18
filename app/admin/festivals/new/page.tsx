@@ -10,6 +10,8 @@ import { createFestival } from "@/lib/festivals/createFestival";
 export default function NewFestivalPage() {
   const router = useRouter();
   const [festivalName, setFestivalName] = useState("");
+  const [normalizedName, setNormalizedName] = useState("");
+  const [searchAliases, setSearchAliases] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [location, setLocation] = useState("");
@@ -56,6 +58,8 @@ export default function NewFestivalPage() {
 
       const festivalId = await createFestival({
         name: festivalName,
+        normalizedName,
+        searchAliases,
         startDate,
         endDate,
         location,
@@ -116,6 +120,10 @@ export default function NewFestivalPage() {
           canManageThumbnail={false}
           festivalName={festivalName}
           setFestivalName={setFestivalName}
+          normalizedName={normalizedName}
+          setNormalizedName={setNormalizedName}
+          searchAliases={searchAliases}
+          setSearchAliases={setSearchAliases}
           startDate={startDate}
           setStartDate={setStartDate}
           endDate={endDate}

@@ -17,6 +17,8 @@
 ## 현재 규칙
 - artists.name: 대표 표시 이름
 - artists.normalized_name: 아티스트 중복 판별값. NOT NULL·UNIQUE이며 영문 소문자와 숫자만 허용
+- festivals.name: 화면에 표시하는 축제명
+- festivals.normalized_name: 축제 중복 판별값. 영문 소문자와 숫자만 허용하며 시작일·종료일과 함께 UNIQUE
 - artist_aliases: 별칭 1개당 1행
 - `/admin` 전체와 모든 관리 데이터 쓰기는 관리자만 가능
 - 공개 축제는 승인된 축제와 그 축제의 출연진·티켓만 조회 가능

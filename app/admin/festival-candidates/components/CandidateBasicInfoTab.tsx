@@ -1,7 +1,13 @@
 import type { FestivalDraftJson } from "@/lib/types";
+import {
+  findYearLikeSequence,
+  normalizeNormalizedName,
+} from "@/lib/normalizedName";
+import { useFestivalDuplicateCheck } from "@/lib/hooks/useFestivalDuplicateCheck";
 
 type Props = {
   festival: FestivalDraftJson["festival"];
+  excludeFestivalId?: number | null;
   onChange: (
     field: keyof FestivalDraftJson["festival"],
     value: string,
@@ -11,7 +17,21 @@ type Props = {
 const inputClass =
   "mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm";
 
-export default function CandidateBasicInfoTab({ festival, onChange }: Props) {
+export default function CandidateBasicInfoTab({
+  festival,
+  excludeFestivalId,
+  onChange,
+}: Props) {
+  const normalizedNameYear = findYearLikeSequence(
+    festival.normalized_name ?? "",
+  );
+  const duplicateCheck = useFestivalDuplicateCheck({
+    normalizedName: festival.normalized_name ?? "",
+    startDate: festival.start_date,
+    endDate: festival.end_date,
+    excludeFestivalId,
+  });
+
   return (
     <section className="mt-6">
       <h3 className="text-lg font-bold text-slate-900">기본정보 관리</h3>
@@ -84,14 +104,44 @@ export default function CandidateBasicInfoTab({ festival, onChange }: Props) {
           </select>
         </label>
         <label className="text-sm font-semibold text-slate-700">
-          검색용 이름
+          중복 판별값 (festivals.normalized_name)
           <input
             value={festival.normalized_name ?? ""}
             onChange={(event) =>
-              onChange("normalized_name", event.target.value)
+              onChange(
+                "normalized_name",
+                normalizeNormalizedName(event.target.value),
+              )
             }
+            placeholder="예: gratefulcamp"
             className={inputClass}
           />
+          {normalizedNameYear && (
+            <span className="mt-2 block text-xs font-semibold text-amber-700">
+              ⚠️ 연도로 보이는 {normalizedNameYear}이 포함되어 있습니다. 매년
+              열리는 축제라면 제거했는지 확인하세요.
+            </span>
+          )}
+          {duplicateCheck.status === "checking" && (
+            <span className="mt-2 block text-xs font-semibold text-gray-500">
+              중복 확인 중...
+            </span>
+          )}
+          {duplicateCheck.status === "available" && (
+            <span className="mt-2 block text-xs font-semibold text-emerald-700">
+              ✅ 동일한 축제가 없습니다.
+            </span>
+          )}
+          {duplicateCheck.status === "duplicate" && (
+            <span className="mt-2 block text-xs font-semibold text-red-700">
+              ⚠️ 같은 축제가 이미 있습니다: {duplicateCheck.festival.name}
+            </span>
+          )}
+          {duplicateCheck.status === "error" && (
+            <span className="mt-2 block text-xs font-semibold text-red-700">
+              중복 확인에 실패했습니다. 저장 전 다시 확인하세요.
+            </span>
+          )}
         </label>
         <label className="text-sm font-semibold text-slate-700">
           검색 별칭

@@ -102,7 +102,7 @@ export type FestivalDraftJson = {
   };
   festival: {
     name: string;
-    normalized_name?: string;
+    normalized_name: string;
     search_aliases?: string;
     start_date: string;
     end_date: string;

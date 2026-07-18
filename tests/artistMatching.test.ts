@@ -8,6 +8,7 @@ function createDraft(normalizedName: string): FestivalDraftJson {
   return {
     festival: {
       name: "테스트 축제",
+      normalized_name: "testfestival",
       start_date: "2026-08-01",
       end_date: "2026-08-02",
     },

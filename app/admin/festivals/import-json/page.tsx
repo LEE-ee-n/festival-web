@@ -2,11 +2,15 @@
 
 import { ChangeEvent, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
+import {
+  isValidNormalizedName,
+  normalizeNormalizedName,
+} from "@/lib/normalizedName";
 
 type FestivalJson = {
   festival: {
     name: string;
-    normalized_name?: string;
+    normalized_name: string;
     search_aliases?: string;
     start_date: string;
     end_date: string;
@@ -113,12 +117,26 @@ export default function FestivalJsonImportPage() {
         throw new Error("festival.name이 없습니다.");
       }
 
+      parsed.festival.normalized_name = normalizeNormalizedName(
+        String(parsed.festival.normalized_name ?? ""),
+      );
+
+      if (!isValidNormalizedName(parsed.festival.normalized_name)) {
+        throw new Error(
+          "festival.normalized_name은 영문 소문자와 숫자로 입력해 주세요.",
+        );
+      }
+
       if (!parsed.festival.start_date) {
         throw new Error("festival.start_date가 없습니다.");
       }
 
       if (!parsed.festival.end_date) {
         throw new Error("festival.end_date가 없습니다.");
+      }
+
+      if (parsed.festival.end_date < parsed.festival.start_date) {
+        throw new Error("종료일은 시작일보다 빠를 수 없습니다.");
       }
 
       if (

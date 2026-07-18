@@ -50,12 +50,14 @@
 - `lib/festivals/festivalDraft.ts`: 헤르메스 JSON 필수값과 편집 표시 순서 검사
 - `lib/hooks/useFestivalDetail.ts`: 전체 상세페이지와 우측 패널의 축제·출연진·티켓 공통 조회 및 출연진 정렬
 - `lib/hooks/useCurrentTimeAt.ts`: 티켓 오픈 시간에 맞춰 화면 시간을 갱신
+- `lib/hooks/useFestivalDuplicateCheck.ts`: normalized_name·시작일·종료일 입력 후 기존 축제 자동 중복 조회
 - `lib/supabase/client.ts`: 브라우저용 Supabase 클라이언트
 
 ## Supabase
 
 - `supabase/migrations/005~008`: 관리자 인증·RLS, 트랜잭션 JSON 등록, 티켓·썸네일 제한
-- `supabase/migrations/009~012`: 수집 후보 저장·승인 등록, 빈 출연진·티켓 허용, 아티스트 정규화 이름 제약
+- `supabase/migrations/009~013`: 수집 후보 저장·승인 등록, 빈 출연진·티켓 허용, 아티스트·축제 정규화 이름 제약
+- 013은 JSON·XLSX 축제 등록 함수의 중복 기준과 관리자 권한 검사도 통일한다.
 - `supabase/DATABASE_SCHEMA.md`: 테이블 관계와 운영 규칙
 - `SECURITY.md`: 관리자 인증과 공개·관리자 권한 정책
 - `DATABASE.md`: 운영 DB 칼럼 기록

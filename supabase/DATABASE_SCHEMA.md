@@ -107,7 +107,9 @@ festival_candidates.festival_id
 
 - festivals.source_url UNIQUE
 - festivals.slug UNIQUE
-- festivals: 축제명 + 시작일 + 장소 UNIQUE
+- festivals: normalized_name + 시작일 + 종료일 UNIQUE
+  - normalized_name은 NOT NULL, 영문 소문자와 숫자만 허용 (`^[a-z0-9]+$`)
+  - 과거 normalized_name 단독 UNIQUE는 013에서 제거
 - artists.normalized_name UNIQUE
   - NOT NULL, 영문 소문자와 숫자만 허용 (`^[a-z0-9]+$`)
 - festival_artists: festival_id + artist_id 복합 기본키

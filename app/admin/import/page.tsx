@@ -3,6 +3,10 @@
 import { ChangeEvent, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 import { supabase } from "@/lib/supabase/client";
+import {
+  isValidNormalizedName,
+  normalizeNormalizedName,
+} from "@/lib/normalizedName";
 
 type FestivalRow = {
   name: string;
@@ -41,6 +45,7 @@ type ExistingFestival = {
   name: string;
   normalized_name: string;
   start_date: string;
+  end_date: string;
 };
 
 type LineupChangeFlags = {
@@ -226,9 +231,9 @@ export default function AdminImportPage() {
 
       const parsedFestival: FestivalRow = {
         name: String(festivalData.name ?? "").trim(),
-        normalized_name: String(
-          festivalData.normalized_name ?? ""
-        ).trim(),
+        normalized_name: normalizeNormalizedName(
+          String(festivalData.normalized_name ?? ""),
+        ),
         search_aliases: String(
           festivalData.search_aliases ?? ""
         ).trim(),
@@ -254,19 +259,31 @@ export default function AdminImportPage() {
         throw new Error("페스티벌명이 없습니다.");
       }
 
-      if (!parsedFestival.normalized_name) {
-        throw new Error("normalized_name이 없습니다.");
+      if (!isValidNormalizedName(parsedFestival.normalized_name)) {
+        throw new Error(
+          "normalized_name은 영문 소문자와 숫자로 입력해 주세요.",
+        );
       }
 
       if (!parsedFestival.start_date) {
         throw new Error("start_date가 없습니다.");
       }
 
+      if (!parsedFestival.end_date) {
+        throw new Error("end_date가 없습니다.");
+      }
+
+      if (parsedFestival.end_date < parsedFestival.start_date) {
+        throw new Error("종료일은 시작일보다 빠를 수 없습니다.");
+      }
+
       const { data: duplicateFestival, error: duplicateError } =
         await supabase
             .from("festivals")
-            .select("id, name, normalized_name, start_date")
+            .select("id, name, normalized_name, start_date, end_date")
             .eq("normalized_name", parsedFestival.normalized_name)
+            .eq("start_date", parsedFestival.start_date)
+            .eq("end_date", parsedFestival.end_date)
             .maybeSingle();
 
         if (duplicateError) {
@@ -509,6 +526,7 @@ setExistingFestival({
   name: festival.name,
   normalized_name: festival.normalized_name,
   start_date: festival.start_date,
+  end_date: festival.end_date,
 });
 
   } catch (error) {

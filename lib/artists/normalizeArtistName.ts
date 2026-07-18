@@ -1,12 +1,11 @@
-export const ARTIST_NORMALIZED_NAME_PATTERN = /^[a-z0-9]+$/;
+import {
+  isValidNormalizedName,
+  NORMALIZED_NAME_PATTERN,
+  normalizeNormalizedName,
+} from "../normalizedName.ts";
 
-export function normalizeArtistName(value: string) {
-  return value
-    .toLowerCase()
-    .replaceAll("&", "and")
-    .replace(/[^a-z0-9]/g, "");
-}
+export const ARTIST_NORMALIZED_NAME_PATTERN = NORMALIZED_NAME_PATTERN;
 
-export function isValidArtistNormalizedName(value: string) {
-  return ARTIST_NORMALIZED_NAME_PATTERN.test(value);
-}
+export const normalizeArtistName = normalizeNormalizedName;
+
+export const isValidArtistNormalizedName = isValidNormalizedName;

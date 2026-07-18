@@ -12,6 +12,8 @@ export async function getFestivalLineupData(
       .from("festivals")
       .select(`
         name,
+        normalized_name,
+        search_aliases,
         start_date,
         end_date,
         location,

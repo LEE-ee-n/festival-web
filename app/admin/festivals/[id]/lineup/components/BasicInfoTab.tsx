@@ -2,14 +2,26 @@ import {
   FESTIVAL_THUMBNAIL_ACCEPT,
   validateFestivalThumbnailFile,
 } from "@/lib/festivals/thumbnailValidation";
+import {
+  findYearLikeSequence,
+  normalizeNormalizedName,
+} from "@/lib/normalizedName";
+import { useFestivalDuplicateCheck } from "@/lib/hooks/useFestivalDuplicateCheck";
 
 type BasicInfoTabProps = {
   title?: string;
   saveButtonLabel?: string;
   canManageThumbnail?: boolean;
+  festivalId?: string;
 
   festivalName: string;
   setFestivalName: (value: string) => void;
+
+  normalizedName: string;
+  setNormalizedName: (value: string) => void;
+
+  searchAliases: string;
+  setSearchAliases: (value: string) => void;
 
   startDate: string;
   setStartDate: (value: string) => void;
@@ -71,8 +83,13 @@ export default function BasicInfoTab({
   title = "기본정보 관리",
   saveButtonLabel = "기본정보 저장",
   canManageThumbnail = true,
+  festivalId,
   festivalName,
   setFestivalName,
+  normalizedName,
+  setNormalizedName,
+  searchAliases,
+  setSearchAliases,
   startDate,
   setStartDate,
   endDate,
@@ -111,6 +128,13 @@ export default function BasicInfoTab({
   saveBasicInfo,
   isSavingBasic,
 }: BasicInfoTabProps) {
+  const normalizedNameYear = findYearLikeSequence(normalizedName);
+  const duplicateCheck = useFestivalDuplicateCheck({
+    normalizedName,
+    startDate,
+    endDate,
+    excludeFestivalId: festivalId,
+  });
 
   return (
 
@@ -203,6 +227,62 @@ export default function BasicInfoTab({
                     type="text"
                     value={category}
                     onChange={(event) => setCategory(event.target.value)}
+                    className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-slate-700">
+                    중복 판별값 (festivals.normalized_name)
+                  </label>
+                  <input
+                    type="text"
+                    value={normalizedName}
+                    onChange={(event) =>
+                      setNormalizedName(
+                        normalizeNormalizedName(event.target.value),
+                      )
+                    }
+                    placeholder="예: gratefulcamp"
+                    className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                  />
+                  {normalizedNameYear && (
+                    <p className="mt-2 text-xs font-semibold text-amber-700">
+                      ⚠️ 연도로 보이는 {normalizedNameYear}이 포함되어 있습니다.
+                      매년 열리는 축제라면 제거했는지 확인하세요.
+                    </p>
+                  )}
+                  {duplicateCheck.status === "checking" && (
+                    <p className="mt-2 text-xs font-semibold text-gray-500">
+                      중복 확인 중...
+                    </p>
+                  )}
+                  {duplicateCheck.status === "available" && (
+                    <p className="mt-2 text-xs font-semibold text-emerald-700">
+                      ✅ 동일한 축제가 없습니다.
+                    </p>
+                  )}
+                  {duplicateCheck.status === "duplicate" && (
+                    <p className="mt-2 text-xs font-semibold text-red-700">
+                      ⚠️ 같은 축제가 이미 있습니다: {duplicateCheck.festival.name}
+                    </p>
+                  )}
+                  {duplicateCheck.status === "error" && (
+                    <p className="mt-2 text-xs font-semibold text-red-700">
+                      중복 확인에 실패했습니다. 저장 전 다시 확인하세요.
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-slate-700">
+                    검색 별칭
+                  </label>
+                  <input
+                    type="text"
+                    value={searchAliases}
+                    onChange={(event) => setSearchAliases(event.target.value)}
+                    placeholder="쉼표로 구분"
                     className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
                   />
                 </div>
