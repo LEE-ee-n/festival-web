@@ -10,6 +10,8 @@
 
 # testing
 /coverage
+/crawler-output/
+/_crawler_review*/
 
 # next.js
 /.next/

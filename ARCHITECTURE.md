@@ -22,6 +22,7 @@
 - `app/admin/festivals/new/page.tsx`: 신규 축제 기본정보 등록
 - `app/admin/festival-candidates/page.tsx`: 수집 후보 JSON 수정·저장, 승인 등록, 삭제
 - `app/admin/festival-candidates/components/FestivalCandidateJsonUploader.tsx`: 헤르메스 JSON 검사와 검토 대기 후보 저장
+- `app/admin/festival-candidates/components/TicketDiscoveryUploader.tsx`: 티켓 discovery JSON을 기존 축제·후보·티켓 URL과 비교하고 선택 항목을 검토 대기로 저장
 - `app/admin/festival-candidates/components/Candidate*Tab.tsx`: 후보 기본정보·라인업·티켓 폼과 `normalized_name` 기준 기존 아티스트 매칭
 - `app/admin/festival-candidates/hooks/useFestivalCandidateDraft.ts`: 승인 전 세 탭의 JSON 초안 상태 관리
 - `app/admin/festival-candidates/hooks/useFestivalCandidates.ts`: 후보 조회, 초안 저장, 승인과 정식 등록
@@ -74,6 +75,25 @@
 - `tests/festivalDraft.test.ts`: 헤르메스 JSON 필수값, 신뢰도와 표시 순서 검사
 - `tests/ticketDisplay.test.ts`: 최신 티켓, 오픈 시간, 판매처 버튼 규칙
 - `tests/thumbnailValidation.test.ts`: 이미지 형식과 용량 제한
+- `tests/crawlerDiscovery.test.ts`: 수집 URL 제한, 중복 제거, 최대 개수와 실패 격리
+
+## 크롤러
+
+- `crawler/core/`: 허용 도메인·요청 제한 적용, 후보 정리와 로컬 JSON 저장
+- `crawler/sources/`: 사이트별 제목·상세 URL 수집 어댑터
+- `crawler/sample-html/`: 인터넷 요청 없이 사용하는 테스트 HTML
+- `crawler/cli.ts`: `npm run crawler:sample` 샘플 실행 진입점
+- `crawler/importers/nolManualImport.ts`: 브라우저에서 수동 복사한 놀티켓 상품 제목 정리
+- `lib/festivals/ticketDiscovery.ts`: 티켓 수집 JSON 검사, URL 및 축제 normalized_name·축제명·검색 별칭·날짜 중복 분류, 최소 검토 초안 생성
+- `crawler/bookmarklet/`: 현재 놀티켓 화면의 상품을 JSON으로 저장하는 원클릭 북마클릿
+- `crawler/processNolWorkflow.ts`: 최신 놀티켓 파일을 지정 수집·정리 폴더로 이동하고 날짜 규칙 적용
+- `crawler/tools/discovery-nol.cmd`, `discovery-ticketlink.cmd`, `discovery-yes24.cmd`: 파일명과 실행창에 수집 사이트를 명시한 실행 진입점
+- `crawler/bookmarklet/ticketlinkBookmarklet.ts`: href가 없는 티켓링크 상품 카드의 React 내부 productId를 읽어 제목·날짜·URL 복원
+- `crawler/processTicketlinkWorkflow.ts`: 페스티벌 표기 변형만 선별하고 종료 공연을 제외해 discovery JSON 생성
+- `crawler/bookmarklet/yes24TicketBookmarklet.ts`: YES24 현재 목록의 상품 제목·날짜·URL을 저장하고 예전 상품 URL도 현재 형식으로 통일
+- `crawler/processYes24Workflow.ts`: YES24의 페스티벌 후보만 선별하고 종료 공연을 제외해 discovery JSON 생성
+- `crawler/notifications/discordWebhook.ts`: discovery 처리 결과를 외부 비밀 파일의 Discord 웹훅으로 알림
+- discovery 결과는 관리자가 `/admin/festival-candidates`에서 확인한 항목만 `festival_candidates`에 저장한다.
 
 `test-data/`에는 JSON 등록 성공·실패와 헤르메스 후보 예제 파일을 둔다.
 

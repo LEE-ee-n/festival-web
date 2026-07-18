@@ -11,6 +11,7 @@ export default defineConfig([
     "build/**",
     ".npm-cache/**",
     ".tmp/**",
+    "_crawler_review*/**",
     "next-env.d.ts",
   ]),
 ]);

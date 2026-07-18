@@ -7,6 +7,7 @@ import CandidateBasicInfoTab from "@/app/admin/festival-candidates/components/Ca
 import CandidateLineupTab from "@/app/admin/festival-candidates/components/CandidateLineupTab";
 import CandidateTicketTab from "@/app/admin/festival-candidates/components/CandidateTicketTab";
 import FestivalCandidateJsonUploader from "@/app/admin/festival-candidates/components/FestivalCandidateJsonUploader";
+import TicketDiscoveryUploader from "@/app/admin/festival-candidates/components/TicketDiscoveryUploader";
 import { useFestivalCandidateDraft } from "@/app/admin/festival-candidates/hooks/useFestivalCandidateDraft";
 import { useFestivalCandidates } from "@/app/admin/festival-candidates/hooks/useFestivalCandidates";
 import { matchFestivalDraftArtists } from "@/lib/artists/matchFestivalDraftArtists";
@@ -274,6 +275,19 @@ export default function FestivalCandidatesPage() {
         </div>
 
         <FestivalCandidateJsonUploader
+          onCreated={() => {
+            setSelectedId(null);
+            clearDraft();
+            setNotice(null);
+            if (statusFilter === "pending") {
+              void loadCandidates();
+            } else {
+              setStatusFilter("pending");
+            }
+          }}
+        />
+
+        <TicketDiscoveryUploader
           onCreated={() => {
             setSelectedId(null);
             clearDraft();
