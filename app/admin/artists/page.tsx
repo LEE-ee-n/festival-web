@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 
 import { supabase } from "@/lib/supabase/client";
+import { normalizeArtistName } from "@/lib/artists/normalizeArtistName";
 
 type SimilarArtist = {
   id: number;
@@ -11,13 +12,6 @@ type SimilarArtist = {
   normalized_name: string;
   similarity_score: number;
 };
-
-function normalizePreview(value: string) {
-  return value
-    .toLowerCase()
-    .replaceAll("&", "and")
-    .replace(/[^a-z0-9]/g, "");
-}
 
 export default function AdminArtistsPage() {
   const [artistName, setArtistName] = useState("");
@@ -58,7 +52,7 @@ export default function AdminArtistsPage() {
   
   
 
-  const normalizedPreview = normalizePreview(searchName);
+  const normalizedPreview = normalizeArtistName(searchName);
 
   async function handleSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

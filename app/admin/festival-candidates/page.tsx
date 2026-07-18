@@ -3,11 +3,17 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import CandidateBasicInfoTab from "@/app/admin/festival-candidates/components/CandidateBasicInfoTab";
+import CandidateLineupTab from "@/app/admin/festival-candidates/components/CandidateLineupTab";
+import CandidateTicketTab from "@/app/admin/festival-candidates/components/CandidateTicketTab";
 import FestivalCandidateJsonUploader from "@/app/admin/festival-candidates/components/FestivalCandidateJsonUploader";
+import { useFestivalCandidateDraft } from "@/app/admin/festival-candidates/hooks/useFestivalCandidateDraft";
 import { useFestivalCandidates } from "@/app/admin/festival-candidates/hooks/useFestivalCandidates";
+import { matchFestivalDraftArtists } from "@/lib/artists/matchFestivalDraftArtists";
 import {
-  formatFestivalDraftJson,
+  normalizeFestivalDraft,
   parseFestivalDraftJson,
+  validateFestivalDraftForApproval,
 } from "@/lib/festivals/festivalDraft";
 import type {
   FestivalCandidate,
@@ -25,6 +31,14 @@ const STATUS_LABELS = {
   approved: "승인",
   rejected: "거절",
 };
+
+type CandidateTab = "basic" | "lineup" | "ticket";
+
+const CANDIDATE_TABS: Array<{ id: CandidateTab; label: string }> = [
+  { id: "basic", label: "기본정보 관리" },
+  { id: "lineup", label: "라인업 관리" },
+  { id: "ticket", label: "티켓 관리" },
+];
 
 function createInitialDraft(candidate: FestivalCandidate): FestivalDraftJson {
   return {
@@ -53,10 +67,11 @@ export default function FestivalCandidatesPage() {
   const [statusFilter, setStatusFilter] =
     useState<(typeof STATUS_OPTIONS)[number]["value"]>("pending");
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [jsonText, setJsonText] = useState("");
+  const [activeTab, setActiveTab] = useState<CandidateTab>("basic");
   const [reviewNotes, setReviewNotes] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
   const [editorError, setEditorError] = useState<string | null>(null);
+  const [isMatchingArtists, setIsMatchingArtists] = useState(false);
 
   const {
     candidates,
@@ -69,28 +84,67 @@ export default function FestivalCandidatesPage() {
     deleteCandidate,
   } = useFestivalCandidates(statusFilter);
 
+  const {
+    draft,
+    initializeDraft,
+    clearDraft,
+    updateFestival,
+    addArtist,
+    updateArtist,
+    deleteArtist,
+    addTicket,
+    updateTicket,
+    deleteTicket,
+  } = useFestivalCandidateDraft();
+
   const selectedCandidate =
     candidates.find((candidate) => candidate.id === selectedId) ?? null;
 
   function selectCandidate(candidate: FestivalCandidate) {
-    const draft = candidate.draft_json ?? createInitialDraft(candidate);
+    const draft = normalizeFestivalDraft(
+      candidate.draft_json ?? createInitialDraft(candidate),
+    );
     setSelectedId(candidate.id);
-    setJsonText(formatFestivalDraftJson(draft));
+    initializeDraft(draft);
+    setActiveTab("basic");
     setReviewNotes(candidate.review_notes ?? candidate.reject_reason ?? "");
     setNotice(null);
     setEditorError(null);
   }
 
   function readDraft() {
+    if (!draft) {
+      setEditorError("검토할 초안이 없습니다.");
+      return null;
+    }
+
     try {
-      const draft = parseFestivalDraftJson(jsonText);
+      const validatedDraft = parseFestivalDraftJson(JSON.stringify(draft));
       setEditorError(null);
-      return draft;
+      return validatedDraft;
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "JSON 형식이 잘못되었습니다.";
       setEditorError(message);
       return null;
+    }
+  }
+
+  async function handleMatchArtists() {
+    if (!draft) return;
+    try {
+      setIsMatchingArtists(true);
+      setEditorError(null);
+      initializeDraft(await matchFestivalDraftArtists(draft));
+      setNotice("normalized_name 기준 중복 확인을 완료했습니다.");
+    } catch (error) {
+      setEditorError(
+        error instanceof Error
+          ? error.message
+          : "아티스트 중복 확인에 실패했습니다.",
+      );
+    } finally {
+      setIsMatchingArtists(false);
     }
   }
 
@@ -109,8 +163,21 @@ export default function FestivalCandidatesPage() {
 
   async function handleApprove() {
     if (!selectedCandidate) return;
-    const draft = readDraft();
-    if (!draft) return;
+    const currentDraft = readDraft();
+    if (!currentDraft) return;
+    let draft: FestivalDraftJson;
+    try {
+      draft = validateFestivalDraftForApproval(currentDraft);
+      setEditorError(null);
+    } catch (error) {
+      setEditorError(
+        error instanceof Error
+          ? error.message
+          : "아티스트 매칭 정보를 확인해 주세요.",
+      );
+      setActiveTab("lineup");
+      return;
+    }
     if (
       !window.confirm(
         `${draft.festival.name}을(를) 승인하고 정식 축제로 등록하시겠습니까?`,
@@ -126,6 +193,7 @@ export default function FestivalCandidatesPage() {
         reviewNotes,
       );
       setSelectedId(null);
+      clearDraft();
       setNotice(
         `승인과 정식 등록을 완료했습니다. 축제 ID: ${result.festival_id}`,
       );
@@ -149,6 +217,7 @@ export default function FestivalCandidatesPage() {
     try {
       await deleteCandidate(selectedCandidate.id);
       setSelectedId(null);
+      clearDraft();
       setNotice("후보를 삭제했습니다.");
     } catch {
       // 훅의 오류 메시지를 화면에 표시한다.
@@ -189,6 +258,7 @@ export default function FestivalCandidatesPage() {
         <FestivalCandidateJsonUploader
           onCreated={() => {
             setSelectedId(null);
+            clearDraft();
             setNotice(null);
             if (statusFilter === "pending") {
               void loadCandidates();
@@ -206,6 +276,7 @@ export default function FestivalCandidatesPage() {
               onClick={() => {
                 setStatusFilter(option.value);
                 setSelectedId(null);
+                clearDraft();
                 setNotice(null);
               }}
               className={[
@@ -273,7 +344,7 @@ export default function FestivalCandidatesPage() {
           </section>
 
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-            {!selectedCandidate ? (
+            {!selectedCandidate || !draft ? (
               <p className="text-sm text-slate-500">
                 왼쪽 목록에서 검토할 후보를 선택하세요.
               </p>
@@ -342,23 +413,60 @@ export default function FestivalCandidatesPage() {
                   )}
 
                 <div>
-                  <label
-                    htmlFor="draft-json"
-                    className="text-sm font-bold text-slate-700"
-                  >
-                    등록용 JSON 초안
-                  </label>
-                  <textarea
-                    id="draft-json"
-                    value={jsonText}
-                    onChange={(event) => {
-                      setJsonText(event.target.value);
-                      setEditorError(null);
-                      setNotice(null);
-                    }}
-                    spellCheck={false}
-                    className="mt-2 min-h-[420px] w-full rounded-xl border border-slate-300 bg-slate-950 p-4 font-mono text-xs leading-6 text-slate-100 outline-none focus:border-blue-500"
-                  />
+                  <div className="flex overflow-x-auto border-b border-slate-200">
+                    {CANDIDATE_TABS.map((tab) => (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => setActiveTab(tab.id)}
+                        className={[
+                          "shrink-0 border-b-2 px-4 py-3 text-sm font-semibold",
+                          activeTab === tab.id
+                            ? "border-blue-600 text-blue-600"
+                            : "border-transparent text-slate-500",
+                        ].join(" ")}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {activeTab === "basic" && (
+                    <CandidateBasicInfoTab
+                      festival={draft.festival}
+                      onChange={(field, value) => {
+                        updateFestival(field, value);
+                        setEditorError(null);
+                        setNotice(null);
+                      }}
+                    />
+                  )}
+
+                  {activeTab === "lineup" && (
+                    <CandidateLineupTab
+                      artists={draft.artists}
+                      onAdd={addArtist}
+                      onMatchAll={() => void handleMatchArtists()}
+                      isMatching={isMatchingArtists}
+                      onChange={(index, field, value) => {
+                        updateArtist(index, field, value);
+                        if (field === "normalized_name") {
+                          updateArtist(index, "matched_artist_id", null);
+                          updateArtist(index, "match_status", "pending");
+                        }
+                      }}
+                      onDelete={deleteArtist}
+                    />
+                  )}
+
+                  {activeTab === "ticket" && (
+                    <CandidateTicketTab
+                      tickets={draft.tickets ?? []}
+                      onAdd={addTicket}
+                      onChange={updateTicket}
+                      onDelete={deleteTicket}
+                    />
+                  )}
                 </div>
 
                 <div>

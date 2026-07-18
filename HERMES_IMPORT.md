@@ -27,6 +27,12 @@
 - `candidate`: 검토용 출처 정보다. 정식 축제 등록에는 사용하지 않는다.
 - `festival`: 축제명, 기간, 장소 등 기본정보다.
 - `artists`: 출연진과 공연 날짜·시간·무대 목록이다.
+- `artists[].matched_artist_id`: 관리자 검토 화면에서 선택하는 기존 `artists.id`다. 헤르메스는 항상 `null`로 작성한다.
+- `artists[].match_status`: 헤르메스는 `pending`으로 작성하며 관리자가 기존 아티스트 또는 신규 등록 여부를 결정한다.
+- `artists[].normalized_name`: 공백·대소문자·특수문자 차이를 정리한 중복 판별값이다.
+  - 공식 영문명을 기준으로 영문 소문자와 숫자만 사용한다.
+  - 공백과 특수문자는 제거하고 `&`는 `and`로 바꾼다.
+  - 예: `10CM` → `10cm`, `Simon Dominic` → `simondominic`, `AKMU & Friends` → `akmuandfriends`
 - `tickets`: 티켓 회차, 오픈 시간, 가격, 판매처 목록이다.
 - `candidate.score`: 추출 신뢰도를 0부터 100 사이 정수로 기록한다.
 - `candidate.raw_text`: 포스터와 게시글에서 읽은 핵심 원문을 보존한다.

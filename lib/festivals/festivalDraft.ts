@@ -1,4 +1,89 @@
 import type { FestivalDraftJson } from "@/lib/types";
+import {
+  isValidArtistNormalizedName,
+  normalizeArtistName,
+} from "../artists/normalizeArtistName.ts";
+
+function normalizeAliases(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.map(String).filter(Boolean);
+  }
+  if (typeof value === "string") {
+    return value
+      .split(",")
+      .map((alias) => alias.trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
+export function normalizeFestivalDraft(
+  draft: FestivalDraftJson,
+): FestivalDraftJson {
+  return {
+    ...draft,
+    artists: draft.artists.map((artist) => ({
+      ...artist,
+      normalized_name: normalizeArtistName(artist.normalized_name),
+      matched_artist_id: Number.isInteger(artist.matched_artist_id)
+        ? artist.matched_artist_id
+        : null,
+      match_status: artist.match_status
+        ?? (Number.isInteger(artist.matched_artist_id)
+          ? "matched"
+          : "pending"),
+      aliases: normalizeAliases(artist.aliases as unknown),
+    })),
+    tickets: Array.isArray(draft.tickets) ? draft.tickets : [],
+  };
+}
+
+export function validateFestivalDraftForApproval(
+  draft: FestivalDraftJson,
+) {
+  const normalizedDraft = normalizeFestivalDraft(draft);
+  const unresolvedArtist = normalizedDraft.artists.find(
+    (artist) =>
+      artist.match_status !== "new"
+      && !(
+        artist.match_status === "matched"
+        && Number.isInteger(artist.matched_artist_id)
+      ),
+  );
+
+  if (unresolvedArtist) {
+    throw new Error(
+      `${unresolvedArtist.display_name || unresolvedArtist.input_name || "아티스트"}의 기존 ID 연결 또는 신규 등록 여부를 확인해 주세요.`,
+    );
+  }
+
+  const invalidNewArtist = normalizedDraft.artists.find(
+    (artist) =>
+      artist.match_status === "new"
+      && !isValidArtistNormalizedName(artist.normalized_name),
+  );
+
+  if (invalidNewArtist) {
+    throw new Error(
+      `${invalidNewArtist.display_name || invalidNewArtist.input_name || "신규 아티스트"}의 normalized_name은 영문 소문자와 숫자로 입력해 주세요.`,
+    );
+  }
+
+  const normalizedNames = normalizedDraft.artists
+    .map((artist) => artist.normalized_name.trim())
+    .filter(Boolean);
+  const duplicateNormalizedName = normalizedNames.find(
+    (name, index) => normalizedNames.indexOf(name) !== index,
+  );
+
+  if (duplicateNormalizedName) {
+    throw new Error(
+      `라인업에 중복된 normalized_name이 있습니다: ${duplicateNormalizedName}`,
+    );
+  }
+
+  return normalizedDraft;
+}
 
 export function parseFestivalDraftJson(value: string): FestivalDraftJson {
   const parsed: unknown = JSON.parse(value);
@@ -58,7 +143,7 @@ export function parseFestivalDraftJson(value: string): FestivalDraftJson {
     throw new Error("tickets는 배열이어야 합니다.");
   }
 
-  return draft as FestivalDraftJson;
+  return normalizeFestivalDraft(draft as FestivalDraftJson);
 }
 
 export function getFestivalDraftFileName(draft: FestivalDraftJson) {

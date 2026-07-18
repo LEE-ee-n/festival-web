@@ -17,7 +17,7 @@
 | artists                | name                | text                     | NO          | null                                      |
 | artists                | genre               | text                     | YES         | null                                      |
 | artists                | created_at          | timestamp with time zone | YES         | now()                                     |
-| artists                | normalized_name     | text                     | YES         | null                                      |
+| artists                | normalized_name     | text                     | NO          | null                                      |
 | artists                | artist_type         | text                     | YES         | null                                      |
 | artists                | image_url           | text                     | YES         | null                                      |
 | festival_artists       | festival_id         | bigint                   | NO          | null                                      |

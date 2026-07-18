@@ -22,6 +22,8 @@
 - `app/admin/festivals/new/page.tsx`: 신규 축제 기본정보 등록
 - `app/admin/festival-candidates/page.tsx`: 수집 후보 JSON 수정·저장, 승인 등록, 삭제
 - `app/admin/festival-candidates/components/FestivalCandidateJsonUploader.tsx`: 헤르메스 JSON 검사와 검토 대기 후보 저장
+- `app/admin/festival-candidates/components/Candidate*Tab.tsx`: 후보 기본정보·라인업·티켓 폼과 `normalized_name` 기준 기존 아티스트 매칭
+- `app/admin/festival-candidates/hooks/useFestivalCandidateDraft.ts`: 승인 전 세 탭의 JSON 초안 상태 관리
 - `app/admin/festival-candidates/hooks/useFestivalCandidates.ts`: 후보 조회, 초안 저장, 승인과 정식 등록
 - `app/admin/festivals/[id]/lineup/page.tsx`: 최초 데이터 로딩, 탭 전환, 관리 화면 조립
 - `app/admin/festivals/[id]/lineup/components/`: 기본정보, 출연진, 티켓 탭 UI
@@ -41,6 +43,7 @@
 - `lib/calendarFestivalBar.ts`: 여러 날짜에 걸친 축제 막대 길이와 종료 모양 계산
 - `lib/calendarFestivalLanes.ts`: 월간 축제 겹침을 계산해 축제별 고정 줄 배정
 - `lib/auth/getCurrentAdminAccess.ts`: 로그인 사용자 관리자 여부 확인
+- `lib/artists/`: 아티스트 이름 정규화, 검색과 normalized_name 기준 후보 중복 매칭
 - `lib/festivals/`: 축제 기본정보, 출연진, 티켓, 썸네일의 조회·추가·수정·삭제
 - `lib/festivals/ticketDisplay.ts`: 최신 티켓 회차와 표시할 판매처 버튼 결정
 - `lib/festivals/thumbnailValidation.ts`: 썸네일 형식, 실제 파일 내용, 5MB 제한 검사
@@ -52,7 +55,7 @@
 ## Supabase
 
 - `supabase/migrations/005~008`: 관리자 인증·RLS, 트랜잭션 JSON 등록, 티켓·썸네일 제한
-- `supabase/migrations/009~011`: 수집 후보 저장, 승인 정식 등록, 빈 출연진·티켓 허용
+- `supabase/migrations/009~012`: 수집 후보 저장·승인 등록, 빈 출연진·티켓 허용, 아티스트 정규화 이름 제약
 - `supabase/DATABASE_SCHEMA.md`: 테이블 관계와 운영 규칙
 - `SECURITY.md`: 관리자 인증과 공개·관리자 권한 정책
 - `DATABASE.md`: 운영 DB 칼럼 기록
@@ -62,6 +65,8 @@
 - `tests/calendarFestivalBar.test.ts`: 캘린더 축제 막대 규칙
 - `tests/calendarFestivalLanes.test.ts`: 겹치는 축제의 월간 고정 줄 배정 규칙
 - `tests/calendarSelection.test.ts`: 이전·다음 달 날짜 선택과 월 이동 규칙
+- `tests/artistMatching.test.ts`: 후보 아티스트의 기존 아티스트 중복 매칭 규칙
+- `tests/artistNameNormalization.test.ts`: `normalized_name` 변환과 허용 형식
 - `tests/festivalDraft.test.ts`: 헤르메스 JSON 필수값, 신뢰도와 표시 순서 검사
 - `tests/ticketDisplay.test.ts`: 최신 티켓, 오픈 시간, 판매처 버튼 규칙
 - `tests/thumbnailValidation.test.ts`: 이미지 형식과 용량 제한
@@ -74,6 +79,7 @@
 
 - `HERMES_IMPORT.md`: 헤르메스 사진 추출 지시문과 JSON 규격
 - 헤르메스 JSON 업로드 → 검토 대기 저장 → 관리자 수정·저장 → 승인 시 정식 축제·출연진·티켓 등록
+- 라인업은 `normalized_name`으로 기존 아티스트를 일괄 확인하고, 매칭 결과를 관리자가 검토한 뒤 승인한다.
 - 승인 등록은 DB 트랜잭션으로 처리하며 실패하면 후보와 정식 데이터 변경을 모두 취소한다.
 
 ## 로컬 전체 검사

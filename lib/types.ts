@@ -123,6 +123,8 @@ export type FestivalDraftJson = {
     input_name: string;
     display_name: string;
     normalized_name: string;
+    matched_artist_id?: number | null;
+    match_status?: "pending" | "matched" | "new";
     aliases: string[];
     performance_date?: string;
     performance_time?: string;

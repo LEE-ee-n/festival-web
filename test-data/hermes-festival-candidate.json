@@ -35,7 +35,9 @@
     {
       "input_name": "테스트 아티스트",
       "display_name": "테스트 아티스트",
-      "normalized_name": "테스트아티스트",
+      "normalized_name": "testartist",
+      "matched_artist_id": null,
+      "match_status": "pending",
       "aliases": [],
       "performance_date": "2026-08-01",
       "performance_time": "18:00:00",

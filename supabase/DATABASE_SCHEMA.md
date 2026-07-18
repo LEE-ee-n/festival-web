@@ -109,6 +109,7 @@ festival_candidates.festival_id
 - festivals.slug UNIQUE
 - festivals: 축제명 + 시작일 + 장소 UNIQUE
 - artists.normalized_name UNIQUE
+  - NOT NULL, 영문 소문자와 숫자만 허용 (`^[a-z0-9]+$`)
 - festival_artists: festival_id + artist_id 복합 기본키
 - festival_candidates.source_url UNIQUE
 - festival_ticket_rounds: 축제 + 회차명 + 오픈시간 + 판매처 + URL UNIQUE
