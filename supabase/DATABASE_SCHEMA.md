@@ -69,6 +69,8 @@ festival_candidates.festival_id
 - ongoing
 - ended
 - cancelled
+- `014_automatic_festival_status.sql`이 한국시간 매일 00:05에 날짜 기준으로 자동 갱신
+- cancelled는 관리자가 지정한 상태를 유지하며 자동 갱신에서 제외
 
 ### festivals.verification_status
 

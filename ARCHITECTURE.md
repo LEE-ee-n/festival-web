@@ -56,8 +56,9 @@
 ## Supabase
 
 - `supabase/migrations/005~008`: 관리자 인증·RLS, 트랜잭션 JSON 등록, 티켓·썸네일 제한
-- `supabase/migrations/009~013`: 수집 후보 저장·승인 등록, 빈 출연진·티켓 허용, 아티스트·축제 정규화 이름 제약
+- `supabase/migrations/009~014`: 수집 후보 저장·승인 등록, 빈 출연진·티켓 허용, 정규화 이름 제약, 축제 진행 상태 자동 갱신
 - 013은 JSON·XLSX 축제 등록 함수의 중복 기준과 관리자 권한 검사도 통일한다.
+- 014는 한국 날짜 기준 매일 00:05에 취소되지 않은 축제를 `scheduled`·`ongoing`·`ended`로 자동 갱신한다.
 - `supabase/DATABASE_SCHEMA.md`: 테이블 관계와 운영 규칙
 - `SECURITY.md`: 관리자 인증과 공개·관리자 권한 정책
 - `DATABASE.md`: 운영 DB 칼럼 기록
