@@ -13,7 +13,7 @@ export default function AdminPage() {
         </h1>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Link
           href="/admin/festivals"
           className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow-md"
@@ -50,6 +50,19 @@ export default function AdminPage() {
 
           <p className="mt-2 text-sm text-slate-500">
             새로운 페스티벌을 추가합니다.
+          </p>
+        </Link>
+
+        <Link
+          href="/admin/festival-candidates"
+          className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow-md"
+        >
+          <h2 className="text-lg font-bold text-slate-950">
+            수집 후보 검토
+          </h2>
+
+          <p className="mt-2 text-sm text-slate-500">
+            자동 수집된 초안을 검토하고 JSON으로 내보냅니다.
           </p>
         </Link>
       </div>

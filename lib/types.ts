@@ -85,3 +85,89 @@ export interface FestivalTicketRound {
   ticket_url: string | null;
   ticket_platform: string | null;
 }
+
+export type FestivalCandidateStatus =
+  | "pending"
+  | "approved"
+  | "rejected";
+
+export type FestivalDraftJson = {
+  candidate?: {
+    title?: string;
+    source_type?: string;
+    source_url?: string;
+    raw_text?: string;
+    score?: number;
+    source_assets?: CandidateSourceAsset[];
+  };
+  festival: {
+    name: string;
+    normalized_name?: string;
+    search_aliases?: string;
+    start_date: string;
+    end_date: string;
+    location?: string;
+    address?: string;
+    region?: string;
+    category?: string;
+    description?: string;
+    price_info?: string;
+    program_info?: string;
+    source_url?: string;
+    official_url?: string;
+    thumbnail_url?: string;
+    price_type?: string;
+    status?: string;
+  };
+  artists: Array<{
+    input_name: string;
+    display_name: string;
+    normalized_name: string;
+    aliases: string[];
+    performance_date?: string;
+    performance_time?: string;
+    performance_end_time?: string;
+    stage_name?: string;
+    status?: string;
+  }>;
+  tickets?: Array<{
+    round_type?: string;
+    round_name?: string;
+    open_at?: string;
+    close_at?: string;
+    price_info?: string;
+    ticket_url?: string;
+    ticket_platform?: string;
+    status?: string;
+  }>;
+};
+
+export type CandidateSourceAsset = {
+  type?: string;
+  name?: string;
+  url?: string;
+};
+
+export interface FestivalCandidate {
+  id: number;
+  title: string;
+  source_url: string | null;
+  source_type: string | null;
+  raw_text: string | null;
+  festival_name: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  location: string | null;
+  category: string | null;
+  score: number | null;
+  status: FestivalCandidateStatus;
+  reject_reason: string | null;
+  reviewed_at: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  festival_id: number | null;
+  draft_json: FestivalDraftJson | null;
+  source_assets: CandidateSourceAsset[];
+  review_notes: string | null;
+  reviewed_by: string | null;
+}

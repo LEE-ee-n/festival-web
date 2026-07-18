@@ -8,12 +8,14 @@ import {
 } from "next/navigation";
 import {
   formatKoreanDate,
+  getAdjacentMonthForDate,
   getCalendarDays,
   getFestivalsForDate,
   toDateKey,
 } from "@/lib/calendar";
 import { supabase } from "@/lib/supabase/client";
 import type { Festival } from "@/lib/types";
+import { assignFestivalLanes } from "@/lib/calendarFestivalLanes";
 import FestivalSidePanel from "@/components/calendar/FestivalSidePanel";
 import CalendarHeader from "@/components/calendar/CalendarHeader";
 import CalendarWeekdays from "@/components/calendar/CalendarWeekdays";
@@ -114,6 +116,36 @@ export default function Calendar() {
     });
   }
 
+  function selectDate(dateKey: string) {
+    const adjacentMonth = getAdjacentMonthForDate(
+      dateKey,
+      currentYear,
+      currentMonthIndex,
+    );
+
+    setSelectedDateKey(dateKey);
+    setSelectedFestival(null);
+    setHasListContext(true);
+    setIsDatePanelOpen(true);
+
+    if (!adjacentMonth) {
+      return;
+    }
+
+    const nextSearchParams = new URLSearchParams(
+      searchParams.toString(),
+    );
+    nextSearchParams.set("year", String(adjacentMonth.year));
+    nextSearchParams.set(
+      "month",
+      String(adjacentMonth.monthIndex + 1),
+    );
+
+    router.push(`${pathname}?${nextSearchParams.toString()}`, {
+      scroll: false,
+    });
+  }
+
   useEffect(() => {
     let isCancelled = false;
 
@@ -206,6 +238,11 @@ export default function Calendar() {
 
     return result;
   }, [calendarDays, festivals]);
+
+  const festivalLanes = useMemo(
+    () => assignFestivalLanes(festivals),
+    [festivals],
+  );
 
   const selectedFestivals = useMemo(
     () => getFestivalsForDate(festivals, activeSelectedDateKey),
@@ -312,17 +349,13 @@ function handlePointerUp(
             <CalendarGrid
               calendarDays={calendarDays}
               festivalsByDate={festivalsByDate}
+              festivalLanes={festivalLanes}
               selectedDateKey={activeSelectedDateKey}
               isLoading={isLoading}
               getFestivalColorClass={getFestivalColorClass}
               onPointerDown={handlePointerDown}
               onPointerUp={handlePointerUp}
-              onSelectDate={(dateKey) => {
-                setSelectedDateKey(dateKey);
-                setSelectedFestival(null);
-                setHasListContext(true);
-                setIsDatePanelOpen(true);
-              }}
+              onSelectDate={selectDate}
               onSelectFestival={(festival) => {
                 setSelectedFestival(festival);
                 setHasListContext(false);

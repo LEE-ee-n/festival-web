@@ -26,6 +26,11 @@ auth.users 1 ── 1 profiles
 festival_candidates.festival_id
 → festivals.id
 
+## JSON 등록 규칙
+
+- 필수값은 축제명, 시작일, 종료일이다.
+- 출연진과 티켓 배열은 비어 있어도 축제 기본정보를 먼저 등록할 수 있다.
+
 ## 공개 범위
 
 | 테이블 | anon SELECT |
@@ -89,6 +94,14 @@ festival_candidates.festival_id
 - pending
 - approved
 - rejected
+
+### festival_candidates 검토 자료
+
+- draft_json: 최종 등록 전 축제·출연진·티켓 전체 JSON 초안
+- source_assets: 수동 업로드 이미지와 추가 출처 메타데이터
+- review_notes: 관리자 검토 메모
+- reviewed_by: 마지막 승인·거절 관리자
+- source_url: 수동 수집 자료를 위해 선택값 허용
 
 ## 중복 방지
 

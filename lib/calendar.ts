@@ -16,6 +16,22 @@ export function parseDateKey(dateKey: string): Date {
   return new Date(year, month - 1, day);
 }
 
+export function getAdjacentMonthForDate(
+  dateKey: string,
+  currentYear: number,
+  currentMonthIndex: number,
+) {
+  const date = parseDateKey(dateKey);
+  const year = date.getFullYear();
+  const monthIndex = date.getMonth();
+
+  if (year === currentYear && monthIndex === currentMonthIndex) {
+    return null;
+  }
+
+  return { year, monthIndex };
+}
+
 export function getCalendarDays(
   year: number,
   monthIndex: number,

@@ -11,6 +11,7 @@ type CalendarDay = {
 type CalendarGridProps = {
   calendarDays: CalendarDay[];
   festivalsByDate: Map<string, Festival[]>;
+  festivalLanes: Map<number, number>;
   selectedDateKey: string;
   isLoading: boolean;
   getFestivalColorClass: (festivalId: number) => string;
@@ -27,6 +28,7 @@ type CalendarGridProps = {
 export default function CalendarGrid({
   calendarDays,
   festivalsByDate,
+  festivalLanes,
   selectedDateKey,
   isLoading,
   getFestivalColorClass,
@@ -53,6 +55,7 @@ export default function CalendarGrid({
             festivals={
               festivalsByDate.get(day.dateKey) ?? []
             }
+            festivalLanes={festivalLanes}
             isSelected={
               selectedDateKey === day.dateKey
             }

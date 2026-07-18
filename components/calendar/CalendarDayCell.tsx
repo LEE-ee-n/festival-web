@@ -1,5 +1,6 @@
 import type { Festival } from "@/lib/types";
 import { getFestivalBarSegment } from "@/lib/calendarFestivalBar";
+import { MAX_VISIBLE_FESTIVAL_LANES } from "@/lib/calendarFestivalLanes";
 
 type CalendarDay = {
   dateKey: string;
@@ -12,6 +13,7 @@ type CalendarDayCellProps = {
   day: CalendarDay;
   dayIndex: number;
   festivals: Festival[];
+  festivalLanes: Map<number, number>;
   isSelected: boolean;
   isLoading: boolean;
   getFestivalColorClass: (festivalId: number) => string;
@@ -23,6 +25,7 @@ export default function CalendarDayCell({
   day,
   dayIndex,
   festivals,
+  festivalLanes,
   isSelected,
   isLoading,
   getFestivalColorClass,
@@ -30,6 +33,11 @@ export default function CalendarDayCell({
   onSelectFestival,
 }: CalendarDayCellProps) {
   const hasFestivals = festivals.length > 0;
+  const visibleFestivals = festivals.filter(
+    (festival) =>
+      (festivalLanes.get(festival.id) ?? 0) < MAX_VISIBLE_FESTIVAL_LANES,
+  );
+  const hiddenFestivalCount = festivals.length - visibleFestivals.length;
 
   return (
     <button
@@ -67,8 +75,9 @@ export default function CalendarDayCell({
         <div className="mx-auto mt-4 h-2 w-5 animate-pulse rounded-full bg-slate-200" />
       ) : (
         hasFestivals && (
-          <div className="mt-11 space-y-1.5 text-left">
-            {festivals.slice(0, 2).map((festival) => {
+          <div className="relative mt-11 min-h-[84px] text-left">
+            {visibleFestivals.map((festival) => {
+              const lane = festivalLanes.get(festival.id) ?? 0;
               const startsToday =
                 festival.start_date === day.dateKey;
 
@@ -85,7 +94,8 @@ export default function CalendarDayCell({
               return (
                 <div
                   key={`${day.dateKey}-${festival.id}`}
-                  className="relative"
+                  className="absolute left-0 right-0 h-6"
+                  style={{ top: `${lane * 30}px` }}
                 >
                   {showName && (
                     <div className="relative z-20 h-6">
@@ -137,9 +147,9 @@ export default function CalendarDayCell({
               );
             })}
 
-            {festivals.length > 2 && (
-              <span className="block px-1 text-[10px] font-medium text-slate-500">
-                +{festivals.length - 2}개
+            {hiddenFestivalCount > 0 && (
+              <span className="absolute left-1 top-[90px] text-[10px] font-medium text-slate-500">
+                +{hiddenFestivalCount}개
               </span>
             )}
           </div>

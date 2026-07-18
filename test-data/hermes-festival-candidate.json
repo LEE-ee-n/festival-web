@@ -1,0 +1,59 @@
+{
+  "candidate": {
+    "title": "2026 테스트 페스티벌 인스타 포스터",
+    "source_type": "instagram_manual",
+    "source_url": "https://www.instagram.com/p/example/",
+    "raw_text": "2026 TEST FESTIVAL\n8.1 SAT - 8.2 SUN\n테스트 공원",
+    "score": 85,
+    "source_assets": [
+      {
+        "type": "image/jpeg",
+        "name": "test-festival-poster.jpg"
+      }
+    ]
+  },
+  "festival": {
+    "name": "2026 테스트 페스티벌",
+    "normalized_name": "2026테스트페스티벌",
+    "search_aliases": "테스트 페스티벌, TEST FESTIVAL",
+    "start_date": "2026-08-01",
+    "end_date": "2026-08-02",
+    "location": "테스트 공원",
+    "address": "",
+    "region": "서울",
+    "category": "music_festival",
+    "description": "",
+    "price_info": "",
+    "program_info": "",
+    "source_url": "https://www.instagram.com/p/example/",
+    "official_url": "",
+    "thumbnail_url": "",
+    "price_type": "unknown",
+    "status": "scheduled"
+  },
+  "artists": [
+    {
+      "input_name": "테스트 아티스트",
+      "display_name": "테스트 아티스트",
+      "normalized_name": "테스트아티스트",
+      "aliases": [],
+      "performance_date": "2026-08-01",
+      "performance_time": "18:00:00",
+      "performance_end_time": "",
+      "stage_name": "메인 스테이지",
+      "status": "confirmed"
+    }
+  ],
+  "tickets": [
+    {
+      "round_type": "regular",
+      "round_name": "정식 티켓",
+      "open_at": "2026-07-01T12:00:00+09:00",
+      "close_at": "",
+      "price_info": "1일권 100,000원",
+      "ticket_url": "https://tickets.example.com/test-festival",
+      "ticket_platform": "테스트 티켓",
+      "status": "scheduled"
+    }
+  ]
+}
