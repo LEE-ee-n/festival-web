@@ -95,10 +95,10 @@ function ArtistMatchControl({
           ].join(" ")}
         >
           {artist.match_status === "matched"
-            ? "기존 아티스트 연결"
+            ? "✅ 기존 아티스트 확인"
             : artist.match_status === "new"
-              ? "신규 아티스트 생성"
-              : "확인 필요"}
+              ? "🆕 신규 아티스트"
+              : "⚠️ 확인 필요"}
         </span>
       </div>
 
@@ -112,7 +112,7 @@ function ArtistMatchControl({
               void handleSearch();
             }
           }}
-          placeholder="기존 아티스트 검색"
+          placeholder="이름으로 기존 아티스트 직접 검색 (보조)"
           className={inputClass}
         />
         <button
@@ -147,13 +147,15 @@ function ArtistMatchControl({
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={selectNew}
-        className="mt-3 text-xs font-semibold text-purple-700 underline"
-      >
-        검색 결과와 다른 신규 아티스트로 등록
-      </button>
+      {artist.match_status !== "matched" && (
+        <button
+          type="button"
+          onClick={selectNew}
+          className="mt-3 text-xs font-semibold text-purple-700 underline"
+        >
+          같은 기존 아티스트가 없음 → 신규 아티스트로 등록
+        </button>
+      )}
     </div>
   );
 }
@@ -242,6 +244,7 @@ export default function CandidateLineupTab({
                         normalizeArtistName(event.target.value),
                       )
                     }
+                    onBlur={onMatchAll}
                     placeholder="예: hyukoh, 10cm"
                     className={`mt-1 ${inputClass}`}
                   />

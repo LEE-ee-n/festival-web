@@ -100,16 +100,33 @@ export default function FestivalCandidatesPage() {
   const selectedCandidate =
     candidates.find((candidate) => candidate.id === selectedId) ?? null;
 
-  function selectCandidate(candidate: FestivalCandidate) {
-    const draft = normalizeFestivalDraft(
+  async function selectCandidate(candidate: FestivalCandidate) {
+    const initialDraft = normalizeFestivalDraft(
       candidate.draft_json ?? createInitialDraft(candidate),
     );
     setSelectedId(candidate.id);
-    initializeDraft(draft);
+    initializeDraft(initialDraft);
     setActiveTab("basic");
     setReviewNotes(candidate.review_notes ?? candidate.reject_reason ?? "");
     setNotice(null);
     setEditorError(null);
+
+    if (!initialDraft.artists.some((artist) => artist.normalized_name.trim())) {
+      return;
+    }
+
+    try {
+      setIsMatchingArtists(true);
+      initializeDraft(await matchFestivalDraftArtists(initialDraft));
+    } catch (error) {
+      setEditorError(
+        error instanceof Error
+          ? error.message
+          : "아티스트 자동 중복 확인에 실패했습니다.",
+      );
+    } finally {
+      setIsMatchingArtists(false);
+    }
   }
 
   function readDraft() {
@@ -316,7 +333,7 @@ export default function FestivalCandidatesPage() {
                   <button
                     key={candidate.id}
                     type="button"
-                    onClick={() => selectCandidate(candidate)}
+                    onClick={() => void selectCandidate(candidate)}
                     className={[
                       "w-full p-5 text-left transition hover:bg-slate-50",
                       selectedId === candidate.id ? "bg-blue-50" : "",
