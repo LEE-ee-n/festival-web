@@ -251,6 +251,9 @@ export default function Calendar() {
 
   const pointerStartX = useRef<number | null>(null);
   const pointerStartY = useRef<number | null>(null);
+  const wheelDeltaY = useRef(0);
+  const wheelLastEventAt = useRef(0);
+  const wheelLockedUntil = useRef(0);
 
   function moveMonth(amount: number) {
     const nextMonth = new Date(
@@ -260,6 +263,42 @@ export default function Calendar() {
     );
 
     navigateToMonth(nextMonth.getFullYear(), nextMonth.getMonth());
+  }
+
+  function handleCalendarWheel(
+    event: React.WheelEvent<HTMLDivElement>,
+  ) {
+    if (
+      event.ctrlKey ||
+      window.matchMedia("(pointer: coarse)").matches ||
+      Math.abs(event.deltaY) <= Math.abs(event.deltaX)
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const now = Date.now();
+
+    if (now < wheelLockedUntil.current) {
+      return;
+    }
+
+    if (now - wheelLastEventAt.current > 180) {
+      wheelDeltaY.current = 0;
+    }
+
+    wheelLastEventAt.current = now;
+    wheelDeltaY.current += event.deltaY;
+
+    if (Math.abs(wheelDeltaY.current) < 80) {
+      return;
+    }
+
+    const direction = wheelDeltaY.current > 0 ? 1 : -1;
+    wheelDeltaY.current = 0;
+    wheelLockedUntil.current = now + 450;
+    moveMonth(direction);
   }
 
   function handlePointerDown(
@@ -285,10 +324,12 @@ function handlePointerUp(
   pointerStartX.current = null;
   pointerStartY.current = null;
 
+  const horizontalDistance = Math.abs(deltaX);
+  const verticalDistance = Math.abs(deltaY);
   const isHorizontalSwipe =
-    Math.abs(deltaX) > Math.abs(deltaY);
+    horizontalDistance >= verticalDistance * 0.55;
 
-  const passedThreshold = Math.abs(deltaX) >= 50;
+  const passedThreshold = horizontalDistance >= 45;
 
   if (!isHorizontalSwipe || !passedThreshold) {
     return;
@@ -329,7 +370,10 @@ function handlePointerUp(
       ].join(" ")}
       >
       <div className="min-w-0">
-        <div className="overflow-hidden shadow-sm">
+        <div
+          className="overflow-hidden shadow-sm"
+          onWheel={handleCalendarWheel}
+        >
           <CalendarHeader
             currentYear={currentYear}
             currentMonthIndex={currentMonthIndex}
