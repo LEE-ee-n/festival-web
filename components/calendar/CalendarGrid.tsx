@@ -42,10 +42,10 @@ export default function CalendarGrid({
     <div
       onPointerDown={onPointerDown}
       onPointerUp={onPointerUp}
-      className="touch-pan-y overflow-hidden border border-slate-200"
+      className="touch-none overflow-hidden border border-slate-200"
     >
       {/* 날짜 셀을 7열로 배치하는 실제 달력 그리드 */}
-      <div className="grid grid-cols-7 auto-rows-[96px] [&>*]:border-b [&>*]:border-r [&>*:nth-child(7n)]:border-r-0 [&>*:nth-last-child(-n+7)]:border-b-0 sm:auto-rows-auto">
+      <div className="grid grid-cols-7 auto-rows-[92px] [&>*]:border-b [&>*]:border-r [&>*:nth-child(7n)]:border-r-0 [&>*:nth-last-child(-n+7)]:border-b-0 sm:auto-rows-auto">
         {calendarDays.map((day, dayIndex) => (
           // 날짜 한 칸의 표시와 동작은 CalendarDayCell이 담당
           <CalendarDayCell
