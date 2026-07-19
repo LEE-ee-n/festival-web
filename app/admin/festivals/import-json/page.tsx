@@ -1,516 +1,483 @@
 "use client";
 
-import { ChangeEvent, useRef, useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useRef, useState } from "react";
+
+import { parseFestivalDraftJson } from "@/lib/festivals/festivalDraft";
+import {
+  createFestivalUpdatePreview,
+  type ExistingFestivalArtist,
+  type ExistingFestivalTicket,
+  type FestivalUpdateItem,
+} from "@/lib/festivals/festivalUpdatePreview";
 import { supabase } from "@/lib/supabase/client";
-import {
-  isValidArtistNormalizedName,
-  normalizeArtistName,
-} from "@/lib/artists/normalizeArtistName";
-import {
-  isValidNormalizedName,
-  normalizeNormalizedName,
-} from "@/lib/normalizedName";
+import type { FestivalDraftJson } from "@/lib/types";
 
-type FestivalJson = {
-  festival: {
-    name: string;
-    normalized_name: string;
-    search_aliases?: string;
-    start_date: string;
-    end_date: string;
-    location?: string;
-    address?: string;
-    region?: string;
-    category?: string;
-    description?: string;
-    price_info?: string;
-    program_info?: string;
-    source_url?: string;
-    official_url?: string;
-    thumbnail_url?: string;
-    price_type?: string;
-    status?: string;
-  };
-
-  artists: Array<{
-    input_name: string;
-    display_name: string;
-    normalized_name: string;
-    aliases: string[];
-    performance_date?: string;
-    performance_time?: string;
-    performance_end_time?: string;
-    stage_name?: string;
-    status?: string;
-  }>;
-
-  tickets?: Array<{
-    round_type?: string;
-    round_name?: string;
-    open_at?: string;
-    close_at?: string;
-    price_info?: string;
-    ticket_url?: string;
-    ticket_platform?: string;
-    status?: string;
-  }>;
-};
-
-type SimilarArtist = {
+type FestivalRecord = FestivalDraftJson["festival"] & {
   id: number;
-  name: string;
-  normalized_name: string;
-  similarity_score: number;
+  verification_status: string | null;
 };
 
-type MatchedArtist = FestivalJson["artists"][number] & {
-  matchedArtist: SimilarArtist | null;
-  matchStatus: "pending" | "matched" | "review" | "new" | "error";
-};
-
-type ImportResult = {
+type UpdateResult = {
   festival_id: number;
-  new_artist_count: number;
-  existing_artist_count: number;
-  linked_count: number;
-  already_linked_count: number;
-  alias_count: number;
+  log_id: number;
+  ticket_count: number;
 };
 
+type UpdateLog = {
+  id: number;
+  source_type: string | null;
+  source_file_name: string | null;
+  changes: Array<{ section?: string; label?: string }>;
+  created_at: string;
+};
 
-export default function FestivalJsonImportPage() {
-  const [fileName, setFileName] = useState("");
-  const [jsonData, setJsonData] =
-    useState<FestivalJson | null>(null);
-  const [errorMessage, setErrorMessage] =
-    useState<string | null>(null);
+const STATUS_META = {
+  same: {
+    label: "동일",
+    className: "bg-emerald-50 text-emerald-700",
+  },
+  add: {
+    label: "추가",
+    className: "bg-blue-50 text-blue-700",
+  },
+  conflict: {
+    label: "검토 필요",
+    className: "bg-amber-50 text-amber-800",
+  },
+} as const;
 
+const SECTION_LABEL = {
+  basic: "기본정보",
+  lineup: "라인업",
+  ticket: "티켓",
+} as const;
+
+function firstRelation<T>(value: T | T[] | null): T | null {
+  if (Array.isArray(value)) return value[0] ?? null;
+  return value;
+}
+
+function FestivalJsonUpdateContent() {
+  const searchParams = useSearchParams();
+  const expectedFestivalId = Number(searchParams.get("festivalId")) || null;
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [matchedArtists, setMatchedArtists] = useState<
-    MatchedArtist[]
-    >([]);
+  const [fileName, setFileName] = useState("");
+  const [draft, setDraft] = useState<FestivalDraftJson | null>(null);
+  const [festival, setFestival] = useState<FestivalRecord | null>(null);
+  const [items, setItems] = useState<FestivalUpdateItem[]>([]);
+  const [logs, setLogs] = useState<UpdateLog[]>([]);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isLoading, setIsLoading] = useState(false);
+  const [isApplying, setIsApplying] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [result, setResult] = useState<UpdateResult | null>(null);
 
-  const [isMatching, setIsMatching] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
-
-  const [importResult, setImportResult] =
-    useState<ImportResult | null>(null);
-
-  async function handleFileChange(
-    event: ChangeEvent<HTMLInputElement>,
-  ) {
-    const file = event.target.files?.[0];
-
-    if (!file) {
-      return;
-    }
+  async function loadPreview(file: File) {
+    setIsLoading(true);
+    setErrorMessage(null);
+    setResult(null);
+    setDraft(null);
+    setFestival(null);
+    setItems([]);
+    setLogs([]);
+    setSelectedIds(new Set());
 
     try {
-      setFileName(file.name);
-      setErrorMessage(null);
-      setJsonData(null);
-
-      const text = await file.text();
-      const parsed = JSON.parse(text) as FestivalJson;
-
-      if (!parsed.festival) {
-        throw new Error("festival 정보가 없습니다.");
+      if (!file.name.toLowerCase().endsWith(".json")) {
+        throw new Error("JSON 파일을 선택해 주세요.");
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        throw new Error("JSON 파일은 2MB 이하여야 합니다.");
       }
 
-      if (!parsed.festival.name) {
-        throw new Error("festival.name이 없습니다.");
+      const incomingDraft = parseFestivalDraftJson(await file.text());
+      const identity = incomingDraft.festival;
+
+      const { data: festivalData, error: festivalError } = await supabase
+        .from("festivals")
+        .select(`
+          id, name, normalized_name, search_aliases, start_date, end_date,
+          location, address, region, category, description, price_info,
+          program_info, source_url, official_url, thumbnail_url, price_type,
+          status, verification_status
+        `)
+        .eq("normalized_name", identity.normalized_name)
+        .eq("start_date", identity.start_date)
+        .eq("end_date", identity.end_date)
+        .eq("verification_status", "approved")
+        .maybeSingle();
+
+      if (festivalError) throw festivalError;
+      if (!festivalData) {
+        throw new Error(
+          "normalized_name과 시작일·종료일이 모두 일치하는 승인 축제가 없습니다. 신규 축제라면 신규 등록 작업함을 이용하세요.",
+        );
+      }
+      if (expectedFestivalId && festivalData.id !== expectedFestivalId) {
+        throw new Error(
+          "현재 관리 중인 축제와 JSON의 축제 정보가 일치하지 않습니다. normalized_name과 날짜를 확인하세요.",
+        );
       }
 
-      parsed.festival.normalized_name = normalizeNormalizedName(
-        String(parsed.festival.normalized_name ?? ""),
+      const normalizedNames = [...new Set(
+        incomingDraft.artists
+          .map((artist) => artist.normalized_name)
+          .filter(Boolean),
+      )];
+
+      const [lineupResult, ticketResult, artistResult, logResult] = await Promise.all([
+        supabase
+          .from("festival_artists")
+          .select(`
+            id, artist_id, performance_date, performance_time,
+            performance_end_time, stage_name, status,
+            artists (
+              id, name, normalized_name,
+              artist_aliases (alias_name)
+            )
+          `)
+          .eq("festival_id", festivalData.id),
+        supabase
+          .from("festival_ticket_rounds")
+          .select(`
+            id, round_type, round_name, open_at, price_info,
+            ticket_url, ticket_platform
+          `)
+          .eq("festival_id", festivalData.id),
+        normalizedNames.length > 0
+          ? supabase
+              .from("artists")
+              .select("id, normalized_name")
+              .in("normalized_name", normalizedNames)
+          : Promise.resolve({ data: [], error: null }),
+        supabase
+          .from("festival_update_logs")
+          .select("id, source_type, source_file_name, changes, created_at")
+          .eq("festival_id", festivalData.id)
+          .order("created_at", { ascending: false })
+          .limit(10),
+      ]);
+
+      if (lineupResult.error) throw lineupResult.error;
+      if (ticketResult.error) throw ticketResult.error;
+      if (artistResult.error) throw artistResult.error;
+      if (logResult.error) throw logResult.error;
+
+      const artistIds = new Map(
+        (artistResult.data ?? []).map((artist) => [
+          String(artist.normalized_name),
+          Number(artist.id),
+        ]),
       );
 
-      if (!isValidNormalizedName(parsed.festival.normalized_name)) {
-        throw new Error(
-          "festival.normalized_name은 영문 소문자와 숫자로 입력해 주세요.",
-        );
-      }
-
-      if (!parsed.festival.start_date) {
-        throw new Error("festival.start_date가 없습니다.");
-      }
-
-      if (!parsed.festival.end_date) {
-        throw new Error("festival.end_date가 없습니다.");
-      }
-
-      if (parsed.festival.end_date < parsed.festival.start_date) {
-        throw new Error("종료일은 시작일보다 빠를 수 없습니다.");
-      }
-
-      if (
-        parsed.artists !== undefined &&
-        !Array.isArray(parsed.artists)
-      ) {
-        throw new Error("artists는 배열이어야 합니다.");
-      }
-
-      if (
-        parsed.tickets !== undefined &&
-        !Array.isArray(parsed.tickets)
-      ) {
-        throw new Error("tickets는 배열이어야 합니다.");
-      }
-
-      parsed.artists = (parsed.artists ?? []).map((artist) => ({
-        ...artist,
-        normalized_name: normalizeArtistName(
-          artist.normalized_name?.trim()
-            || artist.display_name
-            || artist.input_name,
-        ),
-      }));
-
-      setJsonData(parsed);
-      setMatchedArtists(
-        (parsed.artists ?? []).map((artist) => ({
+      const resolvedDraft: FestivalDraftJson = {
+        ...incomingDraft,
+        artists: incomingDraft.artists.map((artist) => {
+          const matchedId = artistIds.get(artist.normalized_name);
+          return {
             ...artist,
-            matchedArtist: null,
-            matchStatus: "pending"
-        })),
-        );
+            matched_artist_id: matchedId ?? null,
+            match_status: matchedId ? "matched" : "new",
+          };
+        }),
+      };
+
+      const currentArtists: ExistingFestivalArtist[] = (lineupResult.data ?? [])
+        .map((row) => {
+          const relation = firstRelation(row.artists as unknown as {
+            id: number;
+            name: string;
+            normalized_name: string;
+            artist_aliases: Array<{ alias_name: string }>;
+          });
+          if (!relation) return null;
+          return {
+            id: Number(row.id),
+            artist_id: Number(row.artist_id),
+            performance_date: row.performance_date,
+            performance_time: row.performance_time,
+            performance_end_time: row.performance_end_time,
+            stage_name: row.stage_name,
+            status: row.status,
+            artist: {
+              id: Number(relation.id),
+              name: relation.name,
+              normalized_name: relation.normalized_name,
+              aliases: (relation.artist_aliases ?? []).map((alias) => alias.alias_name),
+            },
+          };
+        })
+        .filter((value): value is ExistingFestivalArtist => value !== null);
+
+      const currentTickets = (ticketResult.data ?? []) as ExistingFestivalTicket[];
+      const currentFestival = festivalData as FestivalRecord;
+      const previewItems = createFestivalUpdatePreview(
+        currentFestival,
+        currentArtists,
+        currentTickets,
+        resolvedDraft,
+      );
+
+      setDraft(resolvedDraft);
+      setFestival(currentFestival);
+      setItems(previewItems);
+      setLogs((logResult.data ?? []) as UpdateLog[]);
+      setSelectedIds(new Set(
+        previewItems
+          .filter((item) => item.status === "add")
+          .map((item) => item.id),
+      ));
     } catch (error) {
       setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "JSON 파일을 읽지 못했습니다.",
+        error instanceof Error ? error.message : "JSON 비교에 실패했습니다.",
       );
+    } finally {
+      setIsLoading(false);
     }
   }
 
-  async function handleMatchArtists() {
-    if (matchedArtists.length === 0) {
-        setErrorMessage("매칭할 아티스트가 없습니다.");
-        return;
+  function toggleItem(item: FestivalUpdateItem) {
+    if (item.status === "same") return;
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      if (next.has(item.id)) next.delete(item.id);
+      else next.add(item.id);
+      return next;
+    });
+  }
+
+  async function applySelectedChanges() {
+    if (!festival || !draft) return;
+    const selectedItems = items.filter((item) => selectedIds.has(item.id));
+    if (selectedItems.length === 0) {
+      setErrorMessage("반영할 추가 또는 변경 항목을 선택해 주세요.");
+      return;
     }
+
+    const basicChanges: Record<string, string> = {};
+    const artists: NonNullable<FestivalUpdateItem["artistPayload"]>[] = [];
+    const tickets: NonNullable<FestivalUpdateItem["ticketPayload"]>[] = [];
+
+    selectedItems.forEach((item) => {
+      if (item.basicField && item.basicValue !== undefined) {
+        basicChanges[item.basicField] = item.basicValue;
+      }
+      if (item.artistPayload) artists.push(item.artistPayload);
+      if (item.ticketPayload) tickets.push(item.ticketPayload);
+    });
 
     try {
-        setIsMatching(true);
-        setErrorMessage(null);
-
-        const results = await Promise.all(
-        matchedArtists.map(async (artist): Promise<MatchedArtist> => {
-            try {
-            const { data, error } = await supabase.rpc(
-                "search_similar_artists",
-                {
-                input_name: artist.input_name,
-                },
-            );
-
-            if (error) {
-                throw error;
-            }
-
-            const candidates = (data ?? []) as SimilarArtist[];
-
-            if (candidates.length === 0) {
-                return {
-                ...artist,
-                matchedArtist: null,
-                matchStatus: "new",
-                };
-            }
-
-            const exactMatch = candidates.find(
-                (candidate) =>
-                candidate.normalized_name ===
-                    artist.normalized_name ||
-                candidate.similarity_score >= 0.99,
-            );
-
-            if (exactMatch) {
-                return {
-                ...artist,
-                normalized_name: exactMatch.normalized_name,
-                matchedArtist: exactMatch,
-                matchStatus: "matched",
-                };
-            }
-
-            return {
-                ...artist,
-                matchedArtist: candidates[0],
-                matchStatus: "review",
-            };
-            } catch {
-            return {
-                ...artist,
-                matchedArtist: null,
-                matchStatus: "error",
-            };
-            }
-        }),
-        );
-
-        setMatchedArtists(results);
-    } finally {
-        setIsMatching(false);
-    }
-    }
-
-    async function handleImportFestival() {
-        if (!jsonData) {
-            setErrorMessage("JSON 파일을 먼저 선택하세요.");
-            return;
-        }
-
-        if (
-            matchedArtists.some(
-            (artist) =>
-                artist.matchStatus === "pending" ||
-                artist.matchStatus === "error"
-            )
-        ) {
-            setErrorMessage(
-            "아티스트 매칭이 완료되지 않았거나 오류가 있습니다.",
-            );
-            return;
-        }
-
-        const invalidArtist = matchedArtists.find(
-          (artist) =>
-            !isValidArtistNormalizedName(artist.normalized_name),
-        );
-
-        if (invalidArtist) {
-          setErrorMessage(
-            `${invalidArtist.display_name || invalidArtist.input_name}의 normalized_name이 필요합니다. 영문 아티스트명을 JSON에 입력해 주세요.`,
-          );
-          return;
-        }
-
-        try {
-            setIsImporting(true);
-            setErrorMessage(null);
-            setImportResult(null);
-
-            const artistsPayload = matchedArtists.map(
-              (artist) => ({
-                input_name: artist.input_name,
-                display_name: artist.display_name,
-                normalized_name: artist.normalized_name,
-                matched_artist_id:
-                  artist.matchedArtist?.id ?? null,
-                aliases: artist.aliases,
-                performance_date: artist.performance_date || null,
-                performance_time: artist.performance_time || null,
-                performance_end_time:
-                  artist.performance_end_time || null,
-                stage_name: artist.stage_name || null,
-                status: artist.status || "scheduled",
-              }),
-            );
-
-            const { data, error } = await supabase.rpc(
-              "import_festival_json",
-              {
-                p_festival: jsonData.festival,
-                p_tickets: jsonData.tickets ?? null,
-                p_artists: artistsPayload,
-              },
-            );
-
-            if (error) {
-            throw error;
-            }
-
-            setImportResult(data as ImportResult);
-        } catch (error) {
-            console.error("통합 JSON 등록 오류:", error);
-
-            setErrorMessage(
-                error &&
-                    typeof error === "object" &&
-                    "message" in error
-                    ? String(error.message)
-                    : JSON.stringify(error),
-            );
-        } finally {
-            setIsImporting(false);
-        }
-        }
-  
-  
-    function resetPage() {
-      setFileName("");
-      setJsonData(null);
+      setIsApplying(true);
       setErrorMessage(null);
+      setResult(null);
 
-      setMatchedArtists([]);
-      setIsMatching(false);
-      setIsImporting(false);
-      setImportResult(null);
+      const { data, error } = await supabase.rpc("apply_festival_json_update", {
+        p_festival_id: festival.id,
+        p_basic_changes: basicChanges,
+        p_artists: artists,
+        p_tickets: tickets,
+        p_change_log: selectedItems.map((item) => ({
+          section: item.section,
+          label: item.label,
+          status: item.status,
+          before: item.current,
+          after: item.incoming,
+        })),
+        p_source_type: draft.candidate?.source_type ?? "festival_json",
+        p_source_url: draft.candidate?.source_url ?? draft.festival.source_url ?? null,
+        p_source_file_name: fileName,
+      });
 
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
+      if (error) throw error;
+      const updateResult = data as UpdateResult;
+      setResult(updateResult);
+      setLogs((current) => [
+        {
+          id: updateResult.log_id,
+          source_type: draft.candidate?.source_type ?? "festival_json",
+          source_file_name: fileName,
+          changes: selectedItems.map((item) => ({
+            section: item.section,
+            label: item.label,
+          })),
+          created_at: new Date().toISOString(),
+        },
+        ...current,
+      ].slice(0, 10));
+      setSelectedIds(new Set());
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "업데이트 반영에 실패했습니다.",
+      );
+    } finally {
+      setIsApplying(false);
     }
+  }
+
+  function resetPage() {
+    setFileName("");
+    setDraft(null);
+    setFestival(null);
+    setItems([]);
+    setLogs([]);
+    setSelectedIds(new Set());
+    setErrorMessage(null);
+    setResult(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-10">
+    <main className="min-h-screen bg-white px-4 py-8">
       <div className="mx-auto max-w-5xl">
-        <h1 className="text-3xl font-bold text-slate-950">
-          페스티벌 통합 JSON 가져오기
-        </h1>
+        <Link
+          href={expectedFestivalId
+            ? `/admin/festivals/${expectedFestivalId}/lineup`
+            : "/admin/festivals"}
+          className="inline-flex rounded-lg bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700"
+        >
+          {expectedFestivalId ? "현재 축제 관리로 돌아가기" : "페스티벌 관리로 돌아가기"}
+        </Link>
 
-        <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <label
-            htmlFor="jsonFile"
-            className="block text-sm font-semibold text-slate-700"
-          >
-            JSON 파일 선택
+        <header className="mt-6">
+          <h1 className="text-3xl font-bold text-slate-950">정식 축제 JSON 업데이트</h1>
+          <p className="mt-2 text-sm text-slate-600">
+            기존 값은 유지하고 새 항목만 기본 선택합니다. 다른 값은 확인 후 직접 선택합니다.
+          </p>
+        </header>
+
+        <section className="mt-6 rounded-2xl border border-slate-300 bg-white p-5 shadow-sm">
+          <label className="text-sm font-bold text-slate-800" htmlFor="festival-update-json">
+            업데이트 JSON 파일
           </label>
-
           <input
             ref={fileInputRef}
-            id="jsonFile"
+            id="festival-update-json"
             type="file"
-            accept=".json,application/json"
-            onChange={handleFileChange}
+            accept="application/json,.json"
+            disabled={isLoading || isApplying}
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (!file) return;
+              setFileName(file.name);
+              void loadPreview(file);
+            }}
             className="mt-3 block w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
           />
-
-          {fileName && (
-            <p className="mt-3 text-sm text-slate-600">
-              선택한 파일:{" "}
-              <strong>{fileName}</strong>
-            </p>
-          )}
-
-          {errorMessage && (
-            <div className="mt-4 rounded-xl bg-red-50 p-4 text-sm font-semibold text-red-700">
-              {errorMessage}
-            </div>
-          )}
-
           <button
             type="button"
             onClick={resetPage}
-            className="mt-5 rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold"
+            className="mt-3 rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold"
           >
             초기화
           </button>
         </section>
 
-        {jsonData && (
-          <section className="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-bold">
-              JSON 미리보기
-            </h2>
+        {isLoading && <p className="mt-5 text-sm font-semibold text-slate-600">DB와 비교 중...</p>}
 
-            <div className="mt-4 space-y-2 text-sm">
-              <p>
-                페스티벌명:{" "}
-                <strong>
-                  {jsonData.festival.name}
-                </strong>
-              </p>
+        {festival && (
+          <section className="mt-6 rounded-2xl border border-slate-300 bg-white p-5 shadow-sm">
+            <h2 className="text-xl font-bold text-slate-950">{festival.name}</h2>
+            <p className="mt-1 text-sm text-slate-600">
+              {festival.normalized_name} · {festival.start_date} ~ {festival.end_date}
+            </p>
 
-              <p>
-                기간:{" "}
-                {jsonData.festival.start_date} ~{" "}
-                {jsonData.festival.end_date}
-              </p>
+            <div className="mt-5 space-y-3">
+              {items.map((item) => {
+                const meta = STATUS_META[item.status];
+                const isSelected = selectedIds.has(item.id);
+                return (
+                  <div key={item.id} className="rounded-xl border border-slate-200 p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="font-bold text-slate-900">
+                        {SECTION_LABEL[item.section]} · {item.label}
+                      </p>
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${meta.className}`}>
+                        {meta.label}
+                      </span>
+                    </div>
+                    <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+                      <p className="rounded-lg bg-slate-50 p-3 text-slate-700">
+                        <strong>현재:</strong> {item.current || "-"}
+                      </p>
+                      <p className="rounded-lg bg-slate-50 p-3 text-slate-700">
+                        <strong>JSON:</strong> {item.incoming || "-"}
+                      </p>
+                    </div>
+                    {item.status !== "same" && (
+                      <button
+                        type="button"
+                        onClick={() => toggleItem(item)}
+                        className={[
+                          "mt-3 rounded-lg px-4 py-2 text-sm font-bold",
+                          isSelected
+                            ? "bg-slate-900 text-white"
+                            : "border border-slate-300 bg-white text-slate-700",
+                        ].join(" ")}
+                      >
+                        {isSelected ? "반영 선택됨" : "기존 값 유지"}
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
 
-              <p>
-                장소:{" "}
-                {jsonData.festival.location || "-"}
-              </p>
-
-              <p>
-                검색 별칭:{" "}
-                {jsonData.festival.search_aliases || "-"}
-              </p>
-
-              <p>
-                아티스트 수:{" "}
-                <strong>
-                  {jsonData.artists.length}명
-                </strong>
-              </p>
-
+            <div className="mt-6 flex justify-end border-t border-slate-200 pt-5">
               <button
                 type="button"
-                onClick={handleMatchArtists}
-                disabled={isMatching || matchedArtists.length === 0}
-                className="mt-5 rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white disabled:opacity-50"
-                >
-                {isMatching ? "DB 확인 중..." : "기존 아티스트 매칭"}
+                disabled={isApplying || selectedIds.size === 0}
+                onClick={() => void applySelectedChanges()}
+                className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white disabled:opacity-40"
+              >
+                {isApplying ? "업데이트 중..." : `선택한 ${selectedIds.size}개 항목 반영`}
               </button>
-
-                {matchedArtists.length > 0 && (
-                    <div className="mt-5 space-y-3">
-                        {matchedArtists.map((artist, index) => (
-                        <div
-                            key={`${artist.input_name}-${index}`}
-                            className="rounded-xl border border-slate-200 p-4"
-                        >
-                            <div className="flex flex-wrap items-center justify-between gap-3">
-                            <div>
-                                <p className="font-semibold text-slate-900">
-                                {artist.display_name}
-                                </p>
-
-                                <p className="mt-1 text-xs text-slate-500">
-                                {artist.normalized_name}
-                                </p>
-                            </div>
-
-                            <span className="text-sm font-semibold">
-                                {artist.matchStatus === "pending" && "확인 전"}
-                                {artist.matchStatus === "matched" &&
-                                  `기존 사용: ${artist.matchedArtist?.name}`}
-                                {artist.matchStatus === "review" &&
-                                  `확인 필요: ${artist.matchedArtist?.name}`}
-                                {artist.matchStatus === "new" && "신규 생성"}
-                                {artist.matchStatus === "error" && "매칭 오류"}
-                            </span>
-                            </div>
-                        </div>
-                        ))}
-                    </div>
-                    )}
-
-                <button
-                    type="button"
-                    onClick={handleImportFestival}
-                    disabled={
-                        isImporting ||
-                        matchedArtists.length === 0 ||
-                        matchedArtists.some(
-                        (artist) =>
-                            artist.matchStatus === "pending" ||
-                            artist.matchStatus === "error"
-                        )
-                    }
-                    className="mt-5 rounded-xl bg-green-600 px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                    {isImporting
-                        ? "통합 등록 중..."
-                        : "페스티벌 및 라인업 최종 등록"}
-                </button>
-                {importResult && (
-                    <div className="mt-5 rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-800">
-                        등록 완료 — 신규 아티스트{" "}
-                        {importResult.new_artist_count}명 / 기존 아티스트{" "}
-                        {importResult.existing_artist_count}명 / 라인업 연결{" "}
-                        {importResult.linked_count}명 / 중복 제외{" "}
-                        {importResult.already_linked_count}명 / 별칭{" "}
-                        {importResult.alias_count}개
-                    </div>
-                    )}
-
-
             </div>
+
+            <details className="mt-6 border-t border-slate-200 pt-5">
+              <summary className="cursor-pointer text-sm font-bold text-slate-800">
+                최근 업데이트 기록 {logs.length}건
+              </summary>
+              {logs.length === 0 ? (
+                <p className="mt-3 text-sm text-slate-500">아직 JSON 업데이트 기록이 없습니다.</p>
+              ) : (
+                <div className="mt-3 space-y-2">
+                  {logs.map((log) => (
+                    <div key={log.id} className="rounded-lg border border-slate-200 p-3 text-sm">
+                      <p className="font-semibold text-slate-800">
+                        {new Date(log.created_at).toLocaleString("ko-KR")} · 변경 {log.changes.length}건
+                      </p>
+                      <p className="mt-1 text-xs text-slate-500">
+                        {log.source_file_name || log.source_type || "출처 미입력"}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </details>
           </section>
+        )}
+
+        {errorMessage && (
+          <p className="mt-5 rounded-xl bg-red-50 p-4 text-sm font-bold text-red-700">
+            {errorMessage}
+          </p>
+        )}
+        {result && (
+          <p className="mt-5 rounded-xl bg-emerald-50 p-4 text-sm font-bold text-emerald-700">
+            업데이트가 완료되었습니다. 변경 로그 #{result.log_id}에 기록했습니다.
+          </p>
         )}
       </div>
     </main>
+  );
+}
+
+export default function FestivalJsonUpdatePage() {
+  return (
+    <Suspense fallback={<main className="min-h-screen bg-white p-8">불러오는 중...</main>}>
+      <FestivalJsonUpdateContent />
+    </Suspense>
   );
 }

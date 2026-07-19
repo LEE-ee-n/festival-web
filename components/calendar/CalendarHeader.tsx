@@ -14,7 +14,7 @@ export default function CalendarHeader({
   onMoveToToday,
 }: CalendarHeaderProps) {
   return (
-    <div className="grid grid-cols-[1fr_auto_1fr] items-center px-4 pt-3 sm:px-6">
+    <div className="grid grid-cols-[1fr_auto_1fr] items-center px-4 pt-1 sm:px-6 sm:pt-3">
       <div className="flex items-center gap-2 justify-self-start">
         <button
           type="button"

@@ -111,12 +111,20 @@ export default function FestivalLineupAdminPage() {
             </p>
           </div>
 
-          <Link
-            href={`/festival/${festivalId}`}
-            className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700"
-          >
-            상세 페이지로 돌아가기
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href={`/admin/festivals/import-json?festivalId=${festivalId}`}
+              className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white"
+            >
+              JSON 업데이트
+            </Link>
+            <Link
+              href={`/festival/${festivalId}`}
+              className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700"
+            >
+              상세 페이지로 돌아가기
+            </Link>
+          </div>
         </div>
 
         <div className="mt-8 flex gap-2 border-b border-slate-200">
