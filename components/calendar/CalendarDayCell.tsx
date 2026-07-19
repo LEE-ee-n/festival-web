@@ -64,7 +64,7 @@ export default function CalendarDayCell({
     >
       <span
         className={[
-          "absolute left-2 top-2 inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-xs font-semibold sm:h-7 sm:min-w-7 sm:text-[15px]",
+          "absolute left-2 top-1 inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-xs font-semibold sm:top-2 sm:h-7 sm:min-w-7 sm:text-[15px]",
           day.isToday ? "bg-slate-900 text-white" : "",
           dayIndex % 7 === 0 && !day.isToday
             ? "text-red-600"
@@ -81,7 +81,7 @@ export default function CalendarDayCell({
         <div className="mx-auto mt-4 h-2 w-5 animate-pulse rounded-full bg-slate-200" />
       ) : (
         hasFestivals && (
-          <div className="relative mt-11 min-h-[72px] text-left sm:min-h-[84px]">
+          <div className="relative mt-8 min-h-[72px] text-left sm:mt-11 sm:min-h-[84px]">
             {visibleFestivals.map((festival) => {
               const lane = festivalLanes.get(festival.id) ?? 0;
               const startsToday =
