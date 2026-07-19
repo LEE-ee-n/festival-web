@@ -107,7 +107,7 @@ export default function AdminFestivalsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-10">
+    <main className="min-h-screen bg-white px-4 py-10">
       <div className="mx-auto max-w-6xl">
         <Link
           href="/admin"
@@ -161,7 +161,7 @@ export default function AdminFestivalsPage() {
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-slate-200 text-sm">
-                <thead className="bg-slate-50">
+                <thead className="bg-white">
                   <tr>
                     <th className="px-5 py-4 text-left font-semibold text-slate-700">
                       페스티벌명

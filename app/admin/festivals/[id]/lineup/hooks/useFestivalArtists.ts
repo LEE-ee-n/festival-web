@@ -8,6 +8,7 @@ import {
 import { addFestivalArtist } from "@/lib/festivals/addFestivalArtist";
 import { deleteFestivalArtist } from "@/lib/festivals/deleteFestivalArtist";
 import { updateFestivalArtist } from "@/lib/festivals/updateFestivalArtist";
+import { supabase } from "@/lib/supabase/client";
 import type { FestivalArtist } from "@/lib/types";
 
 type SetErrorMessage = Dispatch<SetStateAction<string | null>>;
@@ -17,6 +18,12 @@ type ArtistField =
   | "performance_end_time"
   | "stage_name"
   | "status";
+
+type ArtistIdentityField = "name" | "normalized_name" | "aliases";
+
+function getArtist(row: FestivalArtist) {
+  return Array.isArray(row.artists) ? row.artists[0] : row.artists;
+}
 
 export function useFestivalArtists(
   festivalId: string,
@@ -42,7 +49,18 @@ export function useFestivalArtists(
   >(null);
 
   const initializeArtists = useCallback(
-    (lineup: FestivalArtist[]) => setRows(lineup),
+    (lineup: FestivalArtist[]) =>
+      setRows(
+        lineup.map((row) => {
+          const artist = getArtist(row);
+          return {
+            ...row,
+            alias_text: (artist?.artist_aliases ?? [])
+              .map((alias) => alias.alias_name)
+              .join(", "),
+          };
+        }),
+      ),
     [],
   );
 
@@ -97,6 +115,22 @@ export function useFestivalArtists(
     try {
       setIsAddingArtist(true);
       setErrorMessage(null);
+      const { data: linkedArtist, error: linkedArtistError } =
+        await supabase
+          .from("artists")
+          .select(`
+            id,
+            name,
+            normalized_name,
+            artist_aliases (
+              alias_name
+            )
+          `)
+          .eq("id", selectedArtist.id)
+          .single();
+
+      if (linkedArtistError) throw linkedArtistError;
+
       const createdLineup = await addFestivalArtist(festivalId, {
         artistId: selectedArtist.id,
         performanceDate: newPerformanceDate,
@@ -116,9 +150,14 @@ export function useFestivalArtists(
           performance_end_time: newPerformanceEndTime || null,
           stage_name: newStageName.trim() || null,
           status: "confirmed",
+          alias_text: (linkedArtist.artist_aliases ?? [])
+            .map((alias) => alias.alias_name)
+            .join(", "),
           artists: {
-            id: selectedArtist.id,
-            name: selectedArtist.name,
+            id: linkedArtist.id,
+            name: linkedArtist.name,
+            normalized_name: linkedArtist.normalized_name,
+            artist_aliases: linkedArtist.artist_aliases ?? [],
           },
         },
       ]);
@@ -160,6 +199,34 @@ export function useFestivalArtists(
     );
   }
 
+  function updateArtistIdentity(
+    lineupId: number,
+    field: ArtistIdentityField,
+    value: string,
+  ) {
+    setRows((currentRows) => {
+      const sourceRow = currentRows.find((row) => row.id === lineupId);
+      const sourceArtist = sourceRow ? getArtist(sourceRow) : null;
+
+      return currentRows.map((row) => {
+        const artist = getArtist(row);
+        if (!sourceArtist || artist?.id !== sourceArtist.id) return row;
+
+        if (!artist) return row;
+
+        const updatedArtist = field === "aliases"
+          ? artist
+          : { ...artist, [field]: value };
+
+        return {
+          ...row,
+          artists: updatedArtist,
+          ...(field === "aliases" ? { alias_text: value } : {}),
+        };
+      });
+    });
+  }
+
   async function saveRow(row: FestivalArtist) {
     setErrorMessage(null);
 
@@ -172,9 +239,19 @@ export function useFestivalArtists(
       return;
     }
 
-    const artist = Array.isArray(row.artists)
-      ? row.artists[0]
-      : row.artists;
+    const artist = getArtist(row);
+
+    if (!artist?.name.trim()) {
+      setErrorMessage("표시 이름을 입력하세요.");
+      return;
+    }
+
+    if (!/^[a-z0-9]+$/.test(artist.normalized_name.trim())) {
+      setErrorMessage(
+        "normalized_name은 영문 소문자와 숫자로 입력해 주세요.",
+      );
+      return;
+    }
 
     if (
       !window.confirm(
@@ -187,8 +264,27 @@ export function useFestivalArtists(
     try {
       setSavingArtistId(row.id);
       setErrorMessage(null);
+      const aliases = [
+        ...new Set(
+          (row.alias_text ?? "")
+            .split(",")
+            .map((alias) => alias.trim())
+            .filter(Boolean),
+        ),
+      ];
+      const { error: artistError } = await supabase.rpc(
+        "update_artist_admin",
+        {
+          p_artist_id: artist.id,
+          p_name: artist.name.trim(),
+          p_normalized_name: artist.normalized_name.trim(),
+          p_aliases: aliases,
+        },
+      );
+
+      if (artistError) throw artistError;
       await updateFestivalArtist(festivalId, row);
-      window.alert("라인업 정보가 저장되었습니다.");
+      window.alert("아티스트 정보와 공연 일정이 저장되었습니다.");
     } catch (error) {
       setErrorMessage(
         error instanceof Error
@@ -286,6 +382,7 @@ export function useFestivalArtists(
       rows,
       lineupByDateAndStage,
       updateRow,
+      updateArtistIdentity,
       saveRow,
       deleteRow,
       savingArtistId,

@@ -64,6 +64,10 @@ export interface CalendarDay {
 export interface ArtistReference {
   id: number;
   name: string;
+  normalized_name: string;
+  artist_aliases?: Array<{
+    alias_name: string;
+  }>;
 }
 
 export interface FestivalArtist {
@@ -75,6 +79,7 @@ export interface FestivalArtist {
   stage_name: string | null;
   status: string;
   artists: ArtistReference | ArtistReference[] | null;
+  alias_text?: string;
 }
 
 export interface FestivalTicketRound {

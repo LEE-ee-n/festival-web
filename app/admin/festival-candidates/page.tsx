@@ -188,6 +188,11 @@ export default function FestivalCandidatesPage() {
       setActiveTab("basic");
       selector = '[data-approval-field="festival-normalized-name"]';
     } else {
+      const unnamedIndex = currentDraft.artists.findIndex(
+        (artist) =>
+          !artist.display_name?.trim()
+          && !artist.input_name?.trim(),
+      );
       const unresolvedIndex = currentDraft.artists.findIndex(
         (artist) =>
           artist.match_status !== "new"
@@ -209,14 +214,18 @@ export default function FestivalCandidatesPage() {
         seenNormalizedNames.add(normalizedName);
         return false;
       });
-      const artistIndex = unresolvedIndex >= 0
-        ? unresolvedIndex
-        : invalidNewIndex >= 0
-          ? invalidNewIndex
-          : duplicateIndex;
+      const artistIndex = unnamedIndex >= 0
+        ? unnamedIndex
+        : unresolvedIndex >= 0
+          ? unresolvedIndex
+          : invalidNewIndex >= 0
+            ? invalidNewIndex
+            : duplicateIndex;
 
       setActiveTab("lineup");
-      selector = `[data-approval-artist-index="${Math.max(0, artistIndex)}"]`;
+      selector = unnamedIndex >= 0
+        ? `[data-approval-artist-name-index="${unnamedIndex}"]`
+        : `[data-approval-artist-index="${Math.max(0, artistIndex)}"]`;
     }
 
     window.setTimeout(() => {

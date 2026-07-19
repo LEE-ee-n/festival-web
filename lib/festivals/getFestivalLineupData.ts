@@ -44,7 +44,11 @@ export async function getFestivalLineupData(
         status,
         artists (
           id,
-          name
+          name,
+          normalized_name,
+          artist_aliases (
+            alias_name
+          )
         )
       `)
       .eq("festival_id", festivalId)

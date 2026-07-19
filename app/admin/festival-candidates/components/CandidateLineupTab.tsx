@@ -273,6 +273,7 @@ export default function CandidateLineupTab({
                 <label className="text-xs font-semibold text-slate-600">
                   포스터 표기 이름
                   <input
+                    data-approval-artist-name-index={index}
                     value={artist.input_name}
                     onChange={(event) =>
                       onChange(index, "input_name", event.target.value)

@@ -65,6 +65,19 @@ export function validateFestivalDraftForApproval(
       "축제 normalized_name은 영문 소문자와 숫자로 입력해 주세요.",
     );
   }
+
+  const unnamedArtist = normalizedDraft.artists.find(
+    (artist) =>
+      !artist.display_name?.trim()
+      && !artist.input_name?.trim(),
+  );
+
+  if (unnamedArtist) {
+    throw new Error(
+      `normalized_name이 ${unnamedArtist.normalized_name || "비어 있는"} 아티스트의 포스터 표기 이름 또는 표시 이름을 입력해 주세요.`,
+    );
+  }
+
   const unresolvedArtist = normalizedDraft.artists.find(
     (artist) =>
       artist.match_status !== "new"
