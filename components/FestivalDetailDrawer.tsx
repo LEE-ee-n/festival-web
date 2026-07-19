@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { ListMusic } from "lucide-react";
 
 import FestivalDetailSummary from "@/components/festival/FestivalDetailSummary";
 import FestivalOfficialLink from "@/components/festival/FestivalOfficialLink";
@@ -18,19 +19,6 @@ type FestivalDetailDrawerProps = {
   isOpen: boolean;
   onClose: () => void;
 };
-
-function formatTicketOpenAt(openAt: string) {
-  return new Intl.DateTimeFormat("ko-KR", {
-    timeZone: "Asia/Seoul",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    weekday: "short",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  }).format(new Date(openAt));
-}
 
 export default function FestivalDetailDrawer({
   festivalId,
@@ -100,12 +88,14 @@ export default function FestivalDetailDrawer({
 
           {festival.program_info && (
             <section>
-              <h2 className="text-sm font-bold text-slate-700">
-                프로그램
+              <h2 className="flex items-center justify-center gap-2 pt-6 text-sm font-bold text-slate-700">
+                <ListMusic size={16} />
+                <span>프로그램</span>
               </h2>
-              <p className="mt-3 whitespace-pre-line text-sm leading-7 text-slate-700">
+              <p className="mt-3 whitespace-pre-line px-4 text-center text-sm leading-6 text-slate-700">
                 {festival.program_info}
               </p>
+              <div className="border-b border-slate-200 pt-6" />
             </section>
           )}
 
@@ -115,9 +105,6 @@ export default function FestivalDetailDrawer({
             <FestivalTicketSection
               ticketRounds={latestTicketRounds}
               latestOpenAt={latestOpenAt}
-              openAtText={
-                latestOpenAt ? formatTicketOpenAt(latestOpenAt) : null
-              }
             />
           )}
 

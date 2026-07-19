@@ -44,22 +44,22 @@ export default function CandidateTicketTab({
         <button
           type="button"
           onClick={onAdd}
-          className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white"
+          className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white"
         >
           티켓 추가
         </button>
       </div>
 
       {tickets.length === 0 ? (
-        <p className="mt-6 rounded-xl bg-slate-50 p-4 text-sm text-slate-500">
+        <p className="mt-6 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-500">
           추출된 티켓이 없습니다. 빈 상태로도 축제를 승인할 수 있습니다.
         </p>
       ) : (
         <div className="mt-6 space-y-4">
           {tickets.map((ticket, index) => (
             <div
-              key={`${index}-${ticket.round_name ?? "ticket"}`}
-              className="rounded-2xl border border-slate-200 bg-slate-50 p-5"
+              key={index}
+              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
             >
               <div className="grid gap-3 sm:grid-cols-2">
                 <select

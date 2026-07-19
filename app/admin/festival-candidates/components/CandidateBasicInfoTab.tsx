@@ -106,6 +106,7 @@ export default function CandidateBasicInfoTab({
         <label className="text-sm font-semibold text-slate-700">
           중복 판별값 (festivals.normalized_name)
           <input
+            data-approval-field="festival-normalized-name"
             value={festival.normalized_name ?? ""}
             onChange={(event) =>
               onChange(

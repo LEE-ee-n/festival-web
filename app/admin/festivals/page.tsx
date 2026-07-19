@@ -107,7 +107,7 @@ export default function AdminFestivalsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-10">
+    <main className="min-h-screen bg-white px-4 py-10">
       <div className="mx-auto max-w-6xl">
         <Link
           href="/admin"
@@ -129,24 +129,10 @@ export default function AdminFestivalsPage() {
 
           <div className="flex flex-wrap gap-3">
             <Link
-              href="/admin/import"
-              className="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white"
+              href="/admin/festival-candidates"
+              className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white"
             >
-              XLSX 통합 등록
-            </Link>
-
-            <Link
-              href="/admin/festivals/import-json"
-              className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white"
-            >
-              JSON 통합 등록
-            </Link>
-
-            <Link
-              href="/admin/festivals/import"
-              className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700"
-            >
-              CSV 라인업 등록
+              신규 등록 작업함으로 이동
             </Link>
           </div>
         </div>
@@ -169,7 +155,7 @@ export default function AdminFestivalsPage() {
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-slate-200 text-sm">
-                <thead className="bg-slate-50">
+                <thead className="bg-white">
                   <tr>
                     <th className="px-5 py-4 text-left font-semibold text-slate-700">
                       페스티벌명

@@ -81,6 +81,7 @@ export default function FestivalCandidatesPage() {
     isMutating,
     errorMessage,
     loadCandidates,
+    createManualCandidate,
     saveDraft,
     approveAndImportCandidate,
     deleteCandidate,
@@ -180,6 +181,54 @@ export default function FestivalCandidatesPage() {
     }
   }
 
+  function moveToApprovalError(currentDraft: FestivalDraftJson) {
+    let selector = "";
+
+    if (!/^[a-z0-9]+$/.test(currentDraft.festival.normalized_name)) {
+      setActiveTab("basic");
+      selector = '[data-approval-field="festival-normalized-name"]';
+    } else {
+      const unresolvedIndex = currentDraft.artists.findIndex(
+        (artist) =>
+          artist.match_status !== "new"
+          && !(
+            artist.match_status === "matched"
+            && Number.isInteger(artist.matched_artist_id)
+          ),
+      );
+      const invalidNewIndex = currentDraft.artists.findIndex(
+        (artist) =>
+          artist.match_status === "new"
+          && !/^[a-z0-9]+$/.test(artist.normalized_name),
+      );
+      const seenNormalizedNames = new Set<string>();
+      const duplicateIndex = currentDraft.artists.findIndex((artist) => {
+        const normalizedName = artist.normalized_name.trim();
+        if (!normalizedName) return false;
+        if (seenNormalizedNames.has(normalizedName)) return true;
+        seenNormalizedNames.add(normalizedName);
+        return false;
+      });
+      const artistIndex = unresolvedIndex >= 0
+        ? unresolvedIndex
+        : invalidNewIndex >= 0
+          ? invalidNewIndex
+          : duplicateIndex;
+
+      setActiveTab("lineup");
+      selector = `[data-approval-artist-index="${Math.max(0, artistIndex)}"]`;
+    }
+
+    window.setTimeout(() => {
+      const target = document.querySelector<HTMLElement>(selector);
+      target?.scrollIntoView({ block: "center", behavior: "auto" });
+      const input = target?.matches("input, select, textarea")
+        ? target
+        : target?.querySelector<HTMLElement>("input, select, textarea, button");
+      input?.focus({ preventScroll: true });
+    }, 0);
+  }
+
   async function handleApprove() {
     if (!selectedCandidate) return;
     const currentDraft = readDraft();
@@ -194,7 +243,7 @@ export default function FestivalCandidatesPage() {
           ? error.message
           : "아티스트 매칭 정보를 확인해 주세요.",
       );
-      setActiveTab("lineup");
+      moveToApprovalError(currentDraft);
       return;
     }
     if (
@@ -243,34 +292,47 @@ export default function FestivalCandidatesPage() {
     }
   }
 
+  async function handleCreateManualCandidate() {
+    try {
+      const candidate = await createManualCandidate();
+      setStatusFilter("pending");
+      await selectCandidate(candidate);
+      setNotice("직접 작성 작업을 만들었습니다. 기본정보부터 입력하세요.");
+    } catch {
+      // 훅의 오류 메시지를 화면에 표시한다.
+    }
+  }
+
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-10">
+    <main className="min-h-screen bg-white px-4 py-10">
       <div className="mx-auto max-w-7xl">
         <Link
           href="/admin"
-          className="text-sm font-medium text-slate-500 hover:text-slate-900"
+          className="inline-flex rounded-lg border border-slate-200 bg-slate-100 px-3.5 py-2 text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-slate-200 hover:text-slate-900"
         >
-          ← 관리자 페이지로 돌아가기
+          관리자 페이지로 돌아가기
         </Link>
 
         <div className="mt-6 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold text-blue-600">관리자</p>
+            <p className="text-sm font-semibold text-slate-600">관리자</p>
             <h1 className="mt-2 text-3xl font-bold text-slate-950">
-              수집 후보 검토
+              신규 등록 작업함
             </h1>
             <p className="mt-2 text-sm text-slate-500">
-              헤르메스 JSON을 검토하고 승인해 정식 축제로 등록합니다.
+              직접 작성하거나 수집한 자료를 기본정보·라인업·티켓으로 정리한 뒤 정식 등록합니다.
             </p>
           </div>
 
           <div className="flex gap-2">
-            <Link
-              href="/admin/festivals/import-json"
-              className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white"
+            <button
+              type="button"
+              disabled={isMutating}
+              onClick={() => void handleCreateManualCandidate()}
+              className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
             >
-              JSON 통합 등록
-            </Link>
+              직접 신규 작성
+            </button>
           </div>
         </div>
 
@@ -350,7 +412,7 @@ export default function FestivalCandidatesPage() {
                     className={[
                       "w-full rounded-2xl border bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md",
                       selectedId === candidate.id
-                        ? "border-blue-400 ring-2 ring-blue-100"
+                        ? "border-slate-900 ring-2 ring-slate-200"
                         : "border-gray-200",
                     ].join(" ")}
                   >
@@ -397,7 +459,8 @@ export default function FestivalCandidatesPage() {
                       ? ` · 점수 ${selectedCandidate.score}`
                       : ""}
                   </p>
-                  {selectedCandidate.source_url && (
+                  {selectedCandidate.source_url
+                    && selectedCandidate.source_type !== "manual" && (
                     <a
                       href={selectedCandidate.source_url}
                       target="_blank"
@@ -454,7 +517,7 @@ export default function FestivalCandidatesPage() {
                         className={[
                           "shrink-0 border-b-2 px-4 py-3 text-sm font-semibold",
                           activeTab === tab.id
-                            ? "border-blue-600 text-blue-600"
+                            ? "border-slate-900 text-slate-900"
                             : "border-transparent text-slate-500",
                         ].join(" ")}
                       >
@@ -516,7 +579,7 @@ export default function FestivalCandidatesPage() {
                       setReviewNotes(event.target.value);
                     }}
                     placeholder="수정 내용 또는 확인할 메모"
-                    className="mt-2 min-h-24 w-full rounded-xl border border-slate-300 p-3 text-sm outline-none focus:border-blue-500"
+                    className="mt-2 min-h-24 w-full rounded-xl border border-slate-300 p-3 text-sm outline-none focus:border-slate-900"
                   />
                 </div>
 

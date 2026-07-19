@@ -7,13 +7,11 @@ import type { FestivalTicketRound } from "@/lib/types";
 type FestivalTicketSectionProps = {
   ticketRounds: FestivalTicketRound[];
   latestOpenAt: string | null;
-  openAtText: string | null;
 };
 
 export default function FestivalTicketSection({
   ticketRounds,
   latestOpenAt,
-  openAtText,
 }: FestivalTicketSectionProps) {
   const currentTime = useCurrentTimeAt(latestOpenAt);
 
@@ -42,12 +40,6 @@ export default function FestivalTicketSection({
             <Tag size={16} />
             <span>{ticketInfo.round_name}</span>
           </h3>
-
-          {openAtText && (
-            <p className="px-6 pt-2 text-sm font-semibold text-slate-700">
-              {openAtText}
-            </p>
-          )}
 
           {ticketInfo.price_info && (
             <p className="whitespace-pre-line px-6 pt-2 text-sm leading-6 text-slate-700">

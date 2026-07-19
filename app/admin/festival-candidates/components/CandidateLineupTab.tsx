@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   searchArtists,
@@ -31,29 +31,33 @@ type MatchControlProps = {
   artist: Artist;
   index: number;
   onChange: Props["onChange"];
+  onMatchAll: Props["onMatchAll"];
 };
 
 function ArtistMatchControl({
   artist,
   index,
   onChange,
+  onMatchAll,
 }: MatchControlProps) {
   const [keyword, setKeyword] = useState(
     artist.display_name || artist.input_name,
   );
   const [results, setResults] = useState<ArtistSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
 
-  async function handleSearch() {
-    if (!keyword.trim()) {
+  async function runSearch(searchKeyword: string) {
+    if (!searchKeyword.trim()) {
       setSearchError("검색할 아티스트 이름을 입력하세요.");
       return;
     }
     try {
       setIsSearching(true);
       setSearchError(null);
-      setResults(await searchArtists(keyword.trim()));
+      setResults(await searchArtists(searchKeyword.trim()));
+      setHasSearched(true);
     } catch (error) {
       setSearchError(
         error instanceof Error ? error.message : "아티스트 검색에 실패했습니다.",
@@ -63,6 +67,23 @@ function ArtistMatchControl({
     }
   }
 
+  async function handleSearch() {
+    await runSearch(keyword);
+  }
+
+  useEffect(() => {
+    if (artist.match_status === "matched") return;
+
+    const autoKeyword = (artist.display_name || artist.input_name).trim();
+    if (!autoKeyword) return;
+
+    const timer = window.setTimeout(() => {
+      void runSearch(autoKeyword);
+    }, 350);
+
+    return () => window.clearTimeout(timer);
+  }, [artist.display_name, artist.input_name, artist.match_status]);
+
   function selectExisting(result: ArtistSearchResult) {
     onChange(index, "matched_artist_id", result.id);
     onChange(index, "match_status", "matched");
@@ -70,16 +91,26 @@ function ArtistMatchControl({
     onChange(index, "normalized_name", result.normalized_name);
     setKeyword(result.name);
     setResults([]);
+    setHasSearched(true);
   }
 
   function selectNew() {
     onChange(index, "matched_artist_id", null);
     onChange(index, "match_status", "new");
     setResults([]);
+    setHasSearched(true);
   }
 
+  const matchReason = artist.match_status === "matched"
+    ? `DB의 ${artist.normalized_name}과 정확히 일치해 기존 아티스트로 연결됐습니다.`
+    : artist.match_status === "new"
+      ? `DB에 ${artist.normalized_name}과 정확히 일치하는 값이 없어 신규 등록 대상으로 판별됐습니다.`
+      : artist.normalized_name.trim()
+        ? "normalized_name을 입력하거나 수정한 뒤 아직 중복 확인을 실행하지 않았습니다."
+        : "normalized_name이 비어 있어 자동으로 판별할 수 없습니다.";
+
   return (
-    <div className="mb-4 rounded-xl border border-gray-300 bg-gray-100 p-4">
+    <div className="mb-4 rounded-xl border border-slate-300 bg-white p-4 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm font-bold text-slate-800">
           normalized_name 중복 확인
@@ -100,6 +131,19 @@ function ArtistMatchControl({
               ? "🆕 신규 아티스트"
               : "⚠️ 확인 필요"}
         </span>
+      </div>
+
+      <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+        <p className="text-xs font-semibold text-slate-700">{matchReason}</p>
+        {artist.match_status === "pending" && artist.normalized_name.trim() && (
+          <button
+            type="button"
+            onClick={onMatchAll}
+            className="mt-2 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-800"
+          >
+            입력한 값으로 중복 확인
+          </button>
+        )}
       </div>
 
       <div className="mt-3 flex gap-2">
@@ -136,18 +180,29 @@ function ArtistMatchControl({
               key={result.id}
               type="button"
               onClick={() => selectExisting(result)}
-              className="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-sm hover:border-blue-400"
+              className="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-sm hover:border-slate-500"
             >
               <span className="font-semibold text-slate-900">{result.name}</span>
-              <span className="text-xs text-slate-500">
-                {result.normalized_name}
+              <span className="text-right text-xs text-slate-500">
+                <span className="block font-semibold text-slate-700">
+                  유사도 {Math.round(
+                    Math.min(1, Math.max(0, result.similarity_score)) * 100,
+                  )}%
+                </span>
+                <span>{result.normalized_name}</span>
               </span>
             </button>
           ))}
         </div>
       )}
 
-      {artist.match_status !== "matched" && (
+      {hasSearched && !isSearching && results.length === 0 && !searchError && (
+        <p className="mt-3 text-xs font-semibold text-slate-500">
+          유사한 기존 아티스트를 찾지 못했습니다.
+        </p>
+      )}
+
+      {artist.match_status === "pending" && (
         <button
           type="button"
           onClick={selectNew}
@@ -189,7 +244,7 @@ export default function CandidateLineupTab({
           <button
             type="button"
             onClick={onAdd}
-            className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white"
+            className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white"
           >
             아티스트 추가
           </button>
@@ -197,20 +252,22 @@ export default function CandidateLineupTab({
       </div>
 
       {artists.length === 0 ? (
-        <p className="mt-6 rounded-xl bg-slate-50 p-4 text-sm text-slate-500">
+        <p className="mt-6 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-500">
           추출된 아티스트가 없습니다. 빈 상태로도 축제를 승인할 수 있습니다.
         </p>
       ) : (
         <div className="mt-6 space-y-4">
           {artists.map((artist, index) => (
             <div
-              key={`${index}-${artist.input_name}`}
-              className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+              key={index}
+              data-approval-artist-index={index}
+              className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
             >
               <ArtistMatchControl
                 artist={artist}
                 index={index}
                 onChange={onChange}
+                onMatchAll={onMatchAll}
               />
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="text-xs font-semibold text-slate-600">
@@ -222,6 +279,11 @@ export default function CandidateLineupTab({
                     }
                     className={`mt-1 ${inputClass}`}
                   />
+                  {!artist.normalized_name.trim() && (
+                    <span className="mt-1.5 block rounded-lg bg-amber-50 px-2.5 py-2 text-xs font-bold text-amber-800">
+                      ⚠️ normalized_name이 비어 있습니다. 입력하고 중복 확인을 완료해야 승인할 수 있습니다.
+                    </span>
+                  )}
                 </label>
                 <label className="text-xs font-semibold text-slate-600">
                   표시 이름
@@ -241,10 +303,16 @@ export default function CandidateLineupTab({
                       onChange(
                         index,
                         "normalized_name",
-                        normalizeArtistName(event.target.value),
+                        event.target.value,
                       )
                     }
-                    onBlur={onMatchAll}
+                    onBlur={(event) =>
+                      onChange(
+                        index,
+                        "normalized_name",
+                        normalizeArtistName(event.currentTarget.value),
+                      )
+                    }
                     placeholder="예: hyukoh, 10cm"
                     className={`mt-1 ${inputClass}`}
                   />

@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase/client";
 
 export type FestivalArtistUpdate = {
+  id: number;
   artist_id: number;
   performance_date: string | null;
   performance_time: string | null;
@@ -23,7 +24,7 @@ export async function updateFestivalArtist(
       status: row.status,
     })
     .eq("festival_id", festivalId)
-    .eq("artist_id", row.artist_id);
+    .eq("id", row.id);
 
   if (error) {
     throw error;

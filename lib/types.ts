@@ -67,6 +67,7 @@ export interface ArtistReference {
 }
 
 export interface FestivalArtist {
+  id: number;
   artist_id: number;
   performance_date: string | null;
   performance_time: string | null;

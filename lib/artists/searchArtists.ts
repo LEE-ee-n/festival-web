@@ -7,6 +7,48 @@ export type ArtistSearchResult = {
   similarity_score: number;
 };
 
+function compactSearchText(value: string) {
+  return value
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[\s\p{P}\p{S}]+/gu, "");
+}
+
+function searchSimilarity(left: string, right: string) {
+  const leftText = compactSearchText(left);
+  const rightText = compactSearchText(right);
+  if (leftText === rightText) return 1;
+  if (!leftText || !rightText) return 0;
+
+  const leftParts = leftText.length < 2
+    ? [leftText]
+    : Array.from(
+      { length: leftText.length - 1 },
+      (_, index) => leftText.slice(index, index + 2),
+    );
+  const rightParts = rightText.length < 2
+    ? [rightText]
+    : Array.from(
+      { length: rightText.length - 1 },
+      (_, index) => rightText.slice(index, index + 2),
+    );
+  const rightCounts = new Map<string, number>();
+  rightParts.forEach((part) => {
+    rightCounts.set(part, (rightCounts.get(part) ?? 0) + 1);
+  });
+
+  let overlap = 0;
+  leftParts.forEach((part) => {
+    const count = rightCounts.get(part) ?? 0;
+    if (count > 0) {
+      overlap += 1;
+      rightCounts.set(part, count - 1);
+    }
+  });
+
+  return (2 * overlap) / (leftParts.length + rightParts.length);
+}
+
 export async function searchArtists(
   keyword: string,
 ): Promise<ArtistSearchResult[]> {
@@ -31,6 +73,7 @@ export async function searchArtists(
     await supabase
       .from("artist_aliases")
       .select(`
+        alias_name,
         artist_id,
         artists!inner (
           id,
@@ -50,7 +93,7 @@ export async function searchArtists(
       id: artist.id,
       name: artist.name,
       normalized_name: artist.normalized_name,
-      similarity_score: 1,
+      similarity_score: searchSimilarity(keyword, artist.name),
     })),
 
     ...(aliasMatches ?? []).flatMap((row) => {
@@ -64,7 +107,7 @@ export async function searchArtists(
               id: artist.id,
               name: artist.name,
               normalized_name: artist.normalized_name,
-              similarity_score: 1,
+              similarity_score: searchSimilarity(keyword, row.alias_name),
             },
           ]
         : [];

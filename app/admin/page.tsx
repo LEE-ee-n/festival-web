@@ -4,7 +4,7 @@ export default function AdminPage() {
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6">
       <div className="mb-8">
-        <p className="text-sm font-semibold text-blue-600">
+        <p className="text-sm font-semibold text-slate-600">
           Admin
         </p>
 
@@ -13,7 +13,20 @@ export default function AdminPage() {
         </h1>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Link
+          href="/admin/festival-candidates"
+          className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow-md"
+        >
+          <h2 className="text-lg font-bold text-slate-950">
+            신규 등록 작업함
+          </h2>
+
+          <p className="mt-2 text-sm text-slate-500">
+            직접 작성과 수집자료 검토를 거쳐 새 페스티벌을 등록합니다.
+          </p>
+        </Link>
+
         <Link
           href="/admin/festivals"
           className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow-md"
@@ -23,7 +36,7 @@ export default function AdminPage() {
           </h2>
 
           <p className="mt-2 text-sm text-slate-500">
-            전체 페스티벌 목록과 기본정보를 관리합니다.
+            등록된 페스티벌의 기본정보·라인업·티켓을 관리합니다.
           </p>
         </Link>
 
@@ -36,33 +49,7 @@ export default function AdminPage() {
           </h2>
 
           <p className="mt-2 text-sm text-slate-500">
-            아티스트 이름과 정보를 관리합니다.
-          </p>
-        </Link>
-
-        <Link
-          href="/admin/festivals/new"
-          className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow-md"
-        >
-          <h2 className="text-lg font-bold text-slate-950">
-            새 페스티벌 등록
-          </h2>
-
-          <p className="mt-2 text-sm text-slate-500">
-            새로운 페스티벌을 추가합니다.
-          </p>
-        </Link>
-
-        <Link
-          href="/admin/festival-candidates"
-          className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow-md"
-        >
-          <h2 className="text-lg font-bold text-slate-950">
-            수집 후보 검토
-          </h2>
-
-          <p className="mt-2 text-sm text-slate-500">
-            자동 수집된 초안을 검토하고 JSON으로 내보냅니다.
+            아티스트 검색·신규등록과 전체 정보를 관리합니다.
           </p>
         </Link>
       </div>

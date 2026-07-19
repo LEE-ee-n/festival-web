@@ -4,6 +4,10 @@ import { ChangeEvent, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 import { supabase } from "@/lib/supabase/client";
 import {
+  isValidArtistNormalizedName,
+  normalizeArtistName,
+} from "@/lib/artists/normalizeArtistName";
+import {
   isValidNormalizedName,
   normalizeNormalizedName,
 } from "@/lib/normalizedName";
@@ -295,23 +299,32 @@ export default function AdminImportPage() {
         setExistingFestival(duplicateFestival);
 
       const parsedArtists: ArtistRow[] = artistRows
-        .map((row) => ({
-          input_name: String(row.input_name ?? "").trim(),
-          display_name: String(row.display_name ?? "").trim(),
-          normalized_name: String(row.normalized_name ?? "").trim(),
-          aliases: String(row.aliases ?? "").trim(),
-          performance_date: formatExcelDate(row.performance_date),
-          performance_time: formatExcelTime(
-            row.performance_time
+        .map((row) => {
+          const inputName = String(row.input_name ?? "").trim();
+          const displayName = String(row.display_name ?? "").trim();
+
+          return {
+            input_name: inputName,
+            display_name: displayName,
+            normalized_name: normalizeArtistName(
+              String(row.normalized_name ?? "").trim()
+                || displayName
+                || inputName,
             ),
+            aliases: String(row.aliases ?? "").trim(),
+            performance_date: formatExcelDate(row.performance_date),
+            performance_time: formatExcelTime(
+              row.performance_time
+              ),
 
-            performance_end_time: formatExcelTime(
-                row.performance_end_time
-                ),
+              performance_end_time: formatExcelTime(
+                  row.performance_end_time
+                  ),
 
-            stage_name: String(row.stage_name ?? "").trim(),
-          status: String(row.status ?? "").trim(),
-        }))
+              stage_name: String(row.stage_name ?? "").trim(),
+            status: String(row.status ?? "").trim(),
+          };
+        })
         .filter(
           (row) =>
             row.input_name ||
@@ -321,6 +334,17 @@ export default function AdminImportPage() {
 
       if (parsedArtists.length === 0) {
         throw new Error("artists 시트에 아티스트가 없습니다.");
+      }
+
+      const invalidArtist = parsedArtists.find(
+        (artist) =>
+          !isValidArtistNormalizedName(artist.normalized_name),
+      );
+
+      if (invalidArtist) {
+        throw new Error(
+          `${invalidArtist.display_name || invalidArtist.input_name}의 normalized_name이 필요합니다. 영문 아티스트명을 입력해 주세요.`,
+        );
       }
 
       const changes: Record<string, LineupChangeFlags> = {};

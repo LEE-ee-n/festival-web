@@ -32,18 +32,25 @@ export function normalizeFestivalDraft(
         String(draft.festival.normalized_name ?? ""),
       ),
     },
-    artists: draft.artists.map((artist) => ({
-      ...artist,
-      normalized_name: normalizeArtistName(artist.normalized_name),
-      matched_artist_id: Number.isInteger(artist.matched_artist_id)
-        ? artist.matched_artist_id
-        : null,
-      match_status: artist.match_status
-        ?? (Number.isInteger(artist.matched_artist_id)
-          ? "matched"
-          : "pending"),
-      aliases: normalizeAliases(artist.aliases as unknown),
-    })),
+    artists: draft.artists.map((artist) => {
+      const normalizedNameSource =
+        artist.normalized_name
+        || artist.display_name
+        || artist.input_name;
+
+      return {
+        ...artist,
+        normalized_name: normalizeArtistName(normalizedNameSource),
+        matched_artist_id: Number.isInteger(artist.matched_artist_id)
+          ? artist.matched_artist_id
+          : null,
+        match_status: artist.match_status
+          ?? (Number.isInteger(artist.matched_artist_id)
+            ? "matched"
+            : "pending"),
+        aliases: normalizeAliases(artist.aliases as unknown),
+      };
+    }),
     tickets: Array.isArray(draft.tickets) ? draft.tickets : [],
   };
 }

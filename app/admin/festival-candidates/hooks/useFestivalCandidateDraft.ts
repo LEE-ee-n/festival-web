@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 
+import { normalizeArtistName } from "@/lib/artists/normalizeArtistName";
 import type { FestivalDraftJson } from "@/lib/types";
 
 type FestivalDraftArtist = FestivalDraftJson["artists"][number];
@@ -61,18 +62,31 @@ export function useFestivalCandidateDraft() {
     field: keyof FestivalDraftArtist,
     value: string | string[] | number | null,
   ) {
-    setDraft((current) =>
-      current
-        ? {
-            ...current,
-            artists: current.artists.map((artist, artistIndex) =>
-              artistIndex === index
-                ? ({ ...artist, [field]: value } as FestivalDraftArtist)
-                : artist,
-            ),
+    setDraft((current) => {
+      if (!current) return current;
+
+      return {
+        ...current,
+        artists: current.artists.map((artist, artistIndex) => {
+          if (artistIndex !== index) return artist;
+
+          const updatedArtist = {
+            ...artist,
+            [field]: value,
+          } as FestivalDraftArtist;
+
+          if (
+            (field === "input_name" || field === "display_name")
+            && !artist.normalized_name.trim()
+            && typeof value === "string"
+          ) {
+            updatedArtist.normalized_name = normalizeArtistName(value);
           }
-        : current,
-    );
+
+          return updatedArtist;
+        }),
+      };
+    });
   }
 
   function deleteArtist(index: number) {

@@ -11,7 +11,7 @@ type ArtistLineupTableProps = {
   lineupByDateAndStage: LineupByDateAndStage;
 
   updateRow: (
-    artistId: number,
+    lineupId: number,
     field:
       | "performance_date"
       | "performance_time"
@@ -134,7 +134,7 @@ export default function ArtistLineupTable({
                                     : row.artists;
 
                                   return (
-                                    <tr key={row.artist_id}>
+                                    <tr key={row.id}>
                                       <td className="px-4 py-4 font-semibold text-slate-900">
                                         {artist?.name ??
                                           "아티스트 정보 없음"}
@@ -148,7 +148,7 @@ export default function ArtistLineupTable({
                                           }
                                           onChange={(event) =>
                                             updateRow(
-                                              row.artist_id,
+                                              row.id,
                                               "performance_date",
                                               event.target.value,
                                             )
@@ -168,7 +168,7 @@ export default function ArtistLineupTable({
                                           }
                                           onChange={(event) =>
                                             updateRow(
-                                              row.artist_id,
+                                              row.id,
                                               "performance_time",
                                               event.target.value,
                                             )
@@ -185,7 +185,7 @@ export default function ArtistLineupTable({
                                           }
                                           onChange={(event) =>
                                             updateRow(
-                                              row.artist_id,
+                                              row.id,
                                               "performance_end_time",
                                               event.target.value,
                                             )
@@ -200,7 +200,7 @@ export default function ArtistLineupTable({
                                           value={row.stage_name ?? ""}
                                           onChange={(event) =>
                                             updateRow(
-                                              row.artist_id,
+                                              row.id,
                                               "stage_name",
                                               event.target.value,
                                             )
@@ -218,7 +218,7 @@ export default function ArtistLineupTable({
                                             }
                                             disabled={
                                               savingArtistId ===
-                                              row.artist_id
+                                              row.id
                                             }
                                             className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"
                                           >
@@ -232,7 +232,7 @@ export default function ArtistLineupTable({
                                             }
                                             disabled={
                                               savingArtistId ===
-                                              row.artist_id
+                                              row.id
                                             }
                                             className="rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"
                                           >

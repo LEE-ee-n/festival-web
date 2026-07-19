@@ -115,6 +115,7 @@ festival_candidates.festival_id
   - 과거 normalized_name 단독 UNIQUE는 013에서 제거
 - artists.normalized_name UNIQUE
   - NOT NULL, 영문 소문자와 숫자만 허용 (`^[a-z0-9]+$`)
+  - 016에서 기존 데이터의 누락·형식 오류·중복을 다시 검사한 뒤 제약을 재확정
 - festival_artists: festival_id + artist_id 복합 기본키
 - festival_candidates.source_url UNIQUE
 - festival_ticket_rounds: 축제 + 회차명 + 오픈시간 + 판매처 + URL UNIQUE

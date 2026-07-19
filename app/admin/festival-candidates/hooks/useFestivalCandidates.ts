@@ -123,6 +123,64 @@ export function useFestivalCandidates(
     }
   }
 
+  async function createManualCandidate() {
+    const draft: FestivalDraftJson = {
+      candidate: {
+        title: "직접 작성 - 새 페스티벌",
+        source_type: "manual",
+      },
+      festival: {
+        name: "",
+        normalized_name: "",
+        start_date: "",
+        end_date: "",
+        status: "scheduled",
+      },
+      artists: [],
+      tickets: [],
+    };
+
+    try {
+      setIsMutating(true);
+      setErrorMessage(null);
+
+      const { data, error } = await supabase
+        .from("festival_candidates")
+        .insert({
+          title: "직접 작성 - 새 페스티벌",
+          source_url: `manual://${crypto.randomUUID()}`,
+          source_type: "manual",
+          score: 0,
+          status: "pending",
+          draft_json: draft,
+          source_assets: [],
+        })
+        .select(`
+          id, title, source_url, source_type, raw_text,
+          festival_name, start_date, end_date, location, category,
+          score, status, reject_reason, reviewed_at, created_at,
+          updated_at, festival_id, draft_json, source_assets,
+          review_notes, reviewed_by
+        `)
+        .single();
+
+      if (error) throw error;
+
+      const candidate = data as FestivalCandidate;
+      setCandidates((current) => [candidate, ...current]);
+      return candidate;
+    } catch (error) {
+      const message = getErrorMessage(
+        error,
+        "직접 작성 작업을 만들지 못했습니다.",
+      );
+      setErrorMessage(message);
+      throw new Error(message);
+    } finally {
+      setIsMutating(false);
+    }
+  }
+
   async function approveAndImportCandidate(
     candidateId: number,
     draft: FestivalDraftJson,
@@ -190,6 +248,7 @@ export function useFestivalCandidates(
     isMutating,
     errorMessage,
     loadCandidates,
+    createManualCandidate,
     saveDraft,
     approveAndImportCandidate,
     deleteCandidate,

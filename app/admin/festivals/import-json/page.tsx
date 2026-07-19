@@ -3,6 +3,10 @@
 import { ChangeEvent, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import {
+  isValidArtistNormalizedName,
+  normalizeArtistName,
+} from "@/lib/artists/normalizeArtistName";
+import {
   isValidNormalizedName,
   normalizeNormalizedName,
 } from "@/lib/normalizedName";
@@ -153,6 +157,15 @@ export default function FestivalJsonImportPage() {
         throw new Error("tickets는 배열이어야 합니다.");
       }
 
+      parsed.artists = (parsed.artists ?? []).map((artist) => ({
+        ...artist,
+        normalized_name: normalizeArtistName(
+          artist.normalized_name?.trim()
+            || artist.display_name
+            || artist.input_name,
+        ),
+      }));
+
       setJsonData(parsed);
       setMatchedArtists(
         (parsed.artists ?? []).map((artist) => ({
@@ -214,6 +227,7 @@ export default function FestivalJsonImportPage() {
             if (exactMatch) {
                 return {
                 ...artist,
+                normalized_name: exactMatch.normalized_name,
                 matchedArtist: exactMatch,
                 matchStatus: "matched",
                 };
@@ -257,6 +271,18 @@ export default function FestivalJsonImportPage() {
             "아티스트 매칭이 완료되지 않았거나 오류가 있습니다.",
             );
             return;
+        }
+
+        const invalidArtist = matchedArtists.find(
+          (artist) =>
+            !isValidArtistNormalizedName(artist.normalized_name),
+        );
+
+        if (invalidArtist) {
+          setErrorMessage(
+            `${invalidArtist.display_name || invalidArtist.input_name}의 normalized_name이 필요합니다. 영문 아티스트명을 JSON에 입력해 주세요.`,
+          );
+          return;
         }
 
         try {

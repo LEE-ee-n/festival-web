@@ -97,7 +97,7 @@ export function useFestivalArtists(
     try {
       setIsAddingArtist(true);
       setErrorMessage(null);
-      await addFestivalArtist(festivalId, {
+      const createdLineup = await addFestivalArtist(festivalId, {
         artistId: selectedArtist.id,
         performanceDate: newPerformanceDate,
         performanceTime: newPerformanceTime,
@@ -109,6 +109,7 @@ export function useFestivalArtists(
       setRows((currentRows) => [
         ...currentRows,
         {
+          id: createdLineup.id,
           artist_id: selectedArtist.id,
           performance_date: newPerformanceDate || null,
           performance_time: newPerformanceTime || null,
@@ -146,13 +147,13 @@ export function useFestivalArtists(
   }
 
   function updateRow(
-    artistId: number,
+    lineupId: number,
     field: ArtistField,
     value: string,
   ) {
     setRows((currentRows) =>
       currentRows.map((row) =>
-        row.artist_id === artistId
+        row.id === lineupId
           ? { ...row, [field]: value || null }
           : row,
       ),
@@ -184,7 +185,7 @@ export function useFestivalArtists(
     }
 
     try {
-      setSavingArtistId(row.artist_id);
+      setSavingArtistId(row.id);
       setErrorMessage(null);
       await updateFestivalArtist(festivalId, row);
       window.alert("라인업 정보가 저장되었습니다.");
@@ -213,12 +214,12 @@ export function useFestivalArtists(
     }
 
     try {
-      setSavingArtistId(row.artist_id);
+      setSavingArtistId(row.id);
       setErrorMessage(null);
-      await deleteFestivalArtist(festivalId, row.artist_id);
+      await deleteFestivalArtist(festivalId, row.id);
       setRows((currentRows) =>
         currentRows.filter(
-          (item) => item.artist_id !== row.artist_id,
+          (item) => item.id !== row.id,
         ),
       );
       window.alert("라인업에서 삭제되었습니다.");

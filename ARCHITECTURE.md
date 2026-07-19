@@ -21,11 +21,12 @@
 - `app/admin/festivals/page.tsx`: 축제 목록 조회와 삭제
 - `app/admin/festivals/new/page.tsx`: 신규 축제 기본정보 등록
 - `app/admin/festival-candidates/page.tsx`: 수집 후보 JSON 수정·저장, 승인 등록, 삭제
-- `app/admin/festival-candidates/components/FestivalCandidateJsonUploader.tsx`: 헤르메스 JSON 검사와 검토 대기 후보 저장
+- `app/admin/festival-candidates/components/FestivalCandidateJsonUploader.tsx`: 축제 이미지 기반 JSON 검사와 검토 대기 후보 저장
 - `app/admin/festival-candidates/components/TicketDiscoveryUploader.tsx`: 티켓 discovery JSON을 기존 축제·후보·티켓 URL과 비교하고 선택 항목을 검토 대기로 저장
 - `app/admin/festival-candidates/components/Candidate*Tab.tsx`: 후보 기본정보·라인업·티켓 폼과 `normalized_name` 기준 기존 아티스트 매칭
 - `app/admin/festival-candidates/hooks/useFestivalCandidateDraft.ts`: 승인 전 세 탭의 JSON 초안 상태 관리
 - `app/admin/festival-candidates/hooks/useFestivalCandidates.ts`: 후보 조회, 초안 저장, 승인과 정식 등록
+- `app/admin/artists/page.tsx`: 신규 아티스트 유사 후보 검색·등록, 전체 아티스트 목록과 표시 이름·고유 이름·별칭 통합 수정
 - `app/admin/festivals/[id]/lineup/page.tsx`: 최초 데이터 로딩, 탭 전환, 관리 화면 조립
 - `app/admin/festivals/[id]/lineup/components/`: 기본정보, 출연진, 티켓 탭 UI
 - `app/admin/festivals/[id]/lineup/hooks/useFestivalBasicInfo.ts`: 기본정보와 썸네일 상태·저장
@@ -72,7 +73,7 @@
 - `tests/calendarSelection.test.ts`: 이전·다음 달 날짜 선택과 월 이동 규칙
 - `tests/artistMatching.test.ts`: 후보 아티스트의 기존 아티스트 중복 매칭 규칙
 - `tests/artistNameNormalization.test.ts`: `normalized_name` 변환과 허용 형식
-- `tests/festivalDraft.test.ts`: 헤르메스 JSON 필수값, 신뢰도와 표시 순서 검사
+- `tests/festivalDraft.test.ts`: 축제 초안 JSON 필수값, 신뢰도와 표시 순서 검사
 - `tests/ticketDisplay.test.ts`: 최신 티켓, 오픈 시간, 판매처 버튼 규칙
 - `tests/thumbnailValidation.test.ts`: 이미지 형식과 용량 제한
 - `tests/crawlerDiscovery.test.ts`: 수집 URL 제한, 중복 제거, 최대 개수와 실패 격리
@@ -101,9 +102,10 @@
 
 ## 수집 후보 흐름
 
-- `HERMES_IMPORT.md`: 헤르메스 사진 추출 지시문과 JSON 규격
-- 헤르메스 JSON 업로드 → 검토 대기 저장 → 관리자 수정·저장 → 승인 시 정식 축제·출연진·티켓 등록
-- 라인업은 후보를 열 때와 `normalized_name` 수정 후 자동으로 기존 아티스트를 확인하고, 필요하면 이름 검색으로 직접 연결한 뒤 승인한다.
+- `FESTIVAL_IMAGE_IMPORT.md`: 사진·게시글에서 축제 등록 JSON을 만드는 규격
+- 축제 JSON 업로드 → 검토 대기 저장 → 관리자 수정·저장 → 승인 시 정식 축제·출연진·티켓 등록
+- 라인업은 영문 이름에서 `normalized_name`을 자동 생성한다. 기존 아티스트는 DB 값을 사용하며, 자동 생성할 수 없는 신규 한글 이름은 영문 식별값을 입력하기 전까지 승인하지 않는다.
+- 아티스트 수정은 `update_artist_admin` DB 함수에서 표시 이름·고유 이름·별칭을 한 트랜잭션으로 반영한다.
 - 승인 등록은 DB 트랜잭션으로 처리하며 실패하면 후보와 정식 데이터 변경을 모두 취소한다.
 
 ## 로컬 전체 검사

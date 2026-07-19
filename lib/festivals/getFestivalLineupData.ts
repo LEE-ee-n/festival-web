@@ -35,6 +35,7 @@ export async function getFestivalLineupData(
     supabase
       .from("festival_artists")
       .select(`
+        id,
         artist_id,
         performance_date,
         performance_time,

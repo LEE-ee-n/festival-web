@@ -31,7 +31,7 @@ const tabs: Array<{ id: AdminTab; label: string }> = [
 export default function FestivalLineupAdminPage() {
   const params = useParams<{ id: string }>();
   const festivalId = params.id;
-  const [activeTab, setActiveTab] = useState<AdminTab>("basic");
+  const [activeTab, setActiveTab] = useState<AdminTab>("lineup");
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(
     null,
@@ -96,7 +96,7 @@ export default function FestivalLineupAdminPage() {
   ]);
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-10">
+    <main className="min-h-screen bg-white px-4 py-10">
       <div className="mx-auto max-w-6xl">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
