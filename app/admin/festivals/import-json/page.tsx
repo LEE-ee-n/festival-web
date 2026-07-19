@@ -36,14 +36,17 @@ type UpdateLog = {
 const STATUS_META = {
   same: {
     label: "동일",
+    icon: "✅",
     className: "bg-emerald-50 text-emerald-700",
   },
   add: {
     label: "추가",
+    icon: "➕",
     className: "bg-blue-50 text-blue-700",
   },
   conflict: {
-    label: "검토 필요",
+    label: "확인 필요",
+    icon: "📝",
     className: "bg-amber-50 text-amber-800",
   },
 } as const;
@@ -316,18 +319,6 @@ function FestivalJsonUpdateContent() {
     }
   }
 
-  function resetPage() {
-    setFileName("");
-    setDraft(null);
-    setFestival(null);
-    setItems([]);
-    setLogs([]);
-    setSelectedIds(new Set());
-    setErrorMessage(null);
-    setResult(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  }
-
   return (
     <main className="min-h-screen bg-white px-4 py-8">
       <div className="mx-auto max-w-5xl">
@@ -340,135 +331,185 @@ function FestivalJsonUpdateContent() {
           {expectedFestivalId ? "현재 축제 관리로 돌아가기" : "페스티벌 관리로 돌아가기"}
         </Link>
 
-        <header className="mt-6">
-          <h1 className="text-3xl font-bold text-slate-950">정식 축제 JSON 업데이트</h1>
-          <p className="mt-2 text-sm text-slate-600">
-            기존 값은 유지하고 새 항목만 기본 선택합니다. 다른 값은 확인 후 직접 선택합니다.
+        <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <h1 className="text-lg font-bold text-slate-950">정식 축제 JSON 업데이트</h1>
+          <p className="mt-1 text-sm text-slate-600">
+            현재 축제와 기본정보·라인업·티켓의 차이를 비교하고 안전한 추가사항만 기본 선택합니다.
           </p>
-        </header>
 
-        <section className="mt-6 rounded-2xl border border-slate-300 bg-white p-5 shadow-sm">
-          <label className="text-sm font-bold text-slate-800" htmlFor="festival-update-json">
-            업데이트 JSON 파일
-          </label>
-          <input
-            ref={fileInputRef}
-            id="festival-update-json"
-            type="file"
-            accept="application/json,.json"
-            disabled={isLoading || isApplying}
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              if (!file) return;
-              setFileName(file.name);
-              void loadPreview(file);
-            }}
-            className="mt-3 block w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
-          />
-          <button
-            type="button"
-            onClick={resetPage}
-            className="mt-3 rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold"
-          >
-            초기화
-          </button>
-        </section>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <input
+              ref={fileInputRef}
+              id="festival-update-json"
+              type="file"
+              accept="application/json,.json"
+              disabled={isLoading || isApplying}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (!file) return;
+                setFileName(file.name);
+                void loadPreview(file);
+              }}
+              className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-white p-3 text-sm"
+            />
+            <button
+              type="button"
+              disabled={!festival || isApplying || selectedIds.size === 0}
+              onClick={() => void applySelectedChanges()}
+              className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {isApplying ? "반영 중..." : "안전한 변경 모두 반영"}
+            </button>
+          </div>
 
-        {isLoading && <p className="mt-5 text-sm font-semibold text-slate-600">DB와 비교 중...</p>}
+          {isLoading && (
+            <p className="mt-3 text-sm text-slate-500">현재 축제와 비교 중...</p>
+          )}
 
-        {festival && (
-          <section className="mt-6 rounded-2xl border border-slate-300 bg-white p-5 shadow-sm">
-            <h2 className="text-xl font-bold text-slate-950">{festival.name}</h2>
-            <p className="mt-1 text-sm text-slate-600">
-              {festival.normalized_name} · {festival.start_date} ~ {festival.end_date}
-            </p>
+          {draft && festival && (
+            <div className="mt-3 rounded-xl border border-slate-300 bg-white p-3 text-sm text-slate-700">
+              <div>
+                <strong>{festival.name}</strong>
+                <span className="ml-2 text-slate-500">
+                  {festival.start_date} ~ {festival.end_date}
+                  {` · 출연진 ${draft.artists.length}명`}
+                  {` · 티켓 ${draft.tickets?.length ?? 0}건`}
+                </span>
+              </div>
+              <p className="mt-1 font-mono text-xs text-slate-500">
+                normalized_name: {festival.normalized_name}
+              </p>
+              <p className="mt-1 text-xs text-slate-400">{fileName}</p>
+            </div>
+          )}
 
-            <div className="mt-5 space-y-3">
-              {items.map((item) => {
-                const meta = STATUS_META[item.status];
-                const isSelected = selectedIds.has(item.id);
-                return (
-                  <div key={item.id} className="rounded-xl border border-slate-200 p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="font-bold text-slate-900">
-                        {SECTION_LABEL[item.section]} · {item.label}
-                      </p>
-                      <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${meta.className}`}>
-                        {meta.label}
-                      </span>
+          {festival && (
+            <div className="mt-4 rounded-2xl border border-slate-300 p-4">
+              <p className="font-bold text-slate-900">매칭된 정식 축제: {festival.name}</p>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                {(["basic", "lineup", "ticket"] as const).map((section) => {
+                  const sectionItems = items.filter((item) => item.section === section);
+                  return (
+                    <div key={section} className="rounded-xl border border-slate-200 p-3">
+                      <p className="font-bold text-slate-800">{SECTION_LABEL[section]}</p>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {(["same", "add", "conflict"] as const).map((status) => {
+                          const count = sectionItems.filter((item) => item.status === status).length;
+                          if (count === 0) return null;
+                          const meta = STATUS_META[status];
+                          return (
+                            <span
+                              key={status}
+                              className={`rounded-full px-2 py-1 text-xs font-semibold ${meta.className}`}
+                            >
+                              {meta.icon} {meta.label} {count}
+                            </span>
+                          );
+                        })}
+                      </div>
                     </div>
-                    <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
-                      <p className="rounded-lg bg-slate-50 p-3 text-slate-700">
-                        <strong>현재:</strong> {item.current || "-"}
-                      </p>
-                      <p className="rounded-lg bg-slate-50 p-3 text-slate-700">
-                        <strong>JSON:</strong> {item.incoming || "-"}
-                      </p>
-                    </div>
-                    {item.status !== "same" && (
-                      <button
-                        type="button"
-                        onClick={() => toggleItem(item)}
-                        className={[
-                          "mt-3 rounded-lg px-4 py-2 text-sm font-bold",
-                          isSelected
-                            ? "bg-slate-900 text-white"
-                            : "border border-slate-300 bg-white text-slate-700",
-                        ].join(" ")}
-                      >
-                        {isSelected ? "반영 선택됨" : "기존 값 유지"}
-                      </button>
-                    )}
+                  );
+                })}
+              </div>
+
+              {items.some((item) => item.status !== "add") && (
+                <details className="mt-4 rounded-xl border border-slate-200 p-3">
+                  <summary className="cursor-pointer text-sm font-bold text-slate-700">
+                    동일·변경 확인 항목 보기
+                  </summary>
+                  <div className="mt-3 space-y-3">
+                    {items
+                      .filter((item) => item.status !== "add")
+                      .map((item) => {
+                        const meta = STATUS_META[item.status];
+                        const useIncoming = selectedIds.has(item.id);
+                        return (
+                          <div key={item.id} className="rounded-lg bg-slate-50 p-3 text-sm">
+                            <p className="font-bold text-slate-800">
+                              {meta.icon} {SECTION_LABEL[item.section]} · {item.label}
+                            </p>
+                            <p className="mt-1 text-slate-600">
+                              현재 DB 값: {item.current || "-"}
+                            </p>
+                            <p className="mt-1 text-slate-600">
+                              가져온 JSON 값: {item.incoming || "-"}
+                            </p>
+                            {item.status === "conflict" && (
+                              <div className="mt-3 flex flex-wrap gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (useIncoming) toggleItem(item);
+                                  }}
+                                  className={`rounded-lg border px-3 py-2 text-xs font-bold ${
+                                    !useIncoming
+                                      ? "border-slate-900 bg-slate-900 text-white"
+                                      : "border-slate-300 bg-white text-slate-700"
+                                  }`}
+                                >
+                                  현재 값 유지
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (!useIncoming) toggleItem(item);
+                                  }}
+                                  className={`rounded-lg border px-3 py-2 text-xs font-bold ${
+                                    useIncoming
+                                      ? "border-slate-900 bg-slate-900 text-white"
+                                      : "border-slate-300 bg-white text-slate-700"
+                                  }`}
+                                >
+                                  JSON 값으로 변경
+                                </button>
+                                <span className="self-center text-xs font-semibold text-slate-600">
+                                  선택 결과: {useIncoming ? "JSON 값으로 변경" : "현재 값 유지"}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                   </div>
-                );
-              })}
-            </div>
-
-            <div className="mt-6 flex justify-end border-t border-slate-200 pt-5">
-              <button
-                type="button"
-                disabled={isApplying || selectedIds.size === 0}
-                onClick={() => void applySelectedChanges()}
-                className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white disabled:opacity-40"
-              >
-                {isApplying ? "업데이트 중..." : `선택한 ${selectedIds.size}개 항목 반영`}
-              </button>
-            </div>
-
-            <details className="mt-6 border-t border-slate-200 pt-5">
-              <summary className="cursor-pointer text-sm font-bold text-slate-800">
-                최근 업데이트 기록 {logs.length}건
-              </summary>
-              {logs.length === 0 ? (
-                <p className="mt-3 text-sm text-slate-500">아직 JSON 업데이트 기록이 없습니다.</p>
-              ) : (
-                <div className="mt-3 space-y-2">
-                  {logs.map((log) => (
-                    <div key={log.id} className="rounded-lg border border-slate-200 p-3 text-sm">
-                      <p className="font-semibold text-slate-800">
-                        {new Date(log.created_at).toLocaleString("ko-KR")} · 변경 {log.changes.length}건
-                      </p>
-                      <p className="mt-1 text-xs text-slate-500">
-                        {log.source_file_name || log.source_type || "출처 미입력"}
-                      </p>
-                    </div>
-                  ))}
-                </div>
+                </details>
               )}
-            </details>
-          </section>
-        )}
 
-        {errorMessage && (
-          <p className="mt-5 rounded-xl bg-red-50 p-4 text-sm font-bold text-red-700">
-            {errorMessage}
-          </p>
-        )}
-        {result && (
-          <p className="mt-5 rounded-xl bg-emerald-50 p-4 text-sm font-bold text-emerald-700">
-            업데이트가 완료되었습니다. 변경 로그 #{result.log_id}에 기록했습니다.
-          </p>
-        )}
+              <details className="mt-4 rounded-xl border border-slate-200 p-3">
+                <summary className="cursor-pointer text-sm font-bold text-slate-700">
+                  최근 업데이트 기록 {logs.length}건
+                </summary>
+                {logs.length === 0 ? (
+                  <p className="mt-3 text-sm text-slate-500">아직 JSON 업데이트 기록이 없습니다.</p>
+                ) : (
+                  <div className="mt-3 space-y-2">
+                    {logs.map((log) => (
+                      <div key={log.id} className="rounded-lg bg-slate-50 p-3 text-sm">
+                        <p className="font-semibold text-slate-800">
+                          {new Date(log.created_at).toLocaleString("ko-KR")} · 변경 {log.changes.length}건
+                        </p>
+                        <p className="mt-1 text-xs text-slate-500">
+                          {log.source_file_name || log.source_type || "출처 미입력"}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </details>
+            </div>
+          )}
+
+          {errorMessage && (
+            <p className="mt-3 rounded-xl bg-red-50 p-3 text-sm font-semibold text-red-700">
+              {errorMessage}
+            </p>
+          )}
+          {result && (
+            <p className="mt-3 rounded-xl bg-emerald-50 p-3 text-sm font-semibold text-emerald-700">
+              업데이트가 완료되었습니다. 변경 로그 #{result.log_id}에 기록했습니다.
+            </p>
+          )}
+        </section>
       </div>
     </main>
   );
