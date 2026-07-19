@@ -45,7 +45,7 @@ export default function CalendarGrid({
       className="touch-pan-y overflow-hidden border border-slate-200"
     >
       {/* 날짜 셀을 7열로 배치하는 실제 달력 그리드 */}
-      <div className="grid min-h-[calc(100dvh-220px)] grid-cols-7 auto-rows-fr [&>*]:border-b [&>*]:border-r [&>*:nth-child(7n)]:border-r-0 [&>*:nth-last-child(-n+7)]:border-b-0 sm:min-h-0 sm:auto-rows-auto">
+      <div className="grid min-h-[calc(100dvh-250px)] grid-cols-7 auto-rows-fr [&>*]:border-b [&>*]:border-r [&>*:nth-child(7n)]:border-r-0 [&>*:nth-last-child(-n+7)]:border-b-0 sm:min-h-0 sm:auto-rows-auto">
         {calendarDays.map((day, dayIndex) => (
           // 날짜 한 칸의 표시와 동작은 CalendarDayCell이 담당
           <CalendarDayCell

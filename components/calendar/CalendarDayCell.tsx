@@ -1,4 +1,5 @@
 import type { Festival } from "@/lib/types";
+import type { CSSProperties } from "react";
 import { getFestivalBarSegment } from "@/lib/calendarFestivalBar";
 import { MAX_VISIBLE_FESTIVAL_LANES } from "@/lib/calendarFestivalLanes";
 
@@ -75,7 +76,7 @@ export default function CalendarDayCell({
         <div className="mx-auto mt-4 h-2 w-5 animate-pulse rounded-full bg-slate-200" />
       ) : (
         hasFestivals && (
-          <div className="relative mt-11 min-h-[84px] text-left">
+          <div className="relative mt-9 min-h-[68px] text-left sm:mt-11 sm:min-h-[84px]">
             {visibleFestivals.map((festival) => {
               const lane = festivalLanes.get(festival.id) ?? 0;
               const startsToday =
@@ -94,11 +95,14 @@ export default function CalendarDayCell({
               return (
                 <div
                   key={`${day.dateKey}-${festival.id}`}
-                  className="absolute left-0 right-0 h-6"
-                  style={{ top: `${lane * 30}px` }}
+                  className="absolute left-0 right-0 top-[var(--festival-lane-mobile)] h-5 sm:top-[var(--festival-lane-desktop)] sm:h-6"
+                  style={{
+                    "--festival-lane-mobile": `${lane * 24}px`,
+                    "--festival-lane-desktop": `${lane * 30}px`,
+                  } as CSSProperties}
                 >
                   {showName && (
-                    <div className="relative z-20 h-6">
+                    <div className="relative z-20 h-5 sm:h-6">
                       <div
                         role="button"
                         tabIndex={0}
@@ -126,7 +130,7 @@ export default function CalendarDayCell({
                           }px)`,
                         }}
                         className={[
-                          "absolute left-0 top-0 flex h-6 cursor-pointer items-center gap-1.5 overflow-hidden px-2 text-left hover:opacity-90",
+                          "absolute left-0 top-0 flex h-5 cursor-pointer items-center gap-1 overflow-hidden px-1.5 text-left hover:opacity-90 sm:h-6 sm:gap-1.5 sm:px-2",
                           getFestivalColorClass(festival.id),
                           startsToday ? "rounded-l-full" : "",
                           endsInThisRow ? "rounded-r-full" : "",
@@ -134,7 +138,7 @@ export default function CalendarDayCell({
                       >
                         <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-white/80" />
 
-                        <span className="whitespace-nowrap text-[11px] font-semibold text-white">
+                        <span className="whitespace-nowrap text-[10px] font-semibold text-white sm:text-[11px]">
                           {festival.name.replace(
                             /^\d{4}\s*/,
                             "",
@@ -148,7 +152,7 @@ export default function CalendarDayCell({
             })}
 
             {hiddenFestivalCount > 0 && (
-              <span className="absolute left-1 top-[90px] text-[10px] font-medium text-slate-500">
+              <span className="absolute left-1 top-[68px] text-[10px] font-medium text-slate-500 sm:top-[90px]">
                 +{hiddenFestivalCount}개
               </span>
             )}
