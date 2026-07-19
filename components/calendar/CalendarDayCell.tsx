@@ -81,7 +81,7 @@ export default function CalendarDayCell({
         <div className="mx-auto mt-4 h-2 w-5 animate-pulse rounded-full bg-slate-200" />
       ) : (
         hasFestivals && (
-          <div className="relative mt-6 min-h-[68px] text-left sm:mt-11 sm:min-h-[84px]">
+          <div className="relative mt-[26px] min-h-[64px] text-left sm:mt-11 sm:min-h-[84px]">
             {visibleFestivals.map((festival) => {
               const lane = festivalLanes.get(festival.id) ?? 0;
               const startsToday =
@@ -101,12 +101,12 @@ export default function CalendarDayCell({
                 <div
                   key={`${day.dateKey}-${festival.id}`}
                   className={[
-                    "absolute left-0 right-0 h-[22px] sm:h-6",
+                    "absolute left-0 right-0 h-5 sm:h-6",
                     FESTIVAL_LANE_POSITION_CLASSES[lane] ?? "top-0",
                   ].join(" ")}
                 >
                   {showName && (
-                    <div className="relative z-20 h-[22px] sm:h-6">
+                    <div className="relative z-20 h-5 sm:h-6">
                       <div
                         role="button"
                         tabIndex={0}
@@ -134,7 +134,7 @@ export default function CalendarDayCell({
                           }px)`,
                         }}
                         className={[
-                          "absolute left-0 top-0 flex h-[22px] cursor-pointer items-center gap-1.5 overflow-hidden px-2 text-left hover:opacity-90 sm:h-6",
+                          "absolute left-0 top-0 flex h-5 cursor-pointer items-center gap-1.5 overflow-hidden px-2 text-left hover:opacity-90 sm:h-6",
                           getFestivalColorClass(festival.id),
                           startsToday ? "rounded-l-full" : "",
                           endsInThisRow ? "rounded-r-full" : "",
