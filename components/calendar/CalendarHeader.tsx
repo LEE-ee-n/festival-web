@@ -1,9 +1,13 @@
+import FestivalSearch from "@/components/calendar/FestivalSearch";
+import type { Festival } from "@/lib/types";
+
 type CalendarHeaderProps = {
   currentYear: number;
   currentMonthIndex: number;
   onPreviousMonth: () => void;
   onNextMonth: () => void;
   onMoveToToday: () => void;
+  onSelectSearchFestival: (festival: Festival) => void;
 };
 
 export default function CalendarHeader({
@@ -12,10 +16,11 @@ export default function CalendarHeader({
   onPreviousMonth,
   onNextMonth,
   onMoveToToday,
+  onSelectSearchFestival,
 }: CalendarHeaderProps) {
   return (
     <div className="grid grid-cols-[1fr_auto_1fr] items-center px-4 pt-[10px] sm:px-6 sm:pt-3">
-      <div className="flex items-center gap-2 justify-self-start">
+      <div className="hidden items-center gap-2 justify-self-start sm:flex">
         <button
           type="button"
           onClick={onPreviousMonth}
@@ -33,6 +38,10 @@ export default function CalendarHeader({
         >
           ›
         </button>
+      </div>
+
+      <div className="justify-self-start sm:hidden">
+        <FestivalSearch onSelectFestival={onSelectSearchFestival} />
       </div>
 
       <h1 className="text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">

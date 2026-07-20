@@ -80,6 +80,8 @@ export interface FestivalArtist {
   status: string;
   artists: ArtistReference | ArtistReference[] | null;
   alias_text?: string;
+  group_date?: string | null;
+  group_stage?: string | null;
 }
 
 export interface FestivalTicketRound {

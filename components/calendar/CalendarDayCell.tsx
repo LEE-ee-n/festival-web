@@ -64,7 +64,7 @@ export default function CalendarDayCell({
     >
       <span
         className={[
-          "absolute left-2 top-0 inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-xs font-semibold sm:top-2 sm:h-7 sm:min-w-7 sm:text-[15px]",
+          "absolute left-2 top-[2px] inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-xs font-semibold sm:top-2 sm:h-7 sm:min-w-7 sm:text-[15px]",
           day.isToday ? "bg-slate-900 text-white" : "",
           dayIndex % 7 === 0 && !day.isToday
             ? "text-red-600"

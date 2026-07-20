@@ -58,6 +58,8 @@ export function useFestivalArtists(
             alias_text: (artist?.artist_aliases ?? [])
               .map((alias) => alias.alias_name)
               .join(", "),
+            group_date: row.performance_date,
+            group_stage: row.stage_name,
           };
         }),
       ),
@@ -153,6 +155,8 @@ export function useFestivalArtists(
           alias_text: (linkedArtist.artist_aliases ?? [])
             .map((alias) => alias.alias_name)
             .join(", "),
+          group_date: newPerformanceDate || null,
+          group_stage: newStageName.trim() || null,
           artists: {
             id: linkedArtist.id,
             name: linkedArtist.name,
@@ -284,6 +288,17 @@ export function useFestivalArtists(
 
       if (artistError) throw artistError;
       await updateFestivalArtist(festivalId, row);
+      setRows((currentRows) =>
+        currentRows.map((item) =>
+          item.id === row.id
+            ? {
+                ...item,
+                group_date: item.performance_date,
+                group_stage: item.stage_name,
+              }
+            : item,
+        ),
+      );
       window.alert("아티스트 정보와 공연 일정이 저장되었습니다.");
     } catch (error) {
       setErrorMessage(
@@ -334,8 +349,8 @@ export function useFestivalArtists(
     const groups = rows.reduce<
       Record<string, Record<string, FestivalArtist[]>>
     >((dateGroups, row) => {
-      const date = row.performance_date || "날짜 미정";
-      const stage = row.stage_name?.trim() || "무대 미정";
+      const date = row.group_date || "날짜 미정";
+      const stage = row.group_stage?.trim() || "무대 미정";
 
       dateGroups[date] ??= {};
       dateGroups[date][stage] ??= [];

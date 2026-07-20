@@ -359,6 +359,25 @@ function handlePointerUp(
     });
   }
 
+  function selectSearchedFestival(festival: Festival) {
+    const [year, month] = festival.start_date
+      .split("-")
+      .map(Number);
+    const nextSearchParams = new URLSearchParams(
+      searchParams.toString(),
+    );
+
+    nextSearchParams.set("year", String(year));
+    nextSearchParams.set("month", String(month));
+    setSelectedDateKey(festival.start_date);
+    setSelectedFestival(festival);
+    setHasListContext(false);
+    setIsDatePanelOpen(true);
+    router.push(`${pathname}?${nextSearchParams.toString()}`, {
+      scroll: false,
+    });
+  }
+
   return (
   <section className="mx-auto w-full max-w-[1500px]">
     <div
@@ -380,6 +399,7 @@ function handlePointerUp(
             onPreviousMonth={() => moveMonth(-1)}
             onNextMonth={() => moveMonth(1)}
             onMoveToToday={moveToToday}
+            onSelectSearchFestival={selectSearchedFestival}
           />
 
           {errorMessage && (
