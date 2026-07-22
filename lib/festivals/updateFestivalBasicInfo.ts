@@ -4,6 +4,7 @@ import {
   normalizeNormalizedName,
 } from "@/lib/normalizedName";
 import { validateFestivalThumbnailUrl } from "@/lib/festivals/thumbnailValidation";
+import { toFestivalBasicInfoPayload } from "@/lib/festivals/festivalBasicInfoPayload";
 
 export type FestivalBasicInfoInput = {
   name: string;
@@ -48,35 +49,19 @@ export async function updateFestivalBasicInfo(
     throw new Error("종료일은 시작일보다 빠를 수 없습니다.");
   }
 
-  const { data, error } = await supabase
-    .from("festivals")
-    .update({
-      name: input.name.trim(),
-      normalized_name: normalizedName,
-      search_aliases: input.searchAliases.trim() || null,
-      start_date: input.startDate,
-      end_date: input.endDate,
-      location: input.location.trim() || null,
-      address: input.address.trim() || null,
-      region: input.region.trim() || null,
-      category: input.category.trim() || null,
-      description: input.description.trim() || null,
-      thumbnail_url: input.thumbnailUrl.trim() || null,
-      official_url: input.officialUrl.trim() || null,
-      price_type: input.priceType || null,
-      price_info: input.priceInfo.trim() || null,
-      program_info: input.programInfo.trim() || null,
-      status: input.status || null,
-      verification_status: input.verificationStatus || "pending",
-    })
-    .eq("id", festivalId)
-    .select("id");
+  const { data, error } = await supabase.rpc(
+    "update_festival_basic_info_with_audit",
+    {
+      p_festival_id: Number(festivalId),
+      p_festival: toFestivalBasicInfoPayload(input, normalizedName),
+    },
+  );
 
   if (error) {
     throw error;
   }
 
-  if (!data || data.length === 0) {
+  if (!data) {
     throw new Error(
       "수정된 데이터가 없습니다. festivals 테이블의 UPDATE 권한을 확인하세요.",
     );

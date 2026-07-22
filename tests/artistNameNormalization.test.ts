@@ -18,6 +18,10 @@ test("공백과 특수문자 및 한글은 제거한다", () => {
   assert.equal(normalizeArtistName("검정치마 (The Black Skirts)"), "theblackskirts");
 });
 
+test("아티스트 이름에서는 festival과 20XX를 임의로 제거하지 않는다", () => {
+  assert.equal(normalizeArtistName("Festival 2026"), "festival2026");
+});
+
 test("DB 저장 규칙과 같은 형식만 유효하다", () => {
   assert.equal(isValidArtistNormalizedName("theblackskirts"), true);
   assert.equal(isValidArtistNormalizedName("10cm"), true);

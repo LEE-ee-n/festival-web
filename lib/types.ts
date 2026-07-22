@@ -37,6 +37,7 @@ export interface Festival {
 
   official_url: string | null;
   thumbnail_url: string | null;
+  timetable_status: "published" | "unpublished";
 
   price_info: string | null;
   price_type: PriceType | null;
@@ -73,6 +74,7 @@ export interface ArtistReference {
 export interface FestivalArtist {
   id: number;
   artist_id: number;
+  input_name?: string | null;
   performance_date: string | null;
   performance_time: string | null;
   performance_end_time: string | null;
@@ -100,6 +102,12 @@ export type FestivalCandidateStatus =
   | "rejected";
 
 export type FestivalDraftJson = {
+  workflow?: {
+    step?: FestivalRegistrationStep;
+    confirmed_steps?: FestivalRegistrationStep[];
+    timetable_visibility?: "published" | "unpublished";
+    base_festival_updated_at?: string | null;
+  };
   candidate?: {
     title?: string;
     source_type?: string;
@@ -132,13 +140,14 @@ export type FestivalDraftJson = {
     display_name: string;
     normalized_name: string;
     matched_artist_id?: number | null;
-    match_status?: "pending" | "matched" | "new";
+    match_status?: "pending" | "matched" | "new" | "excluded";
     aliases: string[];
     performance_date?: string;
     performance_time?: string;
     performance_end_time?: string;
     stage_name?: string;
     status?: string;
+    comparison_status?: "existing" | "add" | "remove_candidate";
   }>;
   tickets?: Array<{
     round_type?: string;
@@ -152,10 +161,31 @@ export type FestivalDraftJson = {
   }>;
 };
 
+export type FestivalRegistrationStep =
+  | "artist_review"
+  | "artist_confirmation"
+  | "festival_info"
+  | "timetable"
+  | "final_confirmation";
+
 export type CandidateSourceAsset = {
   type?: string;
   name?: string;
   url?: string;
+  storage_path?: string;
+};
+
+export type FestivalCandidateWorkType = "new" | "update" | "needs_review";
+
+export type FestivalCandidateComparison = {
+  work_type?: FestivalCandidateWorkType;
+  existing_festival_id?: number | null;
+  possible_festival_ids?: number[];
+  counts?: {
+    existing: number;
+    add: number;
+    remove_candidate: number;
+  };
 };
 
 export interface FestivalCandidate {
@@ -180,4 +210,10 @@ export interface FestivalCandidate {
   source_assets: CandidateSourceAsset[];
   review_notes: string | null;
   reviewed_by: string | null;
+  work_type: FestivalCandidateWorkType;
+  announcement_round: string;
+  version_number: number;
+  parent_candidate_id: number | null;
+  created_by: string | null;
+  comparison_json: FestivalCandidateComparison;
 }

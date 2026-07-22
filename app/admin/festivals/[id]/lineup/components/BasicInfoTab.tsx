@@ -56,6 +56,10 @@ type BasicInfoTabProps = {
   uploadThumbnail: () => void;
   deleteThumbnail: () => void;
   isUploadingThumbnail: boolean;
+  thumbnailSourceUrl?: string;
+  setThumbnailSourceUrl?: (value: string) => void;
+  thumbnailNote?: string;
+  setThumbnailNote?: (value: string) => void;
 
   officialUrl: string;
   setOfficialUrl: (value: string) => void;
@@ -113,6 +117,10 @@ export default function BasicInfoTab({
   uploadThumbnail,
   deleteThumbnail,
   isUploadingThumbnail,
+  thumbnailSourceUrl = "",
+  setThumbnailSourceUrl,
+  thumbnailNote = "",
+  setThumbnailNote,
   officialUrl,
   setOfficialUrl,
   priceType,
@@ -313,6 +321,11 @@ export default function BasicInfoTab({
             </div>
 
             {canManageThumbnail ? (
+              <>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <input type="url" value={thumbnailSourceUrl} onChange={(event) => setThumbnailSourceUrl?.(event.target.value)} placeholder="썸네일 출처 URL (선택)" className="rounded-xl border border-slate-300 px-4 py-3 text-sm" />
+                <input value={thumbnailNote} onChange={(event) => setThumbnailNote?.(event.target.value)} placeholder="썸네일 변경 메모 (선택)" className="rounded-xl border border-slate-300 px-4 py-3 text-sm" />
+              </div>
               <div className="mt-3 flex flex-wrap items-center gap-3">
                 <input
                   type="file"
@@ -370,6 +383,7 @@ export default function BasicInfoTab({
                   </button>
                 )}
               </div>
+              </>
             ) : (
               <p className="mt-2 text-sm text-slate-500">
                 파일 업로드는 축제를 등록한 뒤 관리 페이지에서 할 수 있습니다.

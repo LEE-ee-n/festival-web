@@ -20,6 +20,19 @@ type FestivalDetailDrawerProps = {
   onClose: () => void;
 };
 
+function formatTicketOpenAt(openAt: string) {
+  return new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    weekday: "short",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(new Date(openAt));
+}
+
 export default function FestivalDetailDrawer({
   festivalId,
   isOpen,
@@ -92,7 +105,7 @@ export default function FestivalDetailDrawer({
                 <ListMusic size={16} />
                 <span>프로그램</span>
               </h2>
-              <p className="mt-3 whitespace-pre-line px-4 text-center text-sm leading-6 text-slate-700">
+              <p className="whitespace-pre-line px-6 pt-3 text-sm leading-7 text-slate-700">
                 {festival.program_info}
               </p>
               <div className="border-b border-slate-200 pt-6" />
@@ -105,6 +118,9 @@ export default function FestivalDetailDrawer({
             <FestivalTicketSection
               ticketRounds={latestTicketRounds}
               latestOpenAt={latestOpenAt}
+              openAtText={
+                latestOpenAt ? formatTicketOpenAt(latestOpenAt) : null
+              }
             />
           )}
 

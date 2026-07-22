@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 
 import { parseFestivalDraftJson } from "@/lib/festivals/festivalDraft";
 import {
@@ -13,6 +13,10 @@ import {
 } from "@/lib/festivals/festivalUpdatePreview";
 import { supabase } from "@/lib/supabase/client";
 import type { FestivalDraftJson } from "@/lib/types";
+import { validateLineupWork, type LineupRound, type LineupWorkType } from "@/lib/audit/lineupWork";
+import { buildJsonAuditSummary } from "@/lib/audit/auditSummary";
+import JsonLineupAuditFields from "./JsonLineupAuditFields";
+import StagedFestivalUpdate from "./StagedFestivalUpdate";
 
 type FestivalRecord = FestivalDraftJson["festival"] & {
   id: number;
@@ -21,15 +25,17 @@ type FestivalRecord = FestivalDraftJson["festival"] & {
 
 type UpdateResult = {
   festival_id: number;
-  log_id: number;
+  audit_event_id: number;
+  change_count: number;
   ticket_count: number;
 };
 
 type UpdateLog = {
   id: number;
+  action_type: string;
   source_type: string | null;
   source_file_name: string | null;
-  changes: Array<{ section?: string; label?: string }>;
+  audit_changes: Array<{ id: number }>;
   created_at: string;
 };
 
@@ -62,9 +68,10 @@ function firstRelation<T>(value: T | T[] | null): T | null {
   return value;
 }
 
-function FestivalJsonUpdateContent() {
+function LegacyFestivalJsonUpdateContent() {
   const searchParams = useSearchParams();
   const expectedFestivalId = Number(searchParams.get("festivalId")) || null;
+  const updateDraftId = Number(searchParams.get("updateDraftId")) || null;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState("");
   const [draft, setDraft] = useState<FestivalDraftJson | null>(null);
@@ -76,6 +83,11 @@ function FestivalJsonUpdateContent() {
   const [isApplying, setIsApplying] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [result, setResult] = useState<UpdateResult | null>(null);
+  const [workType, setWorkType] = useState<LineupWorkType>("announcement");
+  const [lineupRound, setLineupRound] = useState<LineupRound>("unspecified");
+  const [announcementDate, setAnnouncementDate] = useState("");
+  const [sourceUrl, setSourceUrl] = useState("");
+  const [reason, setReason] = useState("");
 
   async function loadPreview(file: File) {
     setIsLoading(true);
@@ -97,6 +109,7 @@ function FestivalJsonUpdateContent() {
 
       const incomingDraft = parseFestivalDraftJson(await file.text());
       const identity = incomingDraft.festival;
+      setSourceUrl(incomingDraft.candidate?.source_url ?? incomingDraft.festival.source_url ?? "");
 
       const { data: festivalData, error: festivalError } = await supabase
         .from("festivals")
@@ -115,7 +128,7 @@ function FestivalJsonUpdateContent() {
       if (festivalError) throw festivalError;
       if (!festivalData) {
         throw new Error(
-          "normalized_name과 시작일·종료일이 모두 일치하는 승인 축제가 없습니다. 신규 축제라면 신규 등록 작업함을 이용하세요.",
+          "normalized_name과 시작일·종료일이 모두 일치하는 승인 축제가 없습니다. 신규 축제라면 신규 페스티벌 등록을 이용하세요.",
         );
       }
       if (expectedFestivalId && festivalData.id !== expectedFestivalId) {
@@ -156,9 +169,10 @@ function FestivalJsonUpdateContent() {
               .in("normalized_name", normalizedNames)
           : Promise.resolve({ data: [], error: null }),
         supabase
-          .from("festival_update_logs")
-          .select("id, source_type, source_file_name, changes, created_at")
+          .from("audit_events")
+          .select("id, action_type, source_type, source_file_name, created_at, audit_changes (id)")
           .eq("festival_id", festivalData.id)
+          .eq("action_type", "festival.json_update")
           .order("created_at", { ascending: false })
           .limit(10),
       ]);
@@ -241,6 +255,37 @@ function FestivalJsonUpdateContent() {
     }
   }
 
+  useEffect(() => {
+    if (!updateDraftId || !expectedFestivalId) return;
+    let cancelled = false;
+    void (async () => {
+      const { data, error } = await supabase
+        .from("festival_update_drafts")
+        .select("id, festival_id, draft_json, announcement_round, version_number")
+        .eq("id", updateDraftId)
+        .eq("festival_id", expectedFestivalId)
+        .single();
+      if (cancelled) return;
+      if (error) {
+        setErrorMessage(`Discord 업데이트 초안을 불러오지 못했습니다: ${error.message}`);
+        return;
+      }
+      const roundMap: Record<string, LineupRound> = {
+        round_1: "first", round_2: "second", round_3: "third", final: "final",
+      };
+      setLineupRound(roundMap[data.announcement_round] ?? "unspecified");
+      const file = new File(
+        [JSON.stringify(data.draft_json)],
+        `discord-update-${data.id}-v${data.version_number}.json`,
+        { type: "application/json" },
+      );
+      await loadPreview(file);
+    })();
+    return () => { cancelled = true; };
+    // URL의 초안 ID가 바뀔 때만 다시 불러온다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [updateDraftId, expectedFestivalId]);
+
   function toggleItem(item: FestivalUpdateItem) {
     if (item.status === "same") return;
     setSelectedIds((current) => {
@@ -271,44 +316,54 @@ function FestivalJsonUpdateContent() {
       if (item.ticketPayload) tickets.push(item.ticketPayload);
     });
 
+    if (artists.length > 0) {
+      const validationError = validateLineupWork({ workType, lineupRound, announcementDate, sourceUrl, reason });
+      if (validationError) {
+        setErrorMessage(validationError);
+        return;
+      }
+    }
+
     try {
       setIsApplying(true);
       setErrorMessage(null);
       setResult(null);
 
-      const { data, error } = await supabase.rpc("apply_festival_json_update", {
+      const auditSummary = buildJsonAuditSummary(items, selectedIds);
+      const { data, error } = await supabase.rpc("apply_festival_json_update_with_summary", {
         p_festival_id: festival.id,
         p_basic_changes: basicChanges,
         p_artists: artists,
         p_tickets: tickets,
-        p_change_log: selectedItems.map((item) => ({
-          section: item.section,
-          label: item.label,
-          status: item.status,
-          before: item.current,
-          after: item.incoming,
-        })),
         p_source_type: draft.candidate?.source_type ?? "festival_json",
-        p_source_url: draft.candidate?.source_url ?? draft.festival.source_url ?? null,
+        p_source_url: sourceUrl.trim() || null,
         p_source_file_name: fileName,
+        p_work_type: artists.length > 0 ? workType : null,
+        p_lineup_round: artists.length > 0 ? lineupRound : null,
+        p_announcement_date: artists.length > 0 ? announcementDate || null : null,
+        p_reason: artists.length > 0 ? reason.trim() || null : null,
+        p_audit_summary: auditSummary,
       });
 
       if (error) throw error;
       const updateResult = data as UpdateResult;
+      if (updateDraftId) {
+        const { error: draftError } = await supabase
+          .from("festival_update_drafts")
+          .update({ status: "applied", applied_at: new Date().toISOString() })
+          .eq("id", updateDraftId)
+          .eq("festival_id", festival.id);
+        if (draftError) throw draftError;
+      }
       setResult(updateResult);
-      setLogs((current) => [
-        {
-          id: updateResult.log_id,
-          source_type: draft.candidate?.source_type ?? "festival_json",
-          source_file_name: fileName,
-          changes: selectedItems.map((item) => ({
-            section: item.section,
-            label: item.label,
-          })),
-          created_at: new Date().toISOString(),
-        },
-        ...current,
-      ].slice(0, 10));
+      setLogs((current) => [{
+        id: updateResult.audit_event_id,
+        action_type: "festival.json_update",
+        source_type: draft.candidate?.source_type ?? "festival_json",
+        source_file_name: fileName,
+        audit_changes: Array.from({ length: updateResult.change_count }, (_, index) => ({ id: -index - 1 })),
+        created_at: new Date().toISOString(),
+      }, ...current.filter((log) => log.id !== updateResult.audit_event_id)].slice(0, 10));
       setSelectedIds(new Set());
     } catch (error) {
       setErrorMessage(
@@ -352,14 +407,6 @@ function FestivalJsonUpdateContent() {
               }}
               className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-white p-3 text-sm"
             />
-            <button
-              type="button"
-              disabled={!festival || isApplying || selectedIds.size === 0}
-              onClick={() => void applySelectedChanges()}
-              className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              {isApplying ? "반영 중..." : "안전한 변경 모두 반영"}
-            </button>
           </div>
 
           {isLoading && (
@@ -381,6 +428,16 @@ function FestivalJsonUpdateContent() {
               </p>
               <p className="mt-1 text-xs text-slate-400">{fileName}</p>
             </div>
+          )}
+
+          {items.some((item) => item.section === "lineup" && selectedIds.has(item.id)) && (
+            <JsonLineupAuditFields
+              workType={workType} setWorkType={setWorkType}
+              lineupRound={lineupRound} setLineupRound={setLineupRound}
+              announcementDate={announcementDate} setAnnouncementDate={setAnnouncementDate}
+              sourceUrl={sourceUrl} setSourceUrl={setSourceUrl}
+              reason={reason} setReason={setReason}
+            />
           )}
 
           {festival && (
@@ -412,6 +469,41 @@ function FestivalJsonUpdateContent() {
                   );
                 })}
               </div>
+
+              {(["basic", "lineup", "ticket"] as const).map((section) => {
+                const additions = items.filter(
+                  (item) => item.section === section && item.status === "add",
+                );
+                if (additions.length === 0) return null;
+                return (
+                  <section key={section} className="mt-4 rounded-xl border border-blue-200 bg-blue-50/40 p-4">
+                    <h3 className="font-bold text-slate-900">
+                      {SECTION_LABEL[section]} 추가 검토 · {additions.length}건
+                    </h3>
+                    <div className="mt-3 space-y-2">
+                      {additions.map((item) => {
+                        const selected = selectedIds.has(item.id);
+                        return (
+                          <label key={item.id} className="flex cursor-pointer gap-3 rounded-lg border border-blue-100 bg-white p-3">
+                            <input
+                              type="checkbox"
+                              checked={selected}
+                              onChange={() => toggleItem(item)}
+                              className="mt-1 h-4 w-4"
+                            />
+                            <span className="min-w-0">
+                              <span className="block font-bold text-slate-800">➕ {item.label}</span>
+                              <span className="mt-1 block whitespace-pre-wrap break-words text-sm text-slate-600">
+                                {item.incoming || "추가 정보 없음"}
+                              </span>
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </section>
+                );
+              })}
 
               {items.some((item) => item.status !== "add") && (
                 <details className="mt-4 rounded-xl border border-slate-200 p-3">
@@ -486,7 +578,7 @@ function FestivalJsonUpdateContent() {
                     {logs.map((log) => (
                       <div key={log.id} className="rounded-lg bg-slate-50 p-3 text-sm">
                         <p className="font-semibold text-slate-800">
-                          {new Date(log.created_at).toLocaleString("ko-KR")} · 변경 {log.changes.length}건
+                          {new Date(log.created_at).toLocaleString("ko-KR")} · 변경 {log.audit_changes.length}건
                         </p>
                         <p className="mt-1 text-xs text-slate-500">
                           {log.source_file_name || log.source_type || "출처 미입력"}
@@ -499,6 +591,24 @@ function FestivalJsonUpdateContent() {
             </div>
           )}
 
+          {festival && (
+            <div className="mt-6 border-t border-slate-200 pt-5">
+              <p className="mb-3 text-sm font-semibold text-slate-700">
+                저장 선택 {selectedIds.size}건
+              </p>
+              <button
+                type="button"
+                disabled={isApplying || selectedIds.size === 0}
+                onClick={() => void applySelectedChanges()}
+                className="w-full rounded-xl bg-slate-950 px-5 py-4 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {isApplying
+                  ? "저장 중..."
+                  : `선택한 변경사항 저장 (${selectedIds.size}건)`}
+              </button>
+            </div>
+          )}
+
           {errorMessage && (
             <p className="mt-3 rounded-xl bg-red-50 p-3 text-sm font-semibold text-red-700">
               {errorMessage}
@@ -506,13 +616,23 @@ function FestivalJsonUpdateContent() {
           )}
           {result && (
             <p className="mt-3 rounded-xl bg-emerald-50 p-3 text-sm font-semibold text-emerald-700">
-              업데이트가 완료되었습니다. 변경 로그 #{result.log_id}에 기록했습니다.
+              업데이트가 완료되었습니다. 감사 작업 #{result.audit_event_id}에 실제 변경 {result.change_count}건을 기록했습니다.
             </p>
           )}
         </section>
       </div>
     </main>
   );
+}
+
+function FestivalJsonUpdateContent() {
+  const searchParams = useSearchParams();
+  const festivalId = Number(searchParams.get("festivalId")) || null;
+  const updateDraftId = Number(searchParams.get("updateDraftId")) || null;
+  if (festivalId && updateDraftId) {
+    return <StagedFestivalUpdate festivalId={festivalId} updateDraftId={updateDraftId} />;
+  }
+  return <LegacyFestivalJsonUpdateContent />;
 }
 
 export default function FestivalJsonUpdatePage() {

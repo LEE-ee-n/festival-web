@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import ArtistAddSection from "./components/ArtistAddSection";
 import ArtistLineupTable from "./components/ArtistLineupTable";
 import BasicInfoTab from "./components/BasicInfoTab";
 import TicketTab from "./components/TicketTab";
+import AuditHistoryTab from "./components/AuditHistoryTab";
+import LineupWorkPanel from "./components/LineupWorkPanel";
 import { useFestivalArtists } from "./hooks/useFestivalArtists";
 import {
   useFestivalBasicInfo,
@@ -20,13 +21,15 @@ import type {
   FestivalTicketRound,
 } from "@/lib/types";
 
-type AdminTab = "basic" | "lineup" | "ticket";
+type AdminTab = "basic" | "lineup" | "ticket" | "history";
 
 const tabs: Array<{ id: AdminTab; label: string }> = [
   { id: "basic", label: "기본정보 관리" },
   { id: "lineup", label: "라인업 관리" },
   { id: "ticket", label: "티켓 관리" },
 ];
+
+tabs.push({ id: "history", label: "변경 기록" });
 
 export default function FestivalLineupAdminPage() {
   const params = useParams<{ id: string }>();
@@ -36,6 +39,15 @@ export default function FestivalLineupAdminPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(
     null,
   );
+  const errorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!errorMessage) return;
+    window.requestAnimationFrame(() => {
+      errorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      errorRef.current?.focus({ preventScroll: true });
+    });
+  }, [errorMessage]);
 
   const basicInfo = useFestivalBasicInfo(
     festivalId,
@@ -113,10 +125,10 @@ export default function FestivalLineupAdminPage() {
 
           <div className="flex flex-wrap gap-2">
             <Link
-              href={`/admin/festivals/import-json?festivalId=${festivalId}`}
+              href="/admin/festival-updates"
               className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white"
             >
-              JSON 업데이트
+              기존 수정 작업함
             </Link>
             <Link
               href={`/festival/${festivalId}`}
@@ -146,27 +158,50 @@ export default function FestivalLineupAdminPage() {
         </div>
 
         {errorMessage && (
-          <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
+          <div
+            ref={errorRef}
+            tabIndex={-1}
+            role="alert"
+            className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700 outline-none"
+          >
             {errorMessage}
           </div>
         )}
 
         {activeTab === "basic" && (
-          <BasicInfoTab {...basicInfo.tabProps} />
+          <>
+            <BasicInfoTab {...basicInfo.tabProps} />
+          </>
         )}
 
         {activeTab === "lineup" && (
           <>
-            <ArtistAddSection {...artists.addSectionProps} />
+            <LineupWorkPanel {...artists.workPanelProps} />
             <ArtistLineupTable
               {...artists.tableProps}
               isLoading={isLoading}
             />
+            <button
+              type="button"
+              onClick={artists.workPanelProps.saveLineupWork}
+              disabled={artists.workPanelProps.isSavingWork || artists.workPanelProps.pendingCount === 0}
+              className="mt-8 w-full rounded-xl bg-slate-950 px-4 py-4 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {artists.workPanelProps.isSavingWork
+                ? "저장 중..."
+                : `미저장 변경사항 전체 저장 (${artists.workPanelProps.pendingCount}건)`}
+            </button>
           </>
         )}
 
         {activeTab === "ticket" && (
-          <TicketTab {...tickets.tabProps} />
+          <>
+            <TicketTab {...tickets.tabProps} />
+          </>
+        )}
+
+        {activeTab === "history" && (
+          <AuditHistoryTab festivalId={festivalId} />
         )}
       </div>
     </main>

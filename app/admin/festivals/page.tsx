@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { supabase } from "@/lib/supabase/client";
+import { deleteFestival } from "@/lib/festivals/deleteFestival";
 
 type Festival = {
   id: number;
@@ -81,14 +82,7 @@ export default function AdminFestivalsPage() {
       setDeletingId(festival.id);
       setErrorMessage(null);
 
-      const { error } = await supabase
-        .from("festivals")
-        .delete()
-        .eq("id", festival.id);
-
-      if (error) {
-        throw error;
-      }
+      await deleteFestival(festival.id);
 
       setFestivals((currentFestivals) =>
         currentFestivals.filter(
@@ -129,16 +123,16 @@ export default function AdminFestivalsPage() {
 
           <div className="flex flex-wrap gap-3">
             <Link
-              href="/admin/festivals/import-json"
+              href="/admin/festival-updates"
               className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-800"
             >
-              정식 축제 JSON 업데이트
+              기존 페스티벌 수정
             </Link>
             <Link
               href="/admin/festival-candidates"
               className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white"
             >
-              신규 등록 작업함으로 이동
+              신규 페스티벌 등록
             </Link>
           </div>
         </div>

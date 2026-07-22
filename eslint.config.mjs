@@ -10,6 +10,8 @@ export default defineConfig([
     "out/**",
     "build/**",
     ".npm-cache/**",
+    ".env/**",
+    ".env.*",
     ".tmp/**",
     "_crawler_review*/**",
     "next-env.d.ts",

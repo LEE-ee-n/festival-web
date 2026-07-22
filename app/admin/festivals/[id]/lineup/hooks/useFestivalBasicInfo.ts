@@ -55,6 +55,8 @@ export function useFestivalBasicInfo(
   const [isSavingBasic, setIsSavingBasic] = useState(false);
   const [isUploadingThumbnail, setIsUploadingThumbnail] =
     useState(false);
+  const [thumbnailSourceUrl, setThumbnailSourceUrl] = useState("");
+  const [thumbnailNote, setThumbnailNote] = useState("");
 
   const initializeBasicInfo = useCallback(
     (festival: FestivalBasicInfoRecord) => {
@@ -93,6 +95,8 @@ export function useFestivalBasicInfo(
       const publicUrl = await uploadFestivalThumbnail(
         festivalId,
         thumbnailFile,
+        thumbnailUrl,
+        { sourceUrl: thumbnailSourceUrl, note: thumbnailNote },
       );
 
       setThumbnailUrl(publicUrl);
@@ -122,7 +126,10 @@ export function useFestivalBasicInfo(
 
     try {
       setErrorMessage(null);
-      await deleteFestivalThumbnail(festivalId, thumbnailUrl);
+      await deleteFestivalThumbnail(festivalId, thumbnailUrl, {
+        sourceUrl: thumbnailSourceUrl,
+        note: thumbnailNote,
+      });
       setThumbnailUrl("");
       setThumbnailFile(null);
       setThumbnailPreview("");
@@ -214,6 +221,10 @@ export function useFestivalBasicInfo(
       uploadThumbnail,
       deleteThumbnail,
       isUploadingThumbnail,
+      thumbnailSourceUrl,
+      setThumbnailSourceUrl,
+      thumbnailNote,
+      setThumbnailNote,
       officialUrl,
       setOfficialUrl,
       priceType,

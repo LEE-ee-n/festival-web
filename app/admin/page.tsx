@@ -19,11 +19,24 @@ export default function AdminPage() {
           className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow-md"
         >
           <h2 className="text-lg font-bold text-slate-950">
-            신규 등록 작업함
+            신규 페스티벌 등록
           </h2>
 
           <p className="mt-2 text-sm text-slate-500">
             직접 작성과 수집자료 검토를 거쳐 새 페스티벌을 등록합니다.
+          </p>
+        </Link>
+
+        <Link
+          href="/admin/festival-updates"
+          className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow-md"
+        >
+          <h2 className="text-lg font-bold text-slate-950">
+            기존 페스티벌 수정
+          </h2>
+
+          <p className="mt-2 text-sm text-slate-500">
+            새로 수집한 자료를 기존 페스티벌과 비교해 단계별로 반영합니다.
           </p>
         </Link>
 
@@ -50,6 +63,19 @@ export default function AdminPage() {
 
           <p className="mt-2 text-sm text-slate-500">
             아티스트 검색·신규등록과 전체 정보를 관리합니다.
+          </p>
+        </Link>
+
+        <Link
+          href="/admin/audit-logs"
+          className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow-md"
+        >
+          <h2 className="text-lg font-bold text-slate-950">
+            전체 변경 기록
+          </h2>
+
+          <p className="mt-2 text-sm text-slate-500">
+            축제와 아티스트의 관리자 작업 내역과 변경 전·후 값을 확인합니다.
           </p>
         </Link>
       </div>

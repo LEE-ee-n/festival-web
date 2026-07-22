@@ -12,13 +12,20 @@ import { useFestivalCandidateDraft } from "@/app/admin/festival-candidates/hooks
 import { useFestivalCandidates } from "@/app/admin/festival-candidates/hooks/useFestivalCandidates";
 import { matchFestivalDraftArtists } from "@/lib/artists/matchFestivalDraftArtists";
 import {
+  FESTIVAL_REGISTRATION_STEPS,
+  FESTIVAL_REGISTRATION_STEP_LABELS,
+  getActiveDraftArtists,
+  getRegistrationStep,
+  moveRegistrationStep,
   normalizeFestivalDraft,
   parseFestivalDraftJson,
   validateFestivalDraftForApproval,
 } from "@/lib/festivals/festivalDraft";
+import { promoteCandidatePoster } from "@/lib/festivals/uploadFestivalThumbnail";
 import type {
   FestivalCandidate,
   FestivalDraftJson,
+  FestivalRegistrationStep,
 } from "@/lib/types";
 
 const STATUS_OPTIONS = [
@@ -29,20 +36,13 @@ const STATUS_OPTIONS = [
 
 const STATUS_LABELS = {
   pending: "검토 대기",
-  approved: "승인",
+  approved: "승인 완료",
   rejected: "거절",
 };
 
-type CandidateTab = "basic" | "lineup" | "ticket";
-
-const CANDIDATE_TABS: Array<{ id: CandidateTab; label: string }> = [
-  { id: "basic", label: "기본정보 관리" },
-  { id: "lineup", label: "라인업 관리" },
-  { id: "ticket", label: "티켓 관리" },
-];
-
 function createInitialDraft(candidate: FestivalCandidate): FestivalDraftJson {
   return {
+    workflow: { step: "artist_review", confirmed_steps: [] },
     festival: {
       name: candidate.festival_name ?? "",
       normalized_name: "",
@@ -69,12 +69,10 @@ export default function FestivalCandidatesPage() {
   const [statusFilter, setStatusFilter] =
     useState<(typeof STATUS_OPTIONS)[number]["value"]>("pending");
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<CandidateTab>("basic");
   const [reviewNotes, setReviewNotes] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
   const [editorError, setEditorError] = useState<string | null>(null);
   const [isMatchingArtists, setIsMatchingArtists] = useState(false);
-
   const {
     candidates,
     isLoading,
@@ -92,9 +90,12 @@ export default function FestivalCandidatesPage() {
     initializeDraft,
     clearDraft,
     updateFestival,
+    updateWorkflow,
     addArtist,
     updateArtist,
-    deleteArtist,
+    updateArtistReviewField,
+    selectExistingArtist,
+    setArtistMatchStatus,
     addTicket,
     updateTicket,
     deleteTicket,
@@ -102,17 +103,23 @@ export default function FestivalCandidatesPage() {
 
   const selectedCandidate =
     candidates.find((candidate) => candidate.id === selectedId) ?? null;
-
+  const currentStep = draft ? getRegistrationStep(draft) : "artist_review";
+  const currentStepIndex = FESTIVAL_REGISTRATION_STEPS.indexOf(currentStep);
   async function selectCandidate(candidate: FestivalCandidate) {
-    const initialDraft = normalizeFestivalDraft(
-      candidate.draft_json ?? createInitialDraft(candidate),
-    );
     setSelectedId(candidate.id);
-    initializeDraft(initialDraft);
-    setActiveTab("basic");
     setReviewNotes(candidate.review_notes ?? candidate.reject_reason ?? "");
     setNotice(null);
     setEditorError(null);
+
+    if (candidate.status === "approved") {
+      clearDraft();
+      return;
+    }
+
+    const initialDraft = normalizeFestivalDraft(
+      candidate.draft_json ?? createInitialDraft(candidate),
+    );
+    initializeDraft(initialDraft);
 
     if (!initialDraft.artists.some((artist) => artist.normalized_name.trim())) {
       return;
@@ -185,7 +192,6 @@ export default function FestivalCandidatesPage() {
     let selector = "";
 
     if (!/^[a-z0-9]+$/.test(currentDraft.festival.normalized_name)) {
-      setActiveTab("basic");
       selector = '[data-approval-field="festival-normalized-name"]';
     } else {
       const unnamedIndex = currentDraft.artists.findIndex(
@@ -222,7 +228,6 @@ export default function FestivalCandidatesPage() {
             ? invalidNewIndex
             : duplicateIndex;
 
-      setActiveTab("lineup");
       selector = unnamedIndex >= 0
         ? `[data-approval-artist-name-index="${unnamedIndex}"]`
         : `[data-approval-artist-index="${Math.max(0, artistIndex)}"]`;
@@ -236,6 +241,21 @@ export default function FestivalCandidatesPage() {
         : target?.querySelector<HTMLElement>("input, select, textarea, button");
       input?.focus({ preventScroll: true });
     }, 0);
+  }
+
+  async function handleMoveStep(nextStep: FestivalRegistrationStep) {
+    if (!selectedCandidate || !draft) return;
+    try {
+      const moved = moveRegistrationStep(draft, nextStep);
+      await saveDraft(selectedCandidate.id, moved, reviewNotes);
+      initializeDraft(moved);
+      setEditorError(null);
+      setNotice(`${FESTIVAL_REGISTRATION_STEP_LABELS[nextStep]} 단계로 이동했습니다.`);
+    } catch (error) {
+      setEditorError(
+        error instanceof Error ? error.message : "현재 단계를 먼저 확인해 주세요.",
+      );
+    }
   }
 
   async function handleApprove() {
@@ -263,7 +283,26 @@ export default function FestivalCandidatesPage() {
       return;
     }
 
+    let promotedPoster: Awaited<ReturnType<typeof promoteCandidatePoster>> = null;
     try {
+      const firstPoster = selectedCandidate.source_assets.find(
+        (asset) => asset.type === "image/webp" && asset.storage_path,
+      );
+      if (firstPoster) {
+        promotedPoster = await promoteCandidatePoster(
+          selectedCandidate.id,
+          firstPoster,
+        );
+        if (promotedPoster) {
+          draft = {
+            ...draft,
+            festival: {
+              ...draft.festival,
+              thumbnail_url: promotedPoster.publicUrl,
+            },
+          };
+        }
+      }
       const result = await approveAndImportCandidate(
         selectedCandidate.id,
         draft,
@@ -274,7 +313,15 @@ export default function FestivalCandidatesPage() {
       setNotice(
         `승인과 정식 등록을 완료했습니다. 축제 ID: ${result.festival_id}`,
       );
+      if (promotedPoster) {
+        try {
+          await promotedPoster.removeTemporary();
+        } catch (cleanupError) {
+          console.error("임시 포스터 정리에 실패했습니다.", cleanupError);
+        }
+      }
     } catch {
+      await promotedPoster?.rollback();
       // 훅의 오류 메시지를 화면에 표시한다.
     }
   }
@@ -287,7 +334,9 @@ export default function FestivalCandidatesPage() {
       );
       return;
     }
-    if (!window.confirm(`${selectedCandidate.title} 후보를 삭제하시겠습니까?`)) {
+    if (!window.confirm(
+      `${selectedCandidate.title} 임시저장과 작업 내용을 전부 삭제하시겠습니까?`,
+    )) {
       return;
     }
 
@@ -295,7 +344,7 @@ export default function FestivalCandidatesPage() {
       await deleteCandidate(selectedCandidate.id);
       setSelectedId(null);
       clearDraft();
-      setNotice("후보를 삭제했습니다.");
+      setNotice("임시저장과 작업 내용을 삭제했습니다.");
     } catch {
       // 훅의 오류 메시지를 화면에 표시한다.
     }
@@ -326,10 +375,10 @@ export default function FestivalCandidatesPage() {
           <div>
             <p className="text-sm font-semibold text-slate-600">관리자</p>
             <h1 className="mt-2 text-3xl font-bold text-slate-950">
-              신규 등록 작업함
+              신규 페스티벌 등록
             </h1>
             <p className="mt-2 text-sm text-slate-500">
-              직접 작성하거나 수집한 자료를 기본정보·라인업·티켓으로 정리한 뒤 정식 등록합니다.
+              직접 작성하거나 수집한 자료를 단계별로 검토해 새 페스티벌을 등록합니다.
             </p>
           </div>
 
@@ -440,6 +489,20 @@ export default function FestivalCandidatesPage() {
                       {candidate.start_date || "날짜 미정"}
                       {candidate.end_date ? ` ~ ${candidate.end_date}` : ""}
                     </p>
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {candidate.version_number > 1 && (
+                        <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">
+                          버전 {candidate.version_number}
+                        </span>
+                      )}
+                      {candidate.announcement_round !== "unspecified" && (
+                        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                          {candidate.announcement_round === "final"
+                            ? "최종"
+                            : candidate.announcement_round.replace("round_", "") + "차"}
+                        </span>
+                      )}
+                    </div>
                   </button>
                 ))}
               </div>
@@ -447,9 +510,47 @@ export default function FestivalCandidatesPage() {
           </section>
 
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-            {!selectedCandidate || !draft ? (
+            {!selectedCandidate ? (
               <p className="text-sm text-slate-500">
                 왼쪽 목록에서 검토할 후보를 선택하세요.
+              </p>
+            ) : selectedCandidate.status === "approved" ? (
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6">
+                <span className="rounded-full bg-emerald-600 px-3 py-1 text-xs font-bold text-white">
+                  승인 완료 · 읽기 전용
+                </span>
+                <h2 className="mt-4 text-xl font-bold text-emerald-950">
+                  {selectedCandidate.festival_name || selectedCandidate.title}
+                </h2>
+                <p className="mt-2 text-sm text-emerald-800">
+                  이 신규 등록 기록은 수정하거나 다시 임시저장할 수 없습니다.
+                </p>
+                <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-2">
+                  <div>
+                    <dt className="text-emerald-700">기간</dt>
+                    <dd className="font-semibold text-emerald-950">
+                      {selectedCandidate.start_date || "-"} ~ {selectedCandidate.end_date || "-"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-emerald-700">승인 시각</dt>
+                    <dd className="font-semibold text-emerald-950">
+                      {formatDateTime(selectedCandidate.reviewed_at)}
+                    </dd>
+                  </div>
+                </dl>
+                {selectedCandidate.festival_id !== null && (
+                  <Link
+                    href={`/festival/${selectedCandidate.festival_id}`}
+                    className="mt-5 inline-flex rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white"
+                  >
+                    등록된 페스티벌 보기
+                  </Link>
+                )}
+              </div>
+            ) : !draft ? (
+              <p className="text-sm text-red-600">
+                검토할 임시저장 내용을 불러오지 못했습니다.
               </p>
             ) : (
               <div className="space-y-6">
@@ -517,60 +618,141 @@ export default function FestivalCandidatesPage() {
                   )}
 
                 <div>
-                  <div className="flex overflow-x-auto border-b border-slate-200">
-                    {CANDIDATE_TABS.map((tab) => (
-                      <button
-                        key={tab.id}
-                        type="button"
-                        onClick={() => setActiveTab(tab.id)}
+                  <ol className="grid gap-2 sm:grid-cols-5">
+                    {FESTIVAL_REGISTRATION_STEPS.map((step, index) => (
+                      <li
+                        key={step}
                         className={[
-                          "shrink-0 border-b-2 px-4 py-3 text-sm font-semibold",
-                          activeTab === tab.id
-                            ? "border-slate-900 text-slate-900"
-                            : "border-transparent text-slate-500",
+                          "rounded-xl border px-3 py-3 text-xs font-bold",
+                          step === currentStep
+                            ? "border-slate-900 bg-slate-900 text-white"
+                            : index < currentStepIndex
+                              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                              : "border-slate-200 bg-slate-50 text-slate-400",
                         ].join(" ")}
                       >
-                        {tab.label}
-                      </button>
+                        <span className="block opacity-70">{index + 1}단계</span>
+                        <span className="mt-1 block">{FESTIVAL_REGISTRATION_STEP_LABELS[step]}</span>
+                      </li>
                     ))}
-                  </div>
+                  </ol>
 
-                  {activeTab === "basic" && (
-                    <CandidateBasicInfoTab
-                      festival={draft.festival}
-                      excludeFestivalId={selectedCandidate.festival_id}
-                      onChange={(field, value) => {
-                        updateFestival(field, value);
-                        setEditorError(null);
-                        setNotice(null);
-                      }}
-                    />
-                  )}
-
-                  {activeTab === "lineup" && (
+                  {currentStep === "artist_review" && (
                     <CandidateLineupTab
                       artists={draft.artists}
+                      mode="review"
                       onAdd={addArtist}
                       onMatchAll={() => void handleMatchArtists()}
                       isMatching={isMatchingArtists}
-                      onChange={(index, field, value) => {
-                        updateArtist(index, field, value);
-                        if (field === "normalized_name") {
-                          updateArtist(index, "matched_artist_id", null);
-                          updateArtist(index, "match_status", "pending");
-                        }
+                      onChange={updateArtist}
+                      onReviewFieldChange={(index, field, value) => {
+                        updateArtistReviewField(index, field, value);
+                        setEditorError(null);
                       }}
-                      onDelete={deleteArtist}
+                      onSelectExisting={(index, artist) => {
+                        selectExistingArtist(index, artist);
+                        setEditorError(null);
+                      }}
+                      onSetMatchStatus={(index, status) => {
+                        setArtistMatchStatus(index, status);
+                        setEditorError(null);
+                      }}
                     />
                   )}
 
-                  {activeTab === "ticket" && (
-                    <CandidateTicketTab
-                      tickets={draft.tickets ?? []}
-                      onAdd={addTicket}
-                      onChange={updateTicket}
-                      onDelete={deleteTicket}
-                    />
+                  {currentStep === "artist_confirmation" && (
+                    <section className="mt-6">
+                      <div className="flex items-end justify-between gap-3">
+                        <div>
+                          <h3 className="text-lg font-bold text-slate-900">아티스트 최종 확정</h3>
+                          <p className="mt-1 text-sm text-slate-500">수정 기능 없이 전체 명단만 빠르게 확인합니다.</p>
+                        </div>
+                        <strong className="text-sm text-slate-700">총 {getActiveDraftArtists(draft).length}명</strong>
+                      </div>
+                      <div className="mt-5 grid gap-2 sm:grid-cols-2">
+                        {getActiveDraftArtists(draft).map((artist) => (
+                          <div key={`${artist.normalized_name}-${artist.matched_artist_id ?? "new"}`} className="flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3">
+                            <div>
+                              <p className="font-bold text-slate-900">{artist.display_name}</p>
+                              <p className="text-xs text-slate-500">{artist.normalized_name}</p>
+                            </div>
+                            <span className={artist.match_status === "new" ? "rounded-full bg-purple-100 px-2.5 py-1 text-xs font-bold text-purple-700" : "rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600"}>
+                              {artist.match_status === "new" ? "신규" : "기존"}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                  {currentStep === "festival_info" && (
+                    <div>
+                      <CandidateBasicInfoTab
+                        festival={draft.festival}
+                        excludeFestivalId={selectedCandidate.festival_id}
+                        onChange={(field, value) => {
+                          updateFestival(field, value);
+                          setEditorError(null);
+                        }}
+                      />
+                      <CandidateTicketTab
+                        tickets={draft.tickets ?? []}
+                        onAdd={addTicket}
+                        onChange={updateTicket}
+                        onDelete={deleteTicket}
+                      />
+                    </div>
+                  )}
+
+                  {currentStep === "timetable" && (
+                    <div>
+                      <div className="mt-6 flex flex-wrap gap-2 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                        <button
+                          type="button"
+                          onClick={() => updateWorkflow("timetable_visibility", "published")}
+                          className={draft.workflow?.timetable_visibility !== "unpublished" ? "rounded-lg bg-slate-900 px-4 py-2 text-sm font-bold text-white" : "rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700"}
+                        >
+                          타임테이블 검토
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateWorkflow("timetable_visibility", "unpublished")}
+                          className={draft.workflow?.timetable_visibility === "unpublished" ? "rounded-lg bg-slate-900 px-4 py-2 text-sm font-bold text-white" : "rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700"}
+                        >
+                          타임테이블 미공개
+                        </button>
+                      </div>
+                      {draft.workflow?.timetable_visibility === "unpublished" ? (
+                        <p className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-800">
+                          OCR 타임테이블은 저장하지 않고 미공개 상태만 반영합니다.
+                        </p>
+                      ) : (
+                        <CandidateLineupTab
+                          artists={draft.artists}
+                          mode="timetable"
+                          onAdd={addArtist}
+                          onMatchAll={() => undefined}
+                          isMatching={false}
+                          onChange={updateArtist}
+                          onReviewFieldChange={updateArtistReviewField}
+                          onSelectExisting={selectExistingArtist}
+                          onSetMatchStatus={setArtistMatchStatus}
+                        />
+                      )}
+                    </div>
+                  )}
+
+                  {currentStep === "final_confirmation" && (
+                    <section className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
+                      <h3 className="text-lg font-bold text-emerald-950">최종 등록 확인</h3>
+                      <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                        <div><dt className="text-emerald-700">페스티벌</dt><dd className="font-bold text-emerald-950">{draft.festival.name}</dd></div>
+                        <div><dt className="text-emerald-700">확정 아티스트</dt><dd className="font-bold text-emerald-950">{getActiveDraftArtists(draft).length}명</dd></div>
+                        <div><dt className="text-emerald-700">티켓 회차</dt><dd className="font-bold text-emerald-950">{draft.tickets?.length ?? 0}개</dd></div>
+                        <div><dt className="text-emerald-700">타임테이블</dt><dd className="font-bold text-emerald-950">{draft.workflow?.timetable_visibility === "unpublished" ? "미공개" : "검토 완료"}</dd></div>
+                      </dl>
+                      <p className="mt-4 text-sm text-emerald-800">최종 등록 전까지는 운영 데이터에 반영되지 않습니다.</p>
+                    </section>
                   )}
                 </div>
 
@@ -593,22 +775,43 @@ export default function FestivalCandidatesPage() {
                 </div>
 
                 <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-5">
+                  {currentStepIndex > 0 && (
+                    <button
+                      type="button"
+                      disabled={isMutating}
+                      onClick={() => void handleMoveStep(FESTIVAL_REGISTRATION_STEPS[currentStepIndex - 1])}
+                      className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 disabled:opacity-50"
+                    >
+                      이전 단계
+                    </button>
+                  )}
                   <button
                     type="button"
                     disabled={isMutating}
                     onClick={() => void handleSave()}
                     className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 disabled:opacity-50"
                   >
-                    저장
+                    임시저장
                   </button>
-                  <button
-                    type="button"
-                    disabled={isMutating}
-                    onClick={() => void handleApprove()}
-                    className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
-                  >
-                    승인
-                  </button>
+                  {currentStepIndex < FESTIVAL_REGISTRATION_STEPS.length - 1 ? (
+                    <button
+                      type="button"
+                      disabled={isMutating}
+                      onClick={() => void handleMoveStep(FESTIVAL_REGISTRATION_STEPS[currentStepIndex + 1])}
+                      className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+                    >
+                      현재 단계 확정 · 다음
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={isMutating}
+                      onClick={() => void handleApprove()}
+                      className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+                    >
+                      페스티벌 등록 확정
+                    </button>
+                  )}
                   <button
                     type="button"
                     disabled={
@@ -617,7 +820,7 @@ export default function FestivalCandidatesPage() {
                     onClick={() => void handleDelete()}
                     className="rounded-xl border border-red-200 px-4 py-2.5 text-sm font-semibold text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    삭제
+                    임시저장 삭제
                   </button>
                 </div>
               </div>

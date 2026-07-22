@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["candidate", "festival", "artists", "tickets"],
+  "properties": {
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "raw_text", "score"],
+      "properties": {
+        "title": { "type": "string" },
+        "raw_text": { "type": "string" },
+        "score": { "type": "integer", "minimum": 0, "maximum": 100 }
+      }
+    },
+    "festival": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "normalized_name", "search_aliases", "start_date", "end_date", "location", "address", "region", "category", "description", "price_info", "program_info", "official_url", "price_type", "status"],
+      "properties": {
+        "name": { "type": "string" },
+        "normalized_name": { "type": "string", "pattern": "^[a-z0-9]+$" },
+        "search_aliases": { "type": "string" },
+        "start_date": { "type": "string" },
+        "end_date": { "type": "string" },
+        "location": { "type": "string" },
+        "address": { "type": "string" },
+        "region": { "type": "string" },
+        "category": { "type": "string", "enum": ["music_festival", "local_festival", "food_festival", "culture_festival", "other"] },
+        "description": { "type": "string" },
+        "price_info": { "type": "string" },
+        "program_info": { "type": "string" },
+        "official_url": { "type": "string" },
+        "price_type": { "type": "string", "enum": ["free", "paid", "partial_free", "unknown"] },
+        "status": { "type": "string", "enum": ["scheduled", "ongoing", "ended", "cancelled"] }
+      }
+    },
+    "artists": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["input_name", "display_name", "normalized_name", "aliases", "performance_date", "performance_time", "performance_end_time", "stage_name", "status"],
+        "properties": {
+          "input_name": { "type": "string" },
+          "display_name": { "type": "string" },
+          "normalized_name": { "type": "string", "pattern": "^[a-z0-9]*$" },
+          "aliases": { "type": "array", "items": { "type": "string" } },
+          "performance_date": { "type": "string" },
+          "performance_time": { "type": "string" },
+          "performance_end_time": { "type": "string" },
+          "stage_name": { "type": "string" },
+          "status": { "type": "string", "enum": ["scheduled", "confirmed", "cancelled"] }
+        }
+      }
+    },
+    "tickets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["round_type", "round_name", "open_at", "close_at", "price_info", "ticket_url", "ticket_platform", "status"],
+        "properties": {
+          "round_type": { "type": "string" }, "round_name": { "type": "string" },
+          "open_at": { "type": "string" }, "close_at": { "type": "string" },
+          "price_info": { "type": "string" }, "ticket_url": { "type": "string" },
+          "ticket_platform": { "type": "string" }, "status": { "type": "string" }
+        }
+      }
+    }
+  }
+}

@@ -47,6 +47,7 @@ process.stdout.write(`${report.items.length}개 티켓링크 후보를 정리했
 
 await notifyDiscoveryFromFile({
   webhookFile: argumentValue("--webhook-file") ?? resolve(root, "discord-webhook-url.txt"),
+  required: process.argv.some((value) => value.startsWith("--webhook-file=")),
   notification: {
     date,
     site: "TICKETLINK",

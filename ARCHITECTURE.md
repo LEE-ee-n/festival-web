@@ -17,16 +17,16 @@
 
 - `app/admin/layout.tsx`: `/admin` 전체에 관리자 인증 적용
 - `app/admin/login/page.tsx`: Supabase 로그인과 관리자 권한 확인
-- `app/admin/page.tsx`: 관리자 기능 메뉴
+- `app/admin/page.tsx`: 신규 등록 작업함·페스티벌 관리·아티스트 관리 메뉴
 - `app/admin/festivals/page.tsx`: 축제 목록 조회와 삭제
-- `app/admin/festivals/new/page.tsx`: 신규 축제 기본정보 등록
-- `app/admin/festival-candidates/page.tsx`: 수집 후보 JSON 수정·저장, 승인 등록, 삭제
+- `app/admin/festivals/new/page.tsx`: 과거 신규 축제 기본정보 직접 등록 경로
+- `app/admin/festival-candidates/page.tsx`: 신규 등록 작업함. 직접 작성·수집 JSON 초안 수정, 저장, 승인 등록, 삭제
 - `app/admin/festival-candidates/components/FestivalCandidateJsonUploader.tsx`: 축제 이미지 기반 JSON 검사와 검토 대기 후보 저장
 - `app/admin/festival-candidates/components/TicketDiscoveryUploader.tsx`: 티켓 discovery JSON을 기존 축제·후보·티켓 URL과 비교하고 선택 항목을 검토 대기로 저장
 - `app/admin/festival-candidates/components/Candidate*Tab.tsx`: 후보 기본정보·라인업·티켓 폼과 `normalized_name` 기준 기존 아티스트 매칭
 - `app/admin/festival-candidates/hooks/useFestivalCandidateDraft.ts`: 승인 전 세 탭의 JSON 초안 상태 관리
 - `app/admin/festival-candidates/hooks/useFestivalCandidates.ts`: 후보 조회, 초안 저장, 승인과 정식 등록
-- `app/admin/artists/page.tsx`: 신규 아티스트 유사 후보 검색·등록, 전체 아티스트 목록과 표시 이름·고유 이름·별칭 통합 수정
+- `app/admin/artists/page.tsx`: 신규 아티스트 유사 후보 검색·등록, 전체 아티스트 목록과 표시 이름·normalized_name·별칭 통합 수정
 - `app/admin/festivals/[id]/lineup/page.tsx`: 최초 데이터 로딩, 탭 전환, 관리 화면 조립
 - `app/admin/festivals/[id]/lineup/components/`: 기본정보, 출연진, 티켓 탭 UI
 - `app/admin/festivals/[id]/lineup/hooks/useFestivalBasicInfo.ts`: 기본정보와 썸네일 상태·저장
@@ -47,9 +47,10 @@
 - `lib/auth/getCurrentAdminAccess.ts`: 로그인 사용자 관리자 여부 확인
 - `lib/artists/`: 아티스트 이름 정규화, 검색과 normalized_name 기준 후보 중복 매칭
 - `lib/festivals/`: 축제 기본정보, 출연진, 티켓, 썸네일의 조회·추가·수정·삭제
+- `lib/festivals/festivalDraftMerge.ts`: 검토 대기 초안과 신규 JSON의 필드별 동일·표현 차이·추가·변경 분류 및 안전 병합
 - `lib/festivals/ticketDisplay.ts`: 최신 티켓 회차와 표시할 판매처 버튼 결정
 - `lib/festivals/thumbnailValidation.ts`: 썸네일 형식, 실제 파일 내용, 5MB 제한 검사
-- `lib/festivals/festivalDraft.ts`: 헤르메스 JSON 필수값과 편집 표시 순서 검사
+- `lib/festivals/festivalDraft.ts`: 축제 초안 JSON 필수값과 편집 표시 순서 검사
 - `lib/hooks/useFestivalDetail.ts`: 전체 상세페이지와 우측 패널의 축제·출연진·티켓 공통 조회 및 출연진 정렬
 - `lib/hooks/useCurrentTimeAt.ts`: 티켓 오픈 시간에 맞춰 화면 시간을 갱신
 - `lib/hooks/useFestivalDuplicateCheck.ts`: normalized_name·시작일·종료일 입력 후 기존 축제 자동 중복 조회
@@ -59,10 +60,11 @@
 
 - `supabase/migrations/005~008`: 관리자 인증·RLS, 트랜잭션 JSON 등록, 티켓·썸네일 제한
 - `supabase/migrations/009~015`: 수집 후보 저장·승인 등록, 빈 출연진·티켓 허용, 정규화 이름 제약, 축제 진행 상태 자동 갱신
+- `supabase/migrations/016~017`: 아티스트 normalized_name 필수·형식·중복 제약과 관리자 통합 수정 함수
 - 013은 JSON·XLSX 축제 등록 함수의 중복 기준과 관리자 권한 검사도 통일한다.
 - 014는 한국 날짜 기준 매일 00:05에 취소되지 않은 축제를 `scheduled`·`ongoing`·`ended`로 자동 갱신한다.
 - 015는 축제 등록과 날짜·상태 수정 시 같은 규칙을 즉시 적용하며, 014 Cron은 누락 방지용으로 유지한다.
-- `supabase/DATABASE_SCHEMA.md`: 테이블 관계와 운영 규칙
+- `DATABASE.md`: 운영 테이블·칼럼·RPC·감사 로그의 단일 문서
 - `SECURITY.md`: 관리자 인증과 공개·관리자 권한 정책
 - `DATABASE.md`: 운영 DB 칼럼 기록
 
@@ -74,6 +76,7 @@
 - `tests/artistMatching.test.ts`: 후보 아티스트의 기존 아티스트 중복 매칭 규칙
 - `tests/artistNameNormalization.test.ts`: `normalized_name` 변환과 허용 형식
 - `tests/festivalDraft.test.ts`: 축제 초안 JSON 필수값, 신뢰도와 표시 순서 검사
+- `tests/festivalDraftMerge.test.ts`: 필드 정규화, 문장 유사도, 기본정보·라인업·티켓 안전 병합 규칙
 - `tests/ticketDisplay.test.ts`: 최신 티켓, 오픈 시간, 판매처 버튼 규칙
 - `tests/thumbnailValidation.test.ts`: 이미지 형식과 용량 제한
 - `tests/crawlerDiscovery.test.ts`: 수집 URL 제한, 중복 제거, 최대 개수와 실패 격리
@@ -96,17 +99,21 @@
 - `crawler/notifications/discordWebhook.ts`: discovery 처리 결과를 외부 비밀 파일의 Discord 웹훅으로 알림
 - discovery 결과는 관리자가 `/admin/festival-candidates`에서 확인한 항목만 `festival_candidates`에 저장한다.
 
-`test-data/`에는 JSON 등록 성공·실패와 헤르메스 후보 예제 파일을 둔다.
+`test-data/`에는 JSON 등록 성공·실패와 축제 후보 예제 파일을 둔다.
 
 테스트는 `npm test`로 실행한다.
 
 ## 수집 후보 흐름
 
-- `FESTIVAL_IMAGE_IMPORT.md`: 사진·게시글에서 축제 등록 JSON을 만드는 규격
-- 축제 JSON 업로드 → 검토 대기 저장 → 관리자 수정·저장 → 승인 시 정식 축제·출연진·티켓 등록
+- 상세 규칙과 코드 연결은 `FESTIVAL_INGESTION_FLOW.md`에 기록한다.
+- Instagram URL → 임시 OCR·JSON → 신규 또는 기존 작업함 → 관리자 5단계 확정 → 최종 트랜잭션 반영
 - 라인업은 영문 이름에서 `normalized_name`을 자동 생성한다. 기존 아티스트는 DB 값을 사용하며, 자동 생성할 수 없는 신규 한글 이름은 영문 식별값을 입력하기 전까지 승인하지 않는다.
-- 아티스트 수정은 `update_artist_admin` DB 함수에서 표시 이름·고유 이름·별칭을 한 트랜잭션으로 반영한다.
+- 아티스트 수정은 `update_artist_admin` DB 함수에서 표시 이름·normalized_name·별칭을 한 트랜잭션으로 반영한다.
 - 승인 등록은 DB 트랜잭션으로 처리하며 실패하면 후보와 정식 데이터 변경을 모두 취소한다.
+
+## 아티스트 관리
+
+- 상세 완료 범위와 운영 규칙은 `ARTIST_MANAGEMENT.md`에 기록한다.
 
 ## 로컬 전체 검사
 

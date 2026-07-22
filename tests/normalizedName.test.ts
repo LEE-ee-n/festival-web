@@ -1,7 +1,18 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { findYearLikeSequence } from "../lib/normalizedName.ts";
+import {
+  findYearLikeSequence,
+  normalizeNormalizedName,
+} from "../lib/normalizedName.ts";
+
+test("축제 normalized_name에서 연도와 festival을 제거한다", () => {
+  assert.equal(
+    normalizeNormalizedName("ONE UNIVERSE FESTIVAL 2026"),
+    "oneuniverse",
+  );
+  assert.equal(normalizeNormalizedName("2025 Waterbomb Festival"), "waterbomb");
+});
 
 test("19로 시작하는 연도 형태를 찾는다", () => {
   assert.equal(findYearLikeSequence("festival1999"), "1999");

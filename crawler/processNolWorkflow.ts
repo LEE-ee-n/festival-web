@@ -39,8 +39,6 @@ if (resolve(inputPath) !== archivedInputPath) {
   await copyFile(inputPath, archivedInputPath);
 }
 await writeFile(outputPath, JSON.stringify(report, null, 2), "utf8");
-const countPath = resolve(root, "last-nol-count.txt");
-await writeFile(countPath, String(report.items.length), "utf8");
 if (resolve(inputPath) !== archivedInputPath && dirname(resolve(inputPath)) !== crawlDirectory) {
   await unlink(inputPath);
 }
@@ -51,6 +49,7 @@ process.stdout.write(`${report.items.length}개 놀티켓 후보를 정리했습
 
 await notifyDiscoveryFromFile({
   webhookFile: argumentValue("--webhook-file") ?? resolve(root, "discord-webhook-url.txt"),
+  required: process.argv.some((value) => value.startsWith("--webhook-file=")),
   notification: {
     date,
     site: "NOL",

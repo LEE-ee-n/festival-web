@@ -76,15 +76,6 @@ function sameValue(left: string, right: string) {
   return comparable(left) === comparable(right);
 }
 
-function mergeAliases(current: string[], incoming: string[]) {
-  const values = new Map<string, string>();
-  [...current, ...incoming].forEach((alias) => {
-    const trimmed = alias.trim();
-    if (trimmed) values.set(comparable(trimmed), trimmed);
-  });
-  return [...values.values()];
-}
-
 function artistKey(normalizedName: string, performanceDate?: string | null) {
   return `${normalizedName}|${performanceDate || ""}`;
 }
@@ -161,9 +152,15 @@ export function createFestivalUpdatePreview(
     ]),
   );
 
-  incoming.artists.forEach((artist, index) => {
+  incoming.artists
+    .filter((artist) => artist.match_status !== "excluded")
+    .forEach((artist, index) => {
     const key = artistKey(artist.normalized_name, artist.performance_date);
-    const existing = existingArtists.get(key);
+    const existing = existingArtists.get(key) ?? (
+      artist.performance_date
+        ? undefined
+        : currentArtists.find((item) => item.artist.normalized_name === artist.normalized_name)
+    );
     const label = artist.display_name || artist.input_name || artist.normalized_name;
 
     if (!existing) {
@@ -173,9 +170,14 @@ export function createFestivalUpdatePreview(
         label,
         status: "add",
         current: "없음",
-        incoming: artist.performance_date
-          ? `${label} · ${artist.performance_date}`
-          : label,
+        incoming: [
+          label,
+          artist.performance_date,
+          artist.performance_time && artist.performance_end_time
+            ? `${artist.performance_time}~${artist.performance_end_time}`
+            : artist.performance_time,
+          artist.stage_name,
+        ].filter(Boolean).join(" · "),
         artistPayload: artist,
       });
       return;
@@ -189,16 +191,15 @@ export function createFestivalUpdatePreview(
       status: existing.status,
     };
     const incomingRecord = artist as unknown as Record<string, unknown>;
-    let status = getObjectStatus(currentRecord, incomingRecord, [
+    const status = getObjectStatus(currentRecord, incomingRecord, [
       "performance_time",
       "performance_end_time",
       "stage_name",
       "status",
     ]);
-    const aliases = mergeAliases(existing.artist.aliases, artist.aliases ?? []);
-    if (status === "same" && aliases.length > existing.artist.aliases.length) {
-      status = "add";
-    }
+    // normalized_name fixes the artist identity. Festival updates must not
+    // mutate a matched artist's global aliases from OCR-generated JSON.
+    const aliases = [...existing.artist.aliases];
 
     const payload: FestivalDraftJson["artists"][number] = {
       ...artist,
@@ -227,7 +228,7 @@ export function createFestivalUpdatePreview(
         .filter(Boolean).join(" · ") || label,
       artistPayload: payload,
     });
-  });
+    });
 
   const existingTickets = new Map(
     currentTickets.map((ticket) => [ticketKey(ticket), ticket]),
@@ -245,7 +246,13 @@ export function createFestivalUpdatePreview(
         label,
         status: "add",
         current: "없음",
-        incoming: [ticket.round_name, ticket.open_at, ticket.price_info]
+        incoming: [
+          ticket.round_name,
+          ticket.open_at,
+          ticket.price_info,
+          ticket.ticket_platform,
+          ticket.ticket_url,
+        ]
           .filter(Boolean).join(" · "),
         ticketPayload: ticket,
       });

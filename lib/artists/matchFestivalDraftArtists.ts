@@ -5,6 +5,13 @@ import {
 } from "@/lib/artists/applyNormalizedArtistMatches";
 import type { FestivalDraftJson } from "@/lib/types";
 
+type ArtistMatchRow = {
+  id: number;
+  name: string;
+  normalized_name: string;
+  artist_aliases: Array<{ alias_name: string }>;
+};
+
 export async function matchFestivalDraftArtists(
   draft: FestivalDraftJson,
 ) {
@@ -22,13 +29,18 @@ export async function matchFestivalDraftArtists(
 
   const { data, error } = await supabase
     .from("artists")
-    .select("id, name, normalized_name")
+    .select("id, name, normalized_name, artist_aliases (alias_name)")
     .in("normalized_name", normalizedNames);
 
   if (error) throw error;
 
   return applyNormalizedArtistMatches(
     draft,
-    (data ?? []) as ExistingArtistMatch[],
+    ((data ?? []) as ArtistMatchRow[]).map((artist): ExistingArtistMatch => ({
+      id: Number(artist.id),
+      name: artist.name,
+      normalized_name: artist.normalized_name,
+      aliases: (artist.artist_aliases ?? []).map((alias) => alias.alias_name),
+    })),
   );
 }

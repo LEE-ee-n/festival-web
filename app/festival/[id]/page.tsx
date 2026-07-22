@@ -240,13 +240,35 @@ export default function FestivalDetailPage() {
                   출연진
                 </h2>
 
+                {festival.timetable_status === "unpublished" && (
+                  <p className="mt-2 text-sm font-semibold text-slate-500">
+                    타임테이블 미공개
+                  </p>
+                )}
+
+                {festival.timetable_status === "unpublished" ? (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {Array.from(new Map(festivalArtists.map((item) => {
+                      const artist = Array.isArray(item.artists) ? item.artists[0] : item.artists;
+                      return [item.artist_id, artist];
+                    })).values()).map((artist) => artist ? (
+                      <Link
+                        key={artist.id}
+                        href={`/artist/${artist.id}`}
+                        className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-800"
+                      >
+                        {artist.name}
+                      </Link>
+                    ) : null)}
+                  </div>
+                ) : (
                 <div className="mt-4 space-y-5">
                   {Object.entries(artistsByDateAndStage).map(
   ([date, stageGroups]) => (
     <div key={date}>
       <h3 className="font-bold text-slate-800">
         {date === "날짜 미정"
-          ? date
+          ? "타임테이블 미공개"
           : new Intl.DateTimeFormat("ko-KR", {
               timeZone: "Asia/Seoul",
               month: "long",
@@ -317,6 +339,7 @@ export default function FestivalDetailPage() {
   ),
 )}
                 </div>
+                )}
               </section>
             )}
 

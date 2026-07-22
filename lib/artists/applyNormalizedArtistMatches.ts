@@ -4,7 +4,24 @@ export type ExistingArtistMatch = {
   id: number;
   name: string;
   normalized_name: string;
+  aliases: string[];
 };
+
+type FestivalDraftArtist = FestivalDraftJson["artists"][number];
+
+export function applyExistingArtistSelection(
+  artist: FestivalDraftArtist,
+  existingArtist: ExistingArtistMatch,
+): FestivalDraftArtist {
+  return {
+    ...artist,
+    display_name: existingArtist.name,
+    normalized_name: existingArtist.normalized_name,
+    aliases: [...existingArtist.aliases],
+    matched_artist_id: existingArtist.id,
+    match_status: "matched",
+  };
+}
 
 export function applyNormalizedArtistMatches(
   draft: FestivalDraftJson,
@@ -32,17 +49,11 @@ export function applyNormalizedArtistMatches(
         return {
           ...artist,
           matched_artist_id: null,
-          match_status: "new",
+          match_status: "pending",
         };
       }
 
-      return {
-        ...artist,
-        display_name: existingArtist.name,
-        normalized_name: existingArtist.normalized_name,
-        matched_artist_id: existingArtist.id,
-        match_status: "matched",
-      };
+      return applyExistingArtistSelection(artist, existingArtist);
     }),
   };
 }

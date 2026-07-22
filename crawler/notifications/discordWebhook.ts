@@ -38,31 +38,79 @@ export async function sendDiscoveryWebhook(input: {
   webhookUrl: string;
   notification: DiscoveryNotification;
   fetchImpl?: typeof fetch;
+  maxAttempts?: number;
+  retryDelayMs?: number;
 }) {
   const webhookUrl = validateDiscordWebhookUrl(input.webhookUrl);
   webhookUrl.searchParams.set("wait", "true");
-  const response = await (input.fetchImpl ?? fetch)(webhookUrl, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      content: buildDiscoveryWebhookContent(input.notification),
-      allowed_mentions: { parse: [] },
-    }),
-    signal: AbortSignal.timeout(10_000),
+  const maxAttempts = Math.max(1, input.maxAttempts ?? 3);
+  const retryDelayMs = Math.max(0, input.retryDelayMs ?? 750);
+  const requestBody = JSON.stringify({
+    content: buildDiscoveryWebhookContent(input.notification),
+    allowed_mentions: { parse: [] },
   });
-  if (!response.ok) throw new Error(`Discord 웹훅 전송 실패: HTTP ${response.status}`);
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    let response: Response;
+
+    try {
+      response = await (input.fetchImpl ?? fetch)(webhookUrl, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: requestBody,
+        signal: AbortSignal.timeout(10_000),
+      });
+    } catch (error) {
+      if (attempt === maxAttempts) {
+        throw error;
+      }
+
+      await new Promise((resolveDelay) => {
+        setTimeout(resolveDelay, retryDelayMs * attempt);
+      });
+      continue;
+    }
+
+    if (response.ok) {
+      return;
+    }
+
+    const responseText = (await response.text()).trim().slice(0, 500);
+    const detail = responseText ? ` - ${responseText}` : "";
+    const canRetry = response.status === 429 || response.status >= 500;
+
+    if (!canRetry || attempt === maxAttempts) {
+      throw new Error(
+        `Discord 웹훅 전송 실패: HTTP ${response.status}${detail}`,
+      );
+    }
+
+    await new Promise((resolveDelay) => {
+      setTimeout(resolveDelay, retryDelayMs * attempt);
+    });
+  }
 }
 
 export async function notifyDiscoveryFromFile(input: {
   webhookFile: string;
   notification: DiscoveryNotification;
+  required?: boolean;
+  fetchImpl?: typeof fetch;
 }) {
   try {
     const webhookUrl = await readDiscordWebhookUrl(input.webhookFile);
-    await sendDiscoveryWebhook({ webhookUrl, notification: input.notification });
+    await sendDiscoveryWebhook({
+      webhookUrl,
+      notification: input.notification,
+      fetchImpl: input.fetchImpl,
+    });
     process.stdout.write("Discord 웹훅 알림 전송 완료\n");
   } catch (error) {
     const message = error instanceof Error ? error.message : "알 수 없는 오류";
     process.stderr.write(`WARNING: Discord 웹훅 알림을 보내지 못했습니다. ${message}\n`);
+
+    if (input.required) {
+      throw new Error(`Discord 웹훅 알림 실패: ${message}`);
+    }
   }
 }

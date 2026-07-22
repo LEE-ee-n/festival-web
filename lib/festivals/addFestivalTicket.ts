@@ -12,11 +12,13 @@ type AddFestivalTicketInput = {
 export async function addFestivalTicket(
   festivalId: string,
   input: AddFestivalTicketInput,
+  metadata?: { sourceUrl?: string; note?: string },
 ) {
-  const { data, error } = await supabase
-    .from("festival_ticket_rounds")
-    .insert({
-      festival_id: Number(festivalId),
+  const { data, error } = await supabase.rpc("change_festival_ticket_with_audit", {
+      p_festival_id: Number(festivalId),
+      p_operation: "insert",
+      p_ticket_id: null,
+      p_ticket: {
       round_type: input.roundType,
       round_name: input.roundName.trim(),
       open_at: new Date(input.openAt).toISOString(),
@@ -24,21 +26,14 @@ export async function addFestivalTicket(
       ticket_platform:
         input.ticketPlatform.trim() || null,
       ticket_url: input.ticketUrl.trim() || null,
-    })
-    .select(`
-      id,
-      round_type,
-      round_name,
-      open_at,
-      price_info,
-      ticket_url,
-      ticket_platform
-    `)
-    .single();
+      },
+      p_source_url: metadata?.sourceUrl?.trim() || null,
+      p_note: metadata?.note?.trim() || null,
+    });
 
   if (error) {
     throw error;
   }
 
-  return data;
+  return (data as { ticket: unknown }).ticket;
 }

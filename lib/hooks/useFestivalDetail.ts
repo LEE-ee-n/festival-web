@@ -74,10 +74,22 @@ export function useFestivalDetail(
         if (error) throw error;
         if (!data) throw new Error("축제를 찾을 수 없습니다.");
 
+        const { data: timetableData } = await supabase
+          .from("festivals")
+          .select("timetable_status")
+          .eq("id", festivalId)
+          .maybeSingle();
+
         if (!isCancelled) {
           setState((current) => ({
             ...current,
-            festival: data as Festival,
+            festival: {
+              ...data,
+              timetable_status:
+                timetableData?.timetable_status === "unpublished"
+                  ? "unpublished"
+                  : "published",
+            } as Festival,
           }));
         }
       } catch (error) {

@@ -40,7 +40,7 @@ export default function FestivalTimetable({
 
                 <span>
                   {date === "날짜 미정"
-                    ? date
+                    ? "타임테이블 미공개"
                     : new Intl.DateTimeFormat("ko-KR", {
                         timeZone: "Asia/Seoul",
                         month: "long",

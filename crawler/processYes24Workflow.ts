@@ -43,6 +43,7 @@ process.stdout.write(`정리 결과: ${outputPath}\n`);
 process.stdout.write(`${report.items.length}개 YES24 후보를 정리했습니다.\n`);
 await notifyDiscoveryFromFile({
   webhookFile: argumentValue("--webhook-file") ?? resolve(root, "discord-webhook-url.txt"),
+  required: process.argv.some((value) => value.startsWith("--webhook-file=")),
   notification: {
     date,
     site: "YES24",

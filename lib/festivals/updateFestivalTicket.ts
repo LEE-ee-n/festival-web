@@ -13,19 +13,23 @@ export type FestivalTicketUpdate = {
 export async function updateFestivalTicket(
   festivalId: string,
   round: FestivalTicketUpdate,
+  metadata?: { sourceUrl?: string; note?: string },
 ) {
-  const { error } = await supabase
-    .from("festival_ticket_rounds")
-    .update({
+  const { error } = await supabase.rpc("change_festival_ticket_with_audit", {
+      p_festival_id: Number(festivalId),
+      p_operation: "update",
+      p_ticket_id: round.id,
+      p_ticket: {
       round_type: round.round_type,
       round_name: round.round_name,
       open_at: round.open_at,
       price_info: round.price_info,
       ticket_url: round.ticket_url,
       ticket_platform: round.ticket_platform,
-    })
-    .eq("id", round.id)
-    .eq("festival_id", festivalId);
+      },
+      p_source_url: metadata?.sourceUrl?.trim() || null,
+      p_note: metadata?.note?.trim() || null,
+    });
 
   if (error) {
     throw error;

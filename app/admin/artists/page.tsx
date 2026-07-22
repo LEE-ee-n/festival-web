@@ -62,6 +62,7 @@ export default function AdminArtistsPage() {
   const [editUniqueName, setEditUniqueName] = useState("");
   const [editAliases, setEditAliases] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -264,19 +265,20 @@ export default function AdminArtistsPage() {
       setErrorMessage(null);
       setSuccessMessage(null);
 
-      const { data, error } = await supabase
-        .from("artists")
-        .insert({ name, normalized_name: uniqueName })
-        .select("id, name, normalized_name")
-        .single();
+      const { data, error } = await supabase.rpc("create_artist_with_audit", {
+        p_name: name,
+        p_normalized_name: uniqueName,
+        p_aliases: [],
+      });
 
       if (error) throw error;
 
       await loadArtists();
       setCandidates([]);
       setHasSearched(false);
-      selectArtist({ ...data, aliases: [] });
-      setSuccessMessage(`${data.name}을(를) 신규 등록했습니다.`);
+      const created = data as { id: number; name: string; normalized_name: string };
+      selectArtist({ ...created, aliases: [] });
+      setSuccessMessage(`${created.name}을(를) 신규 등록했습니다.`);
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "신규 등록에 실패했습니다.",
@@ -356,6 +358,31 @@ export default function AdminArtistsPage() {
       );
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  async function handleDeleteArtist() {
+    if (selectedArtistId === null) return;
+    const selected = artists.find((artist) => artist.id === selectedArtistId);
+    const label = selected?.name ?? (editName || `아티스트 #${selectedArtistId}`);
+    if (!window.confirm(`${label}을(를) 삭제하시겠습니까?\n라인업에 연결된 아티스트는 삭제되지 않습니다.`)) return;
+
+    try {
+      setIsDeleting(true);
+      setErrorMessage(null);
+      setSuccessMessage(null);
+      const { error } = await supabase.rpc("delete_artist_admin", { p_artist_id: selectedArtistId });
+      if (error) throw error;
+      setSelectedArtistId(null);
+      setEditName("");
+      setEditUniqueName("");
+      setEditAliases("");
+      await loadArtists();
+      setSuccessMessage(`${label}을(를) 삭제했습니다.`);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "아티스트 삭제에 실패했습니다.");
+    } finally {
+      setIsDeleting(false);
     }
   }
 
@@ -538,14 +565,24 @@ export default function AdminArtistsPage() {
                 </span>
               </label>
             </div>
-            <button
-              type="button"
-              onClick={() => void handleSaveArtist()}
-              disabled={isSaving}
-              className="mt-5 rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white disabled:opacity-50"
-            >
-              {isSaving ? "저장 중..." : "수정 저장"}
-            </button>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => void handleSaveArtist()}
+                disabled={isSaving || isDeleting}
+                className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white disabled:opacity-50"
+              >
+                {isSaving ? "저장 중..." : "수정 저장"}
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleDeleteArtist()}
+                disabled={isSaving || isDeleting}
+                className="rounded-xl border border-red-300 bg-white px-5 py-3 text-sm font-semibold text-red-700 disabled:opacity-50"
+              >
+                {isDeleting ? "삭제 중..." : "아티스트 삭제"}
+              </button>
+            </div>
           </section>
         )}
 

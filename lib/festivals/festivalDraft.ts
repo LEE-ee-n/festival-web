@@ -1,4 +1,4 @@
-import type { FestivalDraftJson } from "@/lib/types";
+import type { FestivalDraftJson, FestivalRegistrationStep } from "@/lib/types";
 import {
   isValidArtistNormalizedName,
   normalizeArtistName,
@@ -7,6 +7,180 @@ import {
   isValidNormalizedName,
   normalizeNormalizedName,
 } from "../normalizedName.ts";
+import { createFestivalIdentityKey } from "./ingestionRules.ts";
+
+export const FESTIVAL_REGISTRATION_STEPS: FestivalRegistrationStep[] = [
+  "artist_review",
+  "artist_confirmation",
+  "festival_info",
+  "timetable",
+  "final_confirmation",
+];
+
+export const FESTIVAL_REGISTRATION_STEP_LABELS: Record<
+  FestivalRegistrationStep,
+  string
+> = {
+  artist_review: "아티스트 판별·등록",
+  artist_confirmation: "아티스트 최종 확정",
+  festival_info: "페스티벌 정보·티켓",
+  timetable: "타임테이블",
+  final_confirmation: "최종 등록",
+};
+
+export function getRegistrationStep(draft: FestivalDraftJson) {
+  return draft.workflow?.step ?? "artist_review";
+}
+
+export function getActiveDraftArtists(draft: FestivalDraftJson) {
+  return draft.artists.filter((artist) => artist.match_status !== "excluded");
+}
+
+export type ArtistReviewEditableField =
+  | "display_name"
+  | "normalized_name"
+  | "aliases";
+
+export function canEditArtistReviewField(
+  artist: FestivalDraftJson["artists"][number],
+  field: keyof FestivalDraftJson["artists"][number],
+): field is ArtistReviewEditableField {
+  if (artist.match_status !== "pending" && artist.match_status !== "new") {
+    return false;
+  }
+
+  return field === "display_name"
+    || field === "normalized_name"
+    || field === "aliases";
+}
+
+export function validateArtistReview(draft: FestivalDraftJson) {
+  const activeArtists = getActiveDraftArtists(draft);
+  const unresolved = activeArtists.find(
+    (artist) =>
+      artist.match_status !== "new"
+      && !(
+        artist.match_status === "matched"
+        && Number.isInteger(artist.matched_artist_id)
+      ),
+  );
+  if (unresolved) {
+    throw new Error(
+      `${unresolved.input_name || unresolved.display_name || "아티스트"} 항목의 기존 ID 연결·신규 등록·제외 중 하나를 처리해 주세요.`,
+    );
+  }
+
+  const invalidNew = activeArtists.find(
+    (artist) =>
+      artist.match_status === "new"
+      && (
+        !artist.display_name?.trim()
+        || !isValidArtistNormalizedName(artist.normalized_name)
+      ),
+  );
+  if (invalidNew) {
+    throw new Error(
+      "신규 아티스트의 포스터 표기 이름 또는 표시 이름과 normalized_name을 확인해 주세요.",
+    );
+  }
+
+  const seen = new Set<string>();
+  const duplicate = activeArtists.find((artist) => {
+    const value = artist.normalized_name.trim();
+    if (!value) return false;
+    if (seen.has(value)) return true;
+    seen.add(value);
+    return false;
+  });
+  if (duplicate) {
+    throw new Error(
+      `중복된 normalized_name이 있습니다: ${duplicate.normalized_name}`,
+    );
+  }
+}
+
+export function validateFestivalInfo(draft: FestivalDraftJson) {
+  if (!draft.festival.name?.trim()) {
+    throw new Error("축제 표시 이름을 입력해 주세요.");
+  }
+  if (!createFestivalIdentityKey(draft.festival)) {
+    throw new Error(
+      "축제 normalized_name과 올바른 시작일·종료일을 모두 입력해 주세요.",
+    );
+  }
+}
+
+export function validateTimetable(draft: FestivalDraftJson) {
+  if (draft.workflow?.timetable_visibility === "unpublished") return;
+  const confirmedNames = new Set(
+    getActiveDraftArtists(draft).map((artist) => artist.normalized_name),
+  );
+  const invalid = draft.artists.find(
+    (artist) =>
+      artist.match_status !== "excluded"
+      && Boolean(
+        artist.performance_date
+        || artist.performance_time
+        || artist.performance_end_time
+        || artist.stage_name,
+      )
+      && !confirmedNames.has(artist.normalized_name),
+  );
+  if (invalid) {
+    throw new Error(
+      "확정되지 않은 아티스트의 타임테이블은 저장할 수 없습니다.",
+    );
+  }
+}
+
+export function validateRegistrationStep(
+  draft: FestivalDraftJson,
+  step: FestivalRegistrationStep,
+) {
+  if (step === "artist_review" || step === "artist_confirmation") {
+    validateArtistReview(draft);
+  }
+  if (step === "festival_info") {
+    validateArtistReview(draft);
+    validateFestivalInfo(draft);
+  }
+  if (step === "timetable" || step === "final_confirmation") {
+    validateArtistReview(draft);
+    validateFestivalInfo(draft);
+    validateTimetable(draft);
+  }
+}
+
+export function moveRegistrationStep(
+  draft: FestivalDraftJson,
+  nextStep: FestivalRegistrationStep,
+): FestivalDraftJson {
+  const currentStep = getRegistrationStep(draft);
+  const currentIndex = FESTIVAL_REGISTRATION_STEPS.indexOf(currentStep);
+  const nextIndex = FESTIVAL_REGISTRATION_STEPS.indexOf(nextStep);
+  if (nextIndex > currentIndex) validateRegistrationStep(draft, currentStep);
+
+  const confirmedSteps = new Set(draft.workflow?.confirmed_steps ?? []);
+  if (nextIndex > currentIndex) confirmedSteps.add(currentStep);
+  for (const step of FESTIVAL_REGISTRATION_STEPS.slice(nextIndex + 1)) {
+    confirmedSteps.delete(step);
+  }
+
+  return {
+    ...draft,
+    workflow: {
+      ...draft.workflow,
+      step: nextStep,
+      confirmed_steps: [...confirmedSteps],
+    },
+  };
+}
+
+export function mergeNonBlankValue<T>(existing: T, incoming: T) {
+  if (incoming === null || incoming === undefined) return existing;
+  if (typeof incoming === "string" && incoming.trim() === "") return existing;
+  return incoming;
+}
 
 function normalizeAliases(value: unknown): string[] {
   if (Array.isArray(value)) {
@@ -59,6 +233,7 @@ export function validateFestivalDraftForApproval(
   draft: FestivalDraftJson,
 ) {
   const normalizedDraft = normalizeFestivalDraft(draft);
+  validateArtistReview(normalizedDraft);
 
   if (!isValidNormalizedName(normalizedDraft.festival.normalized_name)) {
     throw new Error(
@@ -66,7 +241,18 @@ export function validateFestivalDraftForApproval(
     );
   }
 
-  const unnamedArtist = normalizedDraft.artists.find(
+  if (!normalizedDraft.festival.name?.trim()) {
+    throw new Error("축제 표시 이름을 입력해 주세요.");
+  }
+
+  if (!createFestivalIdentityKey(normalizedDraft.festival)) {
+    throw new Error(
+      "축제 normalized_name과 올바른 시작일·종료일을 모두 입력해 주세요.",
+    );
+  }
+
+  const activeArtists = getActiveDraftArtists(normalizedDraft);
+  const unnamedArtist = activeArtists.find(
     (artist) =>
       !artist.display_name?.trim()
       && !artist.input_name?.trim(),
@@ -78,22 +264,7 @@ export function validateFestivalDraftForApproval(
     );
   }
 
-  const unresolvedArtist = normalizedDraft.artists.find(
-    (artist) =>
-      artist.match_status !== "new"
-      && !(
-        artist.match_status === "matched"
-        && Number.isInteger(artist.matched_artist_id)
-      ),
-  );
-
-  if (unresolvedArtist) {
-    throw new Error(
-      `${unresolvedArtist.display_name || unresolvedArtist.input_name || "아티스트"}의 기존 ID 연결 또는 신규 등록 여부를 확인해 주세요.`,
-    );
-  }
-
-  const invalidNewArtist = normalizedDraft.artists.find(
+  const invalidNewArtist = activeArtists.find(
     (artist) =>
       artist.match_status === "new"
       && !isValidArtistNormalizedName(artist.normalized_name),
@@ -105,7 +276,7 @@ export function validateFestivalDraftForApproval(
     );
   }
 
-  const normalizedNames = normalizedDraft.artists
+  const normalizedNames = activeArtists
     .map((artist) => artist.normalized_name.trim())
     .filter(Boolean);
   const duplicateNormalizedName = normalizedNames.find(
@@ -118,7 +289,10 @@ export function validateFestivalDraftForApproval(
     );
   }
 
-  return normalizedDraft;
+  return {
+    ...normalizedDraft,
+    artists: activeArtists,
+  };
 }
 
 export function parseFestivalDraftJson(value: string): FestivalDraftJson {
