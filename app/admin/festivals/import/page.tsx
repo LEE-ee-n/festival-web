@@ -1,6 +1,10 @@
 "use client";
 
 import { supabase } from "@/lib/supabase/client";
+import {
+  parseFestivalLineupImportResult,
+  type FestivalLineupImportResult,
+} from "@/lib/supabase/rpcResults";
 import Link from "next/link";
 import {
   ChangeEvent,
@@ -22,15 +26,6 @@ type FestivalSummary = {
   name: string;
   start_date: string | null;
   end_date: string | null;
-};
-
-type ImportResult = {
-  festival_id: number;
-  new_artist_count: number;
-  existing_artist_count: number;
-  linked_count: number;
-  already_linked_count: number;
-  alias_count: number;
 };
 
 type MatchStatus =
@@ -105,7 +100,7 @@ export default function FestivalImportPage() {
 
   const [isImporting, setIsImporting] = useState(false);
   const [importResult, setImportResult] =
-    useState<ImportResult | null>(null);
+    useState<FestivalLineupImportResult | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -148,9 +143,7 @@ export default function FestivalImportPage() {
         throw error;
       }
 
-      setFestivalResults(
-        (data ?? []) as FestivalSummary[],
-      );
+      setFestivalResults(data ?? []);
     } catch (error) {
       console.error("페스티벌 검색 오류:", error);
 
@@ -274,10 +267,7 @@ export default function FestivalImportPage() {
                 throw error;
               }
 
-              const rawCandidates = (data ?? []) as Omit<
-                SimilarArtist,
-                "aliases"
-              >[];
+              const rawCandidates = data ?? [];
 
               const artistIds = rawCandidates.map(
                 (candidate) => candidate.id,
@@ -429,7 +419,7 @@ export default function FestivalImportPage() {
         throw error;
       }
 
-      setImportResult(data as ImportResult);
+      setImportResult(parseFestivalLineupImportResult(data));
     } catch (error) {
       console.error("라인업 등록 오류:", error);
 

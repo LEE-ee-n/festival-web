@@ -28,7 +28,7 @@ export type FestivalBasicInfoRecord = {
 };
 
 export function useFestivalBasicInfo(
-  festivalId: string,
+  festivalId: number,
   setErrorMessage: SetErrorMessage,
 ) {
   const [festivalName, setFestivalName] = useState("");

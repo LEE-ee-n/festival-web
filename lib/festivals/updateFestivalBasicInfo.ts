@@ -27,7 +27,7 @@ export type FestivalBasicInfoInput = {
 };
 
 export async function updateFestivalBasicInfo(
-  festivalId: string,
+  festivalId: number,
   input: FestivalBasicInfoInput,
 ) {
   validateFestivalThumbnailUrl(input.thumbnailUrl);
@@ -52,7 +52,7 @@ export async function updateFestivalBasicInfo(
   const { data, error } = await supabase.rpc(
     "update_festival_basic_info_with_audit",
     {
-      p_festival_id: Number(festivalId),
+      p_festival_id: festivalId,
       p_festival: toFestivalBasicInfoPayload(input, normalizedName),
     },
   );

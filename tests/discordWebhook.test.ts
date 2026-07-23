@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
+  buildScheduledDiscoveryMessages,
   buildDiscoveryWebhookContent,
   sendDiscoveryWebhook,
 } from "../crawler/notifications/discordWebhook.ts";
@@ -84,4 +85,28 @@ test("Discord의 영구 오류에는 응답 내용을 표시한다", async () =>
     }),
     /HTTP 404.*Unknown Webhook/,
   );
+});
+
+test("자동 확인 명단은 Discord 길이에 맞춰 분할한다", () => {
+  const items = Array.from({ length: 8 }, (_, index) => ({
+    candidate_id: `T-${String(index + 1).padStart(3, "0")}`,
+    title: `테스트 페스티벌 ${index}`,
+    source_url: `https://ticket.example/${index}`,
+    source_type: "test",
+    discovered_at: "2026-07-23T00:00:00.000Z",
+    start_date: "2026-08-01",
+    end_date: "2026-08-02",
+    status: "new" as const,
+    reason: "기존 참조 없음",
+  }));
+  const messages = buildScheduledDiscoveryMessages({
+    generatedAt: "2026-07-23T00:00:00.000Z",
+    sites: [{ site: "TEST", listing_url: "https://ticket.example", collected: 8, accepted: 8 }],
+    items,
+    maxLength: 500,
+  });
+  assert.ok(messages.length > 1);
+  assert.ok(messages.every((message) => message.length <= 500));
+  assert.match(messages.join("\n"), /테스트 페스티벌 7/);
+  assert.match(messages.join("\n"), /🆕.*T-001/);
 });

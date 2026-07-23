@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 
 import { parseFestivalDraftJson } from "@/lib/festivals/festivalDraft";
+import { parseFestivalDraftValue } from "@/lib/festivals/festivalCandidateRecord";
 import {
   getFestivalDraftTicketKey,
   mergeFestivalDrafts,
@@ -188,8 +189,13 @@ export default function FestivalCandidateJsonUploader({ onCreated }: Props) {
     if (candidateResult.error) throw candidateResult.error;
     if (festivalResult.error) throw festivalResult.error;
 
-    const candidates = (candidateResult.data ?? []) as PendingCandidate[];
-    const registeredFestivals = (festivalResult.data ?? []) as RegisteredFestival[];
+    const candidates: PendingCandidate[] = (candidateResult.data ?? []).map(
+      (candidate) => ({
+        ...candidate,
+        draft_json: parseFestivalDraftValue(candidate.draft_json),
+      }),
+    );
+    const registeredFestivals: RegisteredFestival[] = festivalResult.data ?? [];
     const registeredMatches = registeredFestivals.filter(
       (festival) =>
         festival.normalized_name === incoming.festival.normalized_name,

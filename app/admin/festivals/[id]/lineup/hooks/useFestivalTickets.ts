@@ -36,7 +36,7 @@ function getSupabaseErrorMessage(error: unknown, fallback: string) {
 }
 
 export function useFestivalTickets(
-  festivalId: string,
+  festivalId: number,
   setErrorMessage: SetErrorMessage,
 ) {
   const [ticketRounds, setTicketRounds] = useState<
@@ -90,7 +90,7 @@ export function useFestivalTickets(
       });
 
       setTicketRounds((currentRounds) =>
-        [data as FestivalTicketRound, ...currentRounds].sort(
+        [data, ...currentRounds].sort(
           (a, b) =>
             new Date(b.open_at ?? 0).getTime() -
             new Date(a.open_at ?? 0).getTime(),

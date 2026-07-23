@@ -79,7 +79,7 @@ export interface FestivalArtist {
   performance_time: string | null;
   performance_end_time: string | null;
   stage_name: string | null;
-  status: string;
+  status: string | null;
   artists: ArtistReference | ArtistReference[] | null;
   alias_text?: string;
   group_date?: string | null;

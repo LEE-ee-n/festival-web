@@ -6,7 +6,7 @@ interface ManualLink {
   source_url?: unknown;
 }
 
-const NOL_PRODUCT_PATH = /^\/ticket\/places\/[^/]+\/products\/[^/]+$/;
+const NOL_PRODUCT_PATH = /^\/ticket\/(?:places\/[^/]+\/)?products\/[^/]+$/;
 const LEADING_CATEGORY = /^(콘서트|클래식\/오페라|무용\/전통예술|연극)\s+/;
 const PERFORMANCE_DATE = /\s(?:19|20)\d{2}\.\d{2}\.\d{2}/;
 const PERFORMANCE_DATE_RANGE = /((?:19|20)\d{2})\.(\d{2})\.(\d{2})(?:\s*~\s*((?:19|20)\d{2})\.(\d{2})\.(\d{2}))?/;
@@ -35,6 +35,7 @@ export function extractNolProductTitle(value: string): {
 export function importNolManualCandidates(
   input: unknown,
   discoveredAt: string,
+  options?: { allowMissingConcertCategory?: boolean },
 ): CrawledCandidate[] {
   if (!Array.isArray(input)) throw new Error("놀티켓 입력 JSON은 배열이어야 합니다.");
   const candidates: CrawledCandidate[] = [];
@@ -51,7 +52,11 @@ export function importNolManualCandidates(
     if (!NOL_PRODUCT_PATH.test(url.pathname)) continue;
 
     const parsed = extractNolProductTitle(raw.title);
-    if (parsed.category !== "콘서트" || !parsed.title) continue;
+    if (
+      (!options?.allowMissingConcertCategory && parsed.category !== "콘서트")
+      || (parsed.category && parsed.category !== "콘서트")
+      || !parsed.title
+    ) continue;
     candidates.push({
       title: parsed.title,
       source_url: url.toString(),

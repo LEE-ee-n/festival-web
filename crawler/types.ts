@@ -29,3 +29,27 @@ export interface CrawlerOptions {
   timeoutMs?: number;
   now?: () => Date;
 }
+
+export type TicketDiscoveryStatus = "duplicate" | "possible" | "new";
+
+export interface ScheduledDiscoveryItem extends CrawledCandidate {
+  candidate_id?: string;
+  status: TicketDiscoveryStatus;
+  reason: string;
+  reference_title?: string;
+}
+
+export interface ScheduledSiteResult {
+  site: string;
+  listing_url: string;
+  collected: number;
+  accepted: number;
+  error?: string;
+}
+
+export interface ScheduledDiscoveryReport {
+  generated_at: string;
+  source_type: "scheduled_ticket_discovery";
+  sites: ScheduledSiteResult[];
+  items: ScheduledDiscoveryItem[];
+}

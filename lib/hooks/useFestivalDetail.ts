@@ -38,10 +38,13 @@ export function useFestivalDetail(
   festivalId: number | string | null,
   enabled = true,
 ) {
+  const databaseFestivalId = typeof festivalId === "number"
+    ? festivalId
+    : Number(festivalId);
   const [state, setState] = useState<FestivalDetailState>(initialState);
 
   useEffect(() => {
-    if (!festivalId || !enabled) return;
+    if (!Number.isSafeInteger(databaseFestivalId) || databaseFestivalId <= 0 || !enabled) return;
 
     let isCancelled = false;
 
@@ -66,7 +69,7 @@ export function useFestivalDetail(
             price_type, program_info, source_url, slug, status,
             confidence_score, verification_status, created_at, updated_at
           `)
-          .eq("id", festivalId)
+          .eq("id", databaseFestivalId)
           .eq("verification_status", "approved")
           .neq("status", "cancelled")
           .maybeSingle();
@@ -77,7 +80,7 @@ export function useFestivalDetail(
         const { data: timetableData } = await supabase
           .from("festivals")
           .select("timetable_status")
-          .eq("id", festivalId)
+          .eq("id", databaseFestivalId)
           .maybeSingle();
 
         if (!isCancelled) {
@@ -121,7 +124,7 @@ export function useFestivalDetail(
             artist_id, performance_date, performance_time,
             performance_end_time, stage_name, status, artists (id, name)
           `)
-          .eq("festival_id", festivalId)
+          .eq("festival_id", databaseFestivalId)
           .neq("status", "cancelled")
           .order("performance_date", {
             ascending: true,
@@ -160,7 +163,7 @@ export function useFestivalDetail(
             id, round_type, round_name, open_at, price_info,
             ticket_url, ticket_platform
           `)
-          .eq("festival_id", festivalId)
+          .eq("festival_id", databaseFestivalId)
           .order("open_at", {
             ascending: true,
             nullsFirst: false,
@@ -193,7 +196,7 @@ export function useFestivalDetail(
     return () => {
       isCancelled = true;
     };
-  }, [enabled, festivalId]);
+  }, [databaseFestivalId, enabled]);
 
   const artistsByDateAndStage = useMemo(() => {
     const groups = state.festivalArtists.reduce<ArtistsByDateAndStage>(

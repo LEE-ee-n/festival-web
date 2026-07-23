@@ -3,17 +3,16 @@
 import { ChangeEvent, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 import { supabase } from "@/lib/supabase/client";
+import {
+  parseArtistUpdateResult,
+  type ArtistUpdateResult,
+} from "@/lib/supabase/rpcResults";
 
 type ArtistUpdateRow = {
   id: number;
   name: string;
   normalized_name: string;
   aliases: string;
-};
-
-type UpdateResult = {
-  updated_count: number;
-  alias_count: number;
 };
 
 type ChangeFlags = {
@@ -35,7 +34,7 @@ export default function ArtistUpdateImportPage() {
 
   const [isUpdating, setIsUpdating] = useState(false);
     const [updateResult, setUpdateResult] =
-    useState<UpdateResult | null>(null);
+    useState<ArtistUpdateResult | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -261,7 +260,7 @@ export default function ArtistUpdateImportPage() {
         throw error;
         }
 
-        setUpdateResult(data as UpdateResult);
+        setUpdateResult(parseArtistUpdateResult(data));
     } catch (error) {
         const supabaseError = error as {
         message?: string;

@@ -4,9 +4,9 @@ export function buildNolTicketBookmarklet(): string {
       alert("놀티켓 목록 페이지에서 실행해주세요.");
       return;
     }
-    const productPath = /^\\/ticket\\/places\\/[^/]+\\/products\\/[^/]+$/;
+    const productPath = /^\\/ticket\\/(?:places\\/[^/]+\\/)?products\\/[^/]+$/;
     const itemsByUrl = new Map();
-    for (const anchor of document.querySelectorAll('a[href*="/ticket/places/"][href*="/products/"]')) {
+    for (const anchor of document.querySelectorAll('a[href*="/ticket/"][href*="/products/"]')) {
       const url = new URL(anchor.href, location.href);
       if (url.hostname !== "nol.yanolja.com" || !productPath.test(url.pathname)) continue;
       const title = (anchor.innerText || anchor.textContent || "").replace(/\\s+/g, " ").trim();

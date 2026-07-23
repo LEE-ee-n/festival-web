@@ -15,22 +15,12 @@ type ArtistRelation = {
   normalized_name: string;
   artist_aliases: ArtistAliasRow[];
 };
-type AliasSearchRow = {
-  alias_name: string;
-  artist_id: number;
-  artists: ArtistRelation | ArtistRelation[] | null;
-};
 type SimilarArtistRow = {
   id: number;
   name: string;
   normalized_name: string;
   similarity_score: number;
 };
-type ArtistAliasLookupRow = {
-  artist_id: number;
-  alias_name: string;
-};
-
 function getArtistAliases(artist: ArtistRelation) {
   return (artist.artist_aliases ?? []).map((alias) => alias.alias_name);
 }
@@ -52,7 +42,7 @@ async function addAliasesToSimilarResults(
   if (error) throw error;
 
   const aliasesByArtistId = new Map<number, string[]>();
-  ((data ?? []) as ArtistAliasLookupRow[]).forEach((alias) => {
+  (data ?? []).forEach((alias) => {
     const aliases = aliasesByArtistId.get(alias.artist_id) ?? [];
     aliases.push(alias.alias_name);
     aliasesByArtistId.set(alias.artist_id, aliases);
@@ -148,7 +138,7 @@ export async function searchArtists(
   }
 
   const directResults: ArtistSearchResult[] = [
-    ...((nameMatches ?? []) as ArtistRelation[]).map((artist) => ({
+    ...(nameMatches ?? []).map((artist) => ({
       id: artist.id,
       name: artist.name,
       normalized_name: artist.normalized_name,
@@ -156,7 +146,7 @@ export async function searchArtists(
       similarity_score: searchSimilarity(keyword, artist.name),
     })),
 
-    ...((aliasMatches ?? []) as AliasSearchRow[]).flatMap((row) => {
+    ...(aliasMatches ?? []).flatMap((row) => {
       const artist = firstArtistRelation(row.artists);
 
       return artist
@@ -199,5 +189,5 @@ export async function searchArtists(
     throw error;
   }
 
-  return addAliasesToSimilarResults((data ?? []) as SimilarArtistRow[]);
+  return addAliasesToSimilarResults(data ?? []);
 }

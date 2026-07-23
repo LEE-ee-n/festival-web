@@ -4,6 +4,10 @@ import { ChangeEvent, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 import { supabase } from "@/lib/supabase/client";
 import {
+  parseFestivalXlsxImportResult,
+  type FestivalXlsxImportResult,
+} from "@/lib/supabase/rpcResults";
+import {
   isValidArtistNormalizedName,
   normalizeArtistName,
 } from "@/lib/artists/normalizeArtistName";
@@ -60,16 +64,6 @@ type LineupChangeFlags = {
   performance_end_time: boolean;
   stage_name: boolean;
   status: boolean;
-};
-
-type ImportResult = {
-  festival_id: number;
-  created_festival: boolean;
-  created_artists: number;
-  added_aliases: number;
-  added_lineup: number;
-  updated_lineup: number;
-  unchanged_lineup: number;
 };
 
 type ExistingLineupRow = {
@@ -176,7 +170,7 @@ export default function AdminImportPage() {
     const [isSaving, setIsSaving] = useState(false);
 
     const [importResult, setImportResult] =
-      useState<ImportResult | null>(null);
+      useState<FestivalXlsxImportResult | null>(null);
     
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -374,8 +368,7 @@ if (duplicateFestival) {
     );
   }
 
-  const existingLineup =
-    (existingLineupData ?? []) as unknown as ExistingLineupRow[];
+  const existingLineup: ExistingLineupRow[] = existingLineupData ?? [];
 
   const artistIds = existingLineup.map((row) => row.artist_id);
 
@@ -525,7 +518,7 @@ setLineupChanges(changes);
       throw new Error(error.message);
     }
 
-    const result = data as ImportResult;
+    const result = parseFestivalXlsxImportResult(data);
 
 setImportResult(result);
 

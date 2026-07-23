@@ -30,7 +30,7 @@ function prepareRows(lineup: FestivalArtist[]) {
   });
 }
 
-export function useFestivalArtists(festivalId: string, setErrorMessage: SetErrorMessage) {
+export function useFestivalArtists(festivalId: number, setErrorMessage: SetErrorMessage) {
   const [rows, setRows] = useState<FestivalArtist[]>([]);
   const [originalRows, setOriginalRows] = useState<FestivalArtist[]>([]);
   const [savingArtistId, setSavingArtistId] = useState<number | null>(null);
@@ -111,7 +111,7 @@ export function useFestivalArtists(festivalId: string, setErrorMessage: SetError
       .order("performance_date", { ascending: true, nullsFirst: false })
       .order("performance_time", { ascending: true, nullsFirst: false });
     if (error) throw error;
-    initializeArtists((data ?? []) as FestivalArtist[]);
+    initializeArtists(data ?? []);
   }
 
   const operations = useMemo(() => buildLineupOperations(originalRows, rows), [originalRows, rows]);

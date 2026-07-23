@@ -1,5 +1,6 @@
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+$projectRoot = (Resolve-Path (Join-Path $root '..\..')).Path
 $secretDir = Join-Path $root 'work\secrets'
 
 function Read-Secret([string]$Name) {
@@ -15,6 +16,7 @@ $env:SUPABASE_URL = Read-Secret 'supabase-url'
 $env:SUPABASE_ANON_KEY = Read-Secret 'supabase-anon-key'
 $env:SUPABASE_BOT_EMAIL = Read-Secret 'supabase-bot-email'
 $env:SUPABASE_BOT_PASSWORD = Read-Secret 'supabase-bot-password'
+$env:FESTIVAL_CRAWLER_ROOT = Join-Path $projectRoot 'crawler-output\ticket-discovery'
 
 if (-not $env:INSTAGRAM_CHROME_PATH) {
   $env:INSTAGRAM_CHROME_PATH = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
@@ -27,6 +29,6 @@ Set-Location -LiteralPath $root
 try {
   & 'C:\Program Files\nodejs\npm.cmd' start
 } finally {
-  'DISCORD_BOT_TOKEN','DISCORD_ALLOWED_USER_ID','SUPABASE_URL','SUPABASE_ANON_KEY','SUPABASE_BOT_EMAIL','SUPABASE_BOT_PASSWORD' |
+  'DISCORD_BOT_TOKEN','DISCORD_ALLOWED_USER_ID','SUPABASE_URL','SUPABASE_ANON_KEY','SUPABASE_BOT_EMAIL','SUPABASE_BOT_PASSWORD','FESTIVAL_CRAWLER_ROOT' |
     ForEach-Object { Remove-Item "Env:\$_" -ErrorAction SilentlyContinue }
 }

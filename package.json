@@ -13,9 +13,11 @@
     "crawler:process:nol": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON crawler/processNolWorkflow.ts",
     "crawler:process:ticketlink": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON crawler/processTicketlinkWorkflow.ts",
     "crawler:process:yes24": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON crawler/processYes24Workflow.ts",
+    "crawler:report": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON crawler/processManualDiscoveryWorkflow.ts",
     "bookmarklet:nol": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON crawler/bookmarklet/createInstaller.ts",
     "bookmarklet:ticketlink": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON crawler/bookmarklet/createTicketlinkInstaller.ts",
     "bookmarklet:yes24": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON crawler/bookmarklet/createYes24Installer.ts",
+    "db:types": "supabase gen types typescript --project-id cljzrgjatdnefiogedmz --schema public > lib/supabase/database.types.ts",
     "typecheck": "tsc --noEmit",
     "check": "npm test && npm run lint && npm run typecheck && npm run build"
   },
@@ -38,6 +40,7 @@
     "eslint": "9.39.5",
     "eslint-config-next": "16.2.10",
     "postcss": "8.5.16",
+    "supabase": "^2.109.1",
     "tailwindcss": "^3.4.19",
     "typescript": "^5"
   },

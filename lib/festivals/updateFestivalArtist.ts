@@ -11,7 +11,7 @@ export type FestivalArtistUpdate = {
 };
 
 export async function updateFestivalArtist(
-  festivalId: string,
+  festivalId: number,
   row: FestivalArtistUpdate,
 ) {
   const { error } = await supabase

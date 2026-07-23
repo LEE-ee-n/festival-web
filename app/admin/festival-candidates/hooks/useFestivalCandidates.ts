@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { supabase } from "@/lib/supabase/client";
+import { parseFestivalCandidateRecord } from "@/lib/festivals/festivalCandidateRecord";
+import { parseApproveFestivalCandidateResult } from "@/lib/supabase/rpcResults";
 import type {
   FestivalCandidate,
   FestivalCandidateStatus,
@@ -58,7 +60,9 @@ export function useFestivalCandidates(
       if (error) throw error;
 
       const hydratedCandidates = await Promise.all(
-        ((data ?? []) as FestivalCandidate[]).map(async (candidate) => ({
+        (data ?? []).map(async (candidateRow) => {
+          const candidate = parseFestivalCandidateRecord(candidateRow);
+          return {
           ...candidate,
           source_assets: await Promise.all(
             (candidate.source_assets ?? []).map(async (asset) => {
@@ -69,7 +73,8 @@ export function useFestivalCandidates(
               return { ...asset, url: signed?.signedUrl };
             }),
           ),
-        })),
+        };
+        }),
       );
       setCandidates(hydratedCandidates);
     } catch (error) {
@@ -123,7 +128,7 @@ export function useFestivalCandidates(
         setCandidates((current) =>
           current.map((candidate) =>
             candidate.id === candidateId
-              ? (data as FestivalCandidate)
+              ? parseFestivalCandidateRecord(data)
               : candidate,
           ),
         );
@@ -133,7 +138,7 @@ export function useFestivalCandidates(
         );
       }
 
-      return data as FestivalCandidate;
+      return parseFestivalCandidateRecord(data);
     } catch (error) {
       const message = getErrorMessage(error, "초안 저장에 실패했습니다.");
       setErrorMessage(message);
@@ -187,7 +192,7 @@ export function useFestivalCandidates(
 
       if (error) throw error;
 
-      const candidate = data as FestivalCandidate;
+      const candidate = parseFestivalCandidateRecord(data);
       setCandidates((current) => [candidate, ...current]);
       return candidate;
     } catch (error) {
@@ -216,14 +221,14 @@ export function useFestivalCandidates(
         {
           p_candidate_id: candidateId,
           p_draft: draft,
-          p_review_notes: reviewNotes.trim() || null,
+          p_review_notes: reviewNotes.trim() || undefined,
         },
       );
 
       if (error) throw error;
 
       await loadCandidates();
-      return data as { festival_id: number; import_result: unknown };
+      return parseApproveFestivalCandidateResult(data);
     } catch (error) {
       const message = getErrorMessage(
         error,

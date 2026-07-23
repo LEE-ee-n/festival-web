@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabase/client";
 
 export async function deleteFestivalArtist(
-  festivalId: string,
+  festivalId: number,
   lineupId: number,
 ) {
   const { error } = await supabase

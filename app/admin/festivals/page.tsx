@@ -51,7 +51,7 @@ export default function AdminFestivalsPage() {
         throw error;
       }
 
-      setFestivals((data ?? []) as Festival[]);
+      setFestivals(data ?? []);
     } catch (error) {
       setErrorMessage(
         error instanceof Error

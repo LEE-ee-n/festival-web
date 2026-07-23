@@ -12,14 +12,9 @@ import LineupWorkPanel from "./components/LineupWorkPanel";
 import { useFestivalArtists } from "./hooks/useFestivalArtists";
 import {
   useFestivalBasicInfo,
-  type FestivalBasicInfoRecord,
 } from "./hooks/useFestivalBasicInfo";
 import { useFestivalTickets } from "./hooks/useFestivalTickets";
 import { getFestivalLineupData } from "@/lib/festivals/getFestivalLineupData";
-import type {
-  FestivalArtist,
-  FestivalTicketRound,
-} from "@/lib/types";
 
 type AdminTab = "basic" | "lineup" | "ticket" | "history";
 
@@ -33,7 +28,7 @@ tabs.push({ id: "history", label: "변경 기록" });
 
 export default function FestivalLineupAdminPage() {
   const params = useParams<{ id: string }>();
-  const festivalId = params.id;
+  const festivalId = Number(params.id);
   const [activeTab, setActiveTab] = useState<AdminTab>("lineup");
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(
@@ -73,13 +68,9 @@ export default function FestivalLineupAdminPage() {
           return;
         }
 
-        initializeBasicInfo(
-          data.festival as FestivalBasicInfoRecord,
-        );
-        initializeArtists(data.lineup as FestivalArtist[]);
-        initializeTickets(
-          data.ticketRounds as FestivalTicketRound[],
-        );
+        initializeBasicInfo(data.festival);
+        initializeArtists(data.lineup);
+        initializeTickets(data.ticketRounds);
       } catch (error) {
         if (!isCancelled) {
           setErrorMessage(

@@ -12,7 +12,7 @@ type BasicInfoTabProps = {
   title?: string;
   saveButtonLabel?: string;
   canManageThumbnail?: boolean;
-  festivalId?: string;
+  festivalId?: number;
 
   festivalName: string;
   setFestivalName: (value: string) => void;

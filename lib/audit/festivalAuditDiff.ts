@@ -1,10 +1,12 @@
-export type AuditSnapshot = Record<string, unknown>;
+import type { Json } from "@/lib/supabase/database";
+
+export type AuditSnapshot = { [key: string]: Json | undefined };
 
 export type AuditFieldChange = {
   field: string;
   label: string;
-  before: unknown;
-  after: unknown;
+  before: Json | undefined;
+  after: Json | undefined;
 };
 
 const fieldLabels: Record<string, string> = {
@@ -64,7 +66,7 @@ export function getFestivalAuditDiff(
   });
 }
 
-export function formatAuditValue(value: unknown): string {
+export function formatAuditValue(value: Json | undefined): string {
   if (value === null || value === undefined || value === "") {
     return "없음";
   }

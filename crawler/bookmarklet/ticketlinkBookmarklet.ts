@@ -371,7 +371,8 @@ export function buildTicketlinkBookmarklet(): string {
       }
     }
 
-    for (let page = 0; page < 20; page += 1) {
+    const automatedSinglePage = Boolean(globalThis.__FESTIBOM_AUTOMATED_SINGLE_PAGE);
+    for (let page = 0; !automatedSinglePage && page < 20; page += 1) {
       collectCurrentPage();
       const nextPage = findNextPage();
       if (!nextPage) break;

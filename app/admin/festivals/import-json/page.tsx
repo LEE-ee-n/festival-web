@@ -12,6 +12,10 @@ import {
   type FestivalUpdateItem,
 } from "@/lib/festivals/festivalUpdatePreview";
 import { supabase } from "@/lib/supabase/client";
+import {
+  parseFestivalJsonUpdateResult,
+  type FestivalJsonUpdateResult,
+} from "@/lib/supabase/rpcResults";
 import type { FestivalDraftJson } from "@/lib/types";
 import { validateLineupWork, type LineupRound, type LineupWorkType } from "@/lib/audit/lineupWork";
 import { buildJsonAuditSummary } from "@/lib/audit/auditSummary";
@@ -21,13 +25,6 @@ import StagedFestivalUpdate from "./StagedFestivalUpdate";
 type FestivalRecord = FestivalDraftJson["festival"] & {
   id: number;
   verification_status: string | null;
-};
-
-type UpdateResult = {
-  festival_id: number;
-  audit_event_id: number;
-  change_count: number;
-  ticket_count: number;
 };
 
 type UpdateLog = {
@@ -82,7 +79,7 @@ function LegacyFestivalJsonUpdateContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [isApplying, setIsApplying] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [result, setResult] = useState<UpdateResult | null>(null);
+  const [result, setResult] = useState<FestivalJsonUpdateResult | null>(null);
   const [workType, setWorkType] = useState<LineupWorkType>("announcement");
   const [lineupRound, setLineupRound] = useState<LineupRound>("unspecified");
   const [announcementDate, setAnnouncementDate] = useState("");
@@ -203,12 +200,7 @@ function LegacyFestivalJsonUpdateContent() {
 
       const currentArtists: ExistingFestivalArtist[] = (lineupResult.data ?? [])
         .map((row) => {
-          const relation = firstRelation(row.artists as unknown as {
-            id: number;
-            name: string;
-            normalized_name: string;
-            artist_aliases: Array<{ alias_name: string }>;
-          });
+          const relation = firstRelation(row.artists);
           if (!relation) return null;
           return {
             id: Number(row.id),
@@ -336,17 +328,17 @@ function LegacyFestivalJsonUpdateContent() {
         p_artists: artists,
         p_tickets: tickets,
         p_source_type: draft.candidate?.source_type ?? "festival_json",
-        p_source_url: sourceUrl.trim() || null,
+        p_source_url: sourceUrl.trim() || undefined,
         p_source_file_name: fileName,
-        p_work_type: artists.length > 0 ? workType : null,
-        p_lineup_round: artists.length > 0 ? lineupRound : null,
-        p_announcement_date: artists.length > 0 ? announcementDate || null : null,
-        p_reason: artists.length > 0 ? reason.trim() || null : null,
+        p_work_type: artists.length > 0 ? workType : undefined,
+        p_lineup_round: artists.length > 0 ? lineupRound : undefined,
+        p_announcement_date: artists.length > 0 ? announcementDate || undefined : undefined,
+        p_reason: artists.length > 0 ? reason.trim() || undefined : undefined,
         p_audit_summary: auditSummary,
       });
 
       if (error) throw error;
-      const updateResult = data as UpdateResult;
+      const updateResult = parseFestivalJsonUpdateResult(data);
       if (updateDraftId) {
         const { error: draftError } = await supabase
           .from("festival_update_drafts")

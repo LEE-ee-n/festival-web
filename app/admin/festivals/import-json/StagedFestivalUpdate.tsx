@@ -34,10 +34,7 @@ import { promoteCandidatePoster, removeFestivalThumbnailByUrl } from "@/lib/fest
 import type { CandidateSourceAsset, FestivalDraftJson, FestivalRegistrationStep } from "@/lib/types";
 
 type Props = { festivalId: number; updateDraftId: number };
-type FestivalRecord = FestivalDraftJson["festival"] & { id: number; updated_at: string };
-type ExistingArtistLookupRow = ExistingArtistMatch & {
-  artist_aliases: Array<{ alias_name: string }>;
-};
+type FestivalRecord = FestivalDraftJson["festival"] & { id: number; updated_at: string | null };
 type SavedSelection = {
   selected_ids?: string[];
   work_type?: LineupWorkType;
@@ -114,7 +111,7 @@ export default function StagedFestivalUpdate({ festivalId, updateDraftId }: Prop
         if (artistResult.error) throw artistResult.error;
 
         const exactArtists = new Map(
-          ((artistResult.data ?? []) as ExistingArtistLookupRow[]).map((artist) => [
+          (artistResult.data ?? []).map((artist) => [
             artist.normalized_name,
             {
               id: Number(artist.id),
@@ -131,9 +128,7 @@ export default function StagedFestivalUpdate({ festivalId, updateDraftId }: Prop
         });
 
         const lineup = (lineupResult.data ?? []).map((row) => {
-          const relation = firstRelation(row.artists as unknown as {
-            id: number; name: string; normalized_name: string; artist_aliases: Array<{ alias_name: string }>;
-          });
+          const relation = firstRelation(row.artists);
           if (!relation) return null;
           return {
             id: Number(row.id), artist_id: Number(row.artist_id), performance_date: row.performance_date,
@@ -144,8 +139,28 @@ export default function StagedFestivalUpdate({ festivalId, updateDraftId }: Prop
         }).filter((value): value is ExistingFestivalArtist => value !== null);
 
         if (cancelled) return;
-        const loadedFestival = festivalResult.data as FestivalRecord;
-        const loadedTickets = (ticketResult.data ?? []) as ExistingFestivalTicket[];
+        const loadedFestival: FestivalRecord = {
+          id: festivalResult.data.id,
+          name: festivalResult.data.name,
+          normalized_name: festivalResult.data.normalized_name,
+          search_aliases: festivalResult.data.search_aliases ?? undefined,
+          start_date: festivalResult.data.start_date,
+          end_date: festivalResult.data.end_date,
+          location: festivalResult.data.location ?? undefined,
+          address: festivalResult.data.address ?? undefined,
+          region: festivalResult.data.region ?? undefined,
+          category: festivalResult.data.category ?? undefined,
+          description: festivalResult.data.description ?? undefined,
+          price_info: festivalResult.data.price_info ?? undefined,
+          program_info: festivalResult.data.program_info ?? undefined,
+          source_url: festivalResult.data.source_url ?? undefined,
+          official_url: festivalResult.data.official_url ?? undefined,
+          thumbnail_url: festivalResult.data.thumbnail_url ?? undefined,
+          price_type: festivalResult.data.price_type ?? undefined,
+          status: festivalResult.data.status ?? undefined,
+          updated_at: festivalResult.data.updated_at,
+        };
+        const loadedTickets: ExistingFestivalTicket[] = ticketResult.data ?? [];
         const preview = createFestivalUpdatePreview(loadedFestival, lineup, loadedTickets, incoming);
         setDraft(incoming);
         setFestival(loadedFestival);
@@ -406,8 +421,8 @@ export default function StagedFestivalUpdate({ festivalId, updateDraftId }: Prop
       await saveState(draft);
       const { data, error } = await supabase.rpc("finalize_festival_update_draft", {
         p_update_draft_id: updateDraftId, p_basic_changes: basicChanges, p_artists: artists, p_tickets: tickets,
-        p_work_type: artists.length ? workType : null, p_lineup_round: artists.length ? lineupRound : null,
-        p_announcement_date: artists.length ? announcementDate || null : null, p_reason: artists.length ? reason.trim() || null : null,
+        p_work_type: artists.length ? workType : undefined, p_lineup_round: artists.length ? lineupRound : undefined,
+        p_announcement_date: artists.length ? announcementDate || undefined : undefined, p_reason: artists.length ? reason.trim() || undefined : undefined,
         p_audit_summary: buildJsonAuditSummary(
           posterAsset?.storage_path
             ? [...items, { id: "basic:poster_asset", section: "basic", status: "conflict" as const }]

@@ -1,5 +1,7 @@
 import { readFile } from "node:fs/promises";
 
+import type { ScheduledDiscoveryItem, ScheduledSiteResult } from "../types.ts";
+
 export type DiscoveryNotification = {
   date: string;
   site: string;
@@ -112,5 +114,68 @@ export async function notifyDiscoveryFromFile(input: {
     if (input.required) {
       throw new Error(`Discord 웹훅 알림 실패: ${message}`);
     }
+  }
+}
+
+function itemLine(item: ScheduledDiscoveryItem): string {
+  const label = item.status === "new" ? "누락 후보" : "확인 필요";
+  const icon = item.status === "new" ? "🆕" : "✅";
+  const candidateId = item.candidate_id ? `${item.candidate_id} ` : "";
+  const dates = item.start_date
+    ? `${item.start_date}${item.end_date && item.end_date !== item.start_date ? `~${item.end_date}` : ""}`
+    : "일정 없음";
+  return `${icon} **[${label}] ${candidateId}${item.title}** (${dates})\n${item.source_url}\n${item.reason}`;
+}
+
+export function buildScheduledDiscoveryMessages(input: {
+  generatedAt: string;
+  sites: ScheduledSiteResult[];
+  items: ScheduledDiscoveryItem[];
+  maxLength?: number;
+}): string[] {
+  const maxLength = Math.min(1900, Math.max(500, input.maxLength ?? 1900));
+  const siteSummary = input.sites.map((site) =>
+    site.error
+      ? `${site.site}: 실패 (${site.error})`
+      : `${site.site}: ${site.accepted}개`,
+  ).join(" · ");
+  const header = [
+    `🎫 **티켓 누락 축제 자동 확인**`,
+    new Date(input.generatedAt).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }),
+    siteSummary,
+    `검토 대상: ${input.items.length}개`,
+  ].join("\n");
+  if (input.items.length === 0) return [header];
+
+  const messages: string[] = [];
+  let current = header;
+  for (const item of input.items) {
+    const block = itemLine(item);
+    if (`${current}\n\n${block}`.length > maxLength) {
+      messages.push(current);
+      current = block;
+    } else {
+      current = `${current}\n\n${block}`;
+    }
+  }
+  messages.push(current);
+  return messages;
+}
+
+export async function sendDiscordMessages(input: {
+  webhookUrl: string;
+  messages: string[];
+  fetchImpl?: typeof fetch;
+}): Promise<void> {
+  const webhookUrl = validateDiscordWebhookUrl(input.webhookUrl);
+  webhookUrl.searchParams.set("wait", "true");
+  for (const content of input.messages) {
+    const response = await (input.fetchImpl ?? fetch)(webhookUrl, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ content, allowed_mentions: { parse: [] } }),
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!response.ok) throw new Error(`Discord 명단 전송 실패: HTTP ${response.status}`);
   }
 }

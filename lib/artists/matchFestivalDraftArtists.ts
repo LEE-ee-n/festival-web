@@ -5,13 +5,6 @@ import {
 } from "@/lib/artists/applyNormalizedArtistMatches";
 import type { FestivalDraftJson } from "@/lib/types";
 
-type ArtistMatchRow = {
-  id: number;
-  name: string;
-  normalized_name: string;
-  artist_aliases: Array<{ alias_name: string }>;
-};
-
 export async function matchFestivalDraftArtists(
   draft: FestivalDraftJson,
 ) {
@@ -36,7 +29,7 @@ export async function matchFestivalDraftArtists(
 
   return applyNormalizedArtistMatches(
     draft,
-    ((data ?? []) as ArtistMatchRow[]).map((artist): ExistingArtistMatch => ({
+    (data ?? []).map((artist): ExistingArtistMatch => ({
       id: Number(artist.id),
       name: artist.name,
       normalized_name: artist.normalized_name,

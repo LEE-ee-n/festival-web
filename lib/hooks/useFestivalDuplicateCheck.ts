@@ -26,7 +26,7 @@ export function useFestivalDuplicateCheck({
   normalizedName: string;
   startDate: string;
   endDate: string;
-  excludeFestivalId?: number | string | null;
+  excludeFestivalId?: number | null;
 }) {
   const [state, setState] = useState<DuplicateCheckState>({
     status: "idle",
@@ -70,7 +70,7 @@ export function useFestivalDuplicateCheck({
       } else if (data) {
         setState({
           status: "duplicate",
-          festival: data as DuplicateFestival,
+          festival: data,
         });
       } else {
         setState({ status: "available", festival: null });

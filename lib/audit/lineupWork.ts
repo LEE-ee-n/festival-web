@@ -1,4 +1,5 @@
 import type { FestivalArtist } from "@/lib/types";
+import type { Json } from "@/lib/supabase/database";
 
 export type LineupWorkType = "announcement" | "correction";
 export type LineupRound = "unspecified" | "first" | "second" | "third" | "final";
@@ -11,7 +12,7 @@ export type LineupWorkInput = {
   reason: string;
 };
 
-export type LineupOperation = Record<string, unknown> & {
+export type LineupOperation = Record<string, Json | undefined> & {
   operation: "insert" | "update" | "delete";
 };
 

@@ -11,12 +11,12 @@ export type FestivalTicketUpdate = {
 };
 
 export async function updateFestivalTicket(
-  festivalId: string,
+  festivalId: number,
   round: FestivalTicketUpdate,
   metadata?: { sourceUrl?: string; note?: string },
 ) {
   const { error } = await supabase.rpc("change_festival_ticket_with_audit", {
-      p_festival_id: Number(festivalId),
+      p_festival_id: festivalId,
       p_operation: "update",
       p_ticket_id: round.id,
       p_ticket: {
@@ -27,8 +27,8 @@ export async function updateFestivalTicket(
       ticket_url: round.ticket_url,
       ticket_platform: round.ticket_platform,
       },
-      p_source_url: metadata?.sourceUrl?.trim() || null,
-      p_note: metadata?.note?.trim() || null,
+      p_source_url: metadata?.sourceUrl?.trim() || undefined,
+      p_note: metadata?.note?.trim() || undefined,
     });
 
   if (error) {

@@ -10,6 +10,15 @@
 - `간접 사용`: 공통 hook 또는 함수가 조회하며 페이지는 그 결과를 사용한다.
 - Storage bucket인 `festival-thumbnails`, `festival-candidate-posters`는 DB 테이블이 아니므로 별도로 표시한다.
 
+## TypeScript DB 타입
+
+- 운영 `public` 스키마 타입 스냅샷은 `lib/supabase/database.types.ts`다.
+- 재생성 명령은 `npm run db:types`이며 생성 파일은 직접 수정하지 않는다.
+- 웹 클라이언트는 `lib/supabase/client.ts`에서 `createClient<Database>`로 타입을 연결한다.
+- `lib/supabase/database.ts`는 생성 타입을 다시 내보내고, PostgreSQL에서 NULL을 허용하지만 생성 결과가 NULL을 누락한 `apply_lineup_work_with_audit`, `change_festival_thumbnail_with_audit` 인수만 실제 함수 정의에 맞게 보정한다.
+- `Json`을 반환하는 RPC 결과는 `lib/supabase/rpcResults.ts`에서 필수 필드와 타입을 검사한 뒤 화면 타입으로 변환한다.
+- 이번 타입 연결은 DB 객체나 저장 데이터를 변경하지 않는다.
+
 ## 전체 분류
 
 | 분류 | 테이블 | 운영 상태 |
@@ -109,6 +118,7 @@
 - `lib/festivals/getFestivalLineupData.ts`
 - 관리자 축제 목록·등록·import 화면
 - Discord Bot `src/bot.js`
+- 북마클릿 JSON 누락 탐색 `crawler/compare/loadTicketDiscoveryReferences.ts` (CMD 실행, 읽기 전용)
 
 ## 2. festival_artists
 

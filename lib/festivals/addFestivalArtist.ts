@@ -10,13 +10,13 @@ type AddFestivalArtistInput = {
 };
 
 export async function addFestivalArtist(
-  festivalId: string,
+  festivalId: number,
   input: AddFestivalArtistInput,
 ) {
   const { data, error } = await supabase
     .from("festival_artists")
     .insert({
-      festival_id: Number(festivalId),
+      festival_id: festivalId,
       artist_id: input.artistId,
       performance_date: input.performanceDate || null,
       performance_time: input.performanceTime || null,

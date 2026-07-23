@@ -16,6 +16,10 @@ type UpdateDraft = {
   festivals: { name: string; start_date: string; end_date: string } | Array<{ name: string; start_date: string; end_date: string }> | null;
 };
 
+function isUpdateDraftStatus(value: string): value is UpdateDraft["status"] {
+  return value === "pending" || value === "applied";
+}
+
 function festivalOf(value: UpdateDraft["festivals"]) {
   return Array.isArray(value) ? value[0] ?? null : value;
 }
@@ -36,7 +40,13 @@ export default function FestivalUpdatesPage() {
           festivals (name, start_date, end_date)
         `).eq("status", status).order("created_at", { ascending: false });
         if (error) throw error;
-        if (!cancelled) setDrafts((data ?? []) as UpdateDraft[]);
+        const parsedDrafts = (data ?? []).map((draft) => {
+          if (!isUpdateDraftStatus(draft.status)) {
+            throw new Error(`알 수 없는 수정 작업 상태입니다: ${draft.status}`);
+          }
+          return { ...draft, status: draft.status };
+        });
+        if (!cancelled) setDrafts(parsedDrafts);
       } catch (error) {
         if (!cancelled) setErrorMessage(error instanceof Error ? error.message : "수정 작업을 불러오지 못했습니다.");
       } finally { if (!cancelled) setIsLoading(false); }

@@ -54,7 +54,11 @@
 - `lib/hooks/useFestivalDetail.ts`: 전체 상세페이지와 우측 패널의 축제·출연진·티켓 공통 조회 및 출연진 정렬
 - `lib/hooks/useCurrentTimeAt.ts`: 티켓 오픈 시간에 맞춰 화면 시간을 갱신
 - `lib/hooks/useFestivalDuplicateCheck.ts`: normalized_name·시작일·종료일 입력 후 기존 축제 자동 중복 조회
-- `lib/supabase/client.ts`: 브라우저용 Supabase 클라이언트
+- `lib/supabase/database.types.ts`: 운영 `public` 스키마에서 CLI로 생성한 읽기 전용 타입 스냅샷
+- `lib/supabase/database.ts`: 생성 타입 재노출과 실제 NULL 허용 RPC 인수 보정
+- `lib/supabase/client.ts`: `Database`가 연결된 브라우저용 Supabase 클라이언트
+- `lib/supabase/rpcResults.ts`: `Json` RPC 반환값을 구체 결과 타입으로 검증
+- `lib/festivals/festivalCandidateRecord.ts`: 후보 테이블의 JSON 칼럼과 상태 문자열을 화면 타입으로 검증
 
 ## Supabase
 

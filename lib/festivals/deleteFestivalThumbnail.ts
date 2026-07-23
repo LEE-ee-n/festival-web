@@ -1,15 +1,15 @@
 import { supabase } from "@/lib/supabase/client";
 
 export async function deleteFestivalThumbnail(
-  festivalId: string,
+  festivalId: number,
   thumbnailUrl: string,
   metadata?: { sourceUrl?: string; note?: string },
 ) {
   const { error } = await supabase.rpc("change_festival_thumbnail_with_audit", {
-    p_festival_id: Number(festivalId),
+    p_festival_id: festivalId,
     p_new_url: null,
-    p_source_url: metadata?.sourceUrl?.trim() || null,
-    p_note: metadata?.note?.trim() || null,
+    p_source_url: metadata?.sourceUrl?.trim() || undefined,
+    p_note: metadata?.note?.trim() || undefined,
   });
   if (error) throw error;
 

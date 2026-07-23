@@ -20,22 +20,19 @@ type FestivalSummary = {
   end_date: string;
   location: string | null;
   region: string | null;
-  status: string;
+  status: string | null;
 };
 
 type ArtistFestivalRow = {
   performance_date: string | null;
   performance_time: string | null;
   stage_name: string | null;
-  festivals:
-    | FestivalSummary
-    | FestivalSummary[]
-    | null;
+  festivals: FestivalSummary | null;
 };
 
 export default function ArtistDetailPage() {
   const params = useParams<{ id: string }>();
-  const artistId = params.id;
+  const artistId = Number(params.id);
 
   const [artist, setArtist] = useState<Artist | null>(null);
   const [festivalRows, setFestivalRows] = useState<
@@ -100,11 +97,8 @@ export default function ArtistDetailPage() {
           throw new Error("아티스트를 찾을 수 없습니다.");
         }
 
-        setArtist(artistResult.data as Artist);
-
-        setFestivalRows(
-          (festivalsResult.data || []) as unknown as ArtistFestivalRow[],
-        );
+        setArtist(artistResult.data);
+        setFestivalRows(festivalsResult.data || []);
       } catch (error) {
         console.error(error);
 

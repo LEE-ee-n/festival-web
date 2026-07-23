@@ -6,37 +6,26 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 
+import ArtistCandidateTable, {
+  type ArtistCandidate,
+} from "./components/ArtistCandidateTable";
+import ArtistManagementTable, {
+  type ArtistSortKey,
+  type ManagedArtistRow,
+  type SortDirection,
+} from "./components/ArtistManagementTable";
 import {
   isValidArtistNormalizedName,
   normalizeArtistName,
 } from "@/lib/artists/normalizeArtistName";
 import { supabase } from "@/lib/supabase/client";
+import { parseArtistMutationResult } from "@/lib/supabase/rpcResults";
 
-type SimilarArtist = {
-  id: number;
-  name: string;
-  normalized_name: string;
-  similarity_score: number;
-};
-
-type ManagedArtist = {
-  id: number;
-  name: string;
-  normalized_name: string;
-  aliases: string[];
-};
-
-type ArtistAliasRow = {
-  artist_id: number;
-  alias_name: string;
-};
-
-type ArtistSortKey = "id" | "name" | "normalized_name";
-type SortDirection = "asc" | "desc";
+type SimilarArtist = ArtistCandidate;
+type ManagedArtist = ManagedArtistRow;
 
 function normalizeSearchText(value: string) {
   return value.toLowerCase().replace(/\s+/g, "");
@@ -66,7 +55,6 @@ export default function AdminArtistsPage() {
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const editorRef = useRef<HTMLElement>(null);
 
   const searchName = officialEnglishName.trim() || artistName.trim();
 
@@ -91,7 +79,7 @@ export default function AdminArtistsPage() {
 
       const aliasesByArtist = new Map<number, string[]>();
 
-      ((aliasesResult.data ?? []) as ArtistAliasRow[]).forEach((alias) => {
+      (aliasesResult.data ?? []).forEach((alias) => {
         const current = aliasesByArtist.get(alias.artist_id) ?? [];
         current.push(alias.alias_name);
         aliasesByArtist.set(alias.artist_id, current);
@@ -158,14 +146,26 @@ export default function AdminArtistsPage() {
     setSortDirection("asc");
   }
 
-  function sortLabel(label: string, key: ArtistSortKey) {
-    if (sortKey !== key) return label;
-    return `${label} ${sortDirection === "asc" ? "▲" : "▼"}`;
+  function scrollToArtist(artistId: number) {
+    window.setTimeout(() => {
+      const view = window.matchMedia("(min-width: 768px)").matches
+        ? "desktop"
+        : "mobile";
+      document
+        .querySelector<HTMLElement>(
+          `[data-artist-id="${artistId}"][data-artist-view="${view}"]`,
+        )
+        ?.scrollIntoView({ behavior: "auto", block: "center" });
+    }, 0);
   }
 
-  function selectArtist(artist: ManagedArtist | SimilarArtist) {
+  function selectArtist(
+    artist: ManagedArtist | SimilarArtist,
+    options?: { revealInList?: boolean },
+  ) {
     const fullArtist = artists.find((item) => item.id === artist.id);
 
+    if (options?.revealInList) setListFilter("");
     setSelectedArtistId(artist.id);
     setEditName(fullArtist?.name ?? artist.name);
     setEditUniqueName(fullArtist?.normalized_name ?? artist.normalized_name);
@@ -173,12 +173,15 @@ export default function AdminArtistsPage() {
     setErrorMessage(null);
     setSuccessMessage(null);
 
-    window.setTimeout(() => {
-      editorRef.current?.scrollIntoView({
-        behavior: "auto",
-        block: "start",
-      });
-    }, 0);
+    if (options?.revealInList) scrollToArtist(artist.id);
+  }
+
+  function cancelArtistEdit() {
+    setSelectedArtistId(null);
+    setEditName("");
+    setEditUniqueName("");
+    setEditAliases("");
+    setErrorMessage(null);
   }
 
   async function handleSearch(event: FormEvent<HTMLFormElement>) {
@@ -225,7 +228,7 @@ export default function AdminArtistsPage() {
 
       if (error) throw error;
 
-      setCandidates((data ?? []) as SimilarArtist[]);
+      setCandidates(data ?? []);
       setHasSearched(true);
     } catch (error) {
       setErrorMessage(
@@ -276,8 +279,8 @@ export default function AdminArtistsPage() {
       await loadArtists();
       setCandidates([]);
       setHasSearched(false);
-      const created = data as { id: number; name: string; normalized_name: string };
-      selectArtist({ ...created, aliases: [] });
+      const created = parseArtistMutationResult(data);
+      selectArtist(created, { revealInList: true });
       setSuccessMessage(`${created.name}을(를) 신규 등록했습니다.`);
     } catch (error) {
       setErrorMessage(
@@ -338,9 +341,10 @@ export default function AdminArtistsPage() {
       if (error) throw error;
 
       await loadArtists();
-      setEditName(name);
-      setEditUniqueName(uniqueName);
-      setEditAliases(aliases.join(", "));
+      setSelectedArtistId(null);
+      setEditName("");
+      setEditUniqueName("");
+      setEditAliases("");
       setSuccessMessage(`${name}의 정보를 수정했습니다.`);
     } catch (error) {
       const message =
@@ -485,104 +489,12 @@ export default function AdminArtistsPage() {
                 </button>
               </div>
             ) : (
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                {candidates.map((candidate) => (
-                  <button
-                    key={candidate.id}
-                    type="button"
-                    onClick={() => selectArtist(candidate)}
-                    className={[
-                      "rounded-2xl border p-5 text-left transition",
-                      selectedArtistId === candidate.id
-                        ? "border-slate-900 bg-white shadow-sm"
-                        : "border-slate-200 hover:border-slate-400",
-                    ].join(" ")}
-                  >
-                    <p className="font-bold text-slate-900">{candidate.name}</p>
-                    <p className="mt-1 text-xs text-slate-500">
-                      ID {candidate.id} · 유사도 {Math.round(candidate.similarity_score * 100)}%
-                    </p>
-                  </button>
-                ))}
-              </div>
+              <ArtistCandidateTable
+                candidates={candidates}
+                onSelect={(candidate) =>
+                  selectArtist(candidate, { revealInList: true })}
+              />
             )}
-          </section>
-        )}
-
-        {selectedArtistId !== null && (
-          <section
-            ref={editorRef}
-            className="mt-6 scroll-mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-md sm:p-8"
-          >
-            <h2 className="text-xl font-bold text-slate-900">선택한 아티스트 수정</h2>
-            {errorMessage && (
-              <p className="mt-4 rounded-xl bg-red-50 p-3 text-sm font-semibold text-red-700">
-                {errorMessage}
-              </p>
-            )}
-            {successMessage && (
-              <p className="mt-4 rounded-xl bg-green-50 p-3 text-sm font-semibold text-green-700">
-                {successMessage}
-              </p>
-            )}
-            <div className="mt-5 grid gap-4 sm:grid-cols-2">
-              <label className="text-sm font-semibold text-slate-700">
-                ID
-                <input
-                  value={selectedArtistId}
-                  readOnly
-                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 font-normal text-slate-500"
-                />
-              </label>
-              <label className="text-sm font-semibold text-slate-700">
-                화면 표시 이름
-                <input
-                  value={editName}
-                  onChange={(event) => setEditName(event.target.value)}
-                  className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-normal"
-                />
-              </label>
-              <label className="text-sm font-semibold text-slate-700">
-                normalized_name
-                <input
-                  value={editUniqueName}
-                  onChange={(event) =>
-                    setEditUniqueName(normalizeArtistName(event.target.value))
-                  }
-                  className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-mono font-normal"
-                />
-              </label>
-              <label className="text-sm font-semibold text-slate-700">
-                별칭
-                <input
-                  value={editAliases}
-                  onChange={(event) => setEditAliases(event.target.value)}
-                  placeholder="쉼표로 구분"
-                  className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 font-normal"
-                />
-                <span className="mt-2 block text-xs font-normal text-slate-500">
-                  별칭이 여러 개면 쉼표(,)로 구분합니다. 예: 카더가든, 차정원
-                </span>
-              </label>
-            </div>
-            <div className="mt-5 flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={() => void handleSaveArtist()}
-                disabled={isSaving || isDeleting}
-                className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white disabled:opacity-50"
-              >
-                {isSaving ? "저장 중..." : "수정 저장"}
-              </button>
-              <button
-                type="button"
-                onClick={() => void handleDeleteArtist()}
-                disabled={isSaving || isDeleting}
-                className="rounded-xl border border-red-300 bg-white px-5 py-3 text-sm font-semibold text-red-700 disabled:opacity-50"
-              >
-                {isDeleting ? "삭제 중..." : "아티스트 삭제"}
-              </button>
-            </div>
           </section>
         )}
 
@@ -604,75 +516,26 @@ export default function AdminArtistsPage() {
           {isLoadingArtists ? (
             <p className="mt-6 text-sm text-slate-500">목록을 불러오는 중입니다.</p>
           ) : (
-            <div className="mt-6 overflow-x-auto">
-              <table className="w-full min-w-[820px] table-fixed text-left text-sm">
-                <colgroup>
-                  <col className="w-[9%]" />
-                  <col className="w-[22%]" />
-                  <col className="w-[22%]" />
-                  <col className="w-[35%]" />
-                  <col className="w-[12%]" />
-                </colgroup>
-                <thead className="border-b border-slate-300 text-xs text-slate-500">
-                  <tr>
-                    <th className="px-3 py-3">
-                      <button
-                        type="button"
-                        onClick={() => handleSort("id")}
-                        className="whitespace-nowrap font-semibold hover:text-slate-900"
-                      >
-                        {sortLabel("ID", "id")}
-                      </button>
-                    </th>
-                    <th className="px-3 py-3">
-                      <button
-                        type="button"
-                        onClick={() => handleSort("name")}
-                        className="font-semibold hover:text-slate-900"
-                      >
-                        {sortLabel("화면 표시 이름", "name")}
-                      </button>
-                    </th>
-                    <th className="px-3 py-3">
-                      <button
-                        type="button"
-                        onClick={() => handleSort("normalized_name")}
-                        className="font-semibold hover:text-slate-900"
-                      >
-                        {sortLabel("normalized_name", "normalized_name")}
-                      </button>
-                    </th>
-                    <th className="px-3 py-3">별칭 (쉼표 구분)</th>
-                    <th className="px-3 py-3 text-center">관리</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-300">
-                  {filteredArtists.map((artist) => (
-                    <tr key={artist.id}>
-                      <td className="px-3 py-4 text-slate-500">{artist.id}</td>
-                      <td className="px-3 py-4 font-semibold text-slate-900">
-                        {artist.name}
-                      </td>
-                      <td className="break-all px-3 py-4 font-mono text-slate-600">
-                        {artist.normalized_name}
-                      </td>
-                      <td className="px-3 py-4 text-slate-600">
-                        {artist.aliases.join(", ") || "-"}
-                      </td>
-                      <td className="px-3 py-4 text-center">
-                        <button
-                          type="button"
-                          onClick={() => selectArtist(artist)}
-                          className="min-w-16 whitespace-nowrap rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700"
-                        >
-                          수정
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <ArtistManagementTable
+              artists={filteredArtists}
+              selectedArtistId={selectedArtistId}
+              editName={editName}
+              editNormalizedName={editUniqueName}
+              editAliases={editAliases}
+              sortKey={sortKey}
+              sortDirection={sortDirection}
+              isSaving={isSaving}
+              isDeleting={isDeleting}
+              onSort={handleSort}
+              onSelect={selectArtist}
+              onNameChange={setEditName}
+              onNormalizedNameChange={(value) =>
+                setEditUniqueName(normalizeArtistName(value))}
+              onAliasesChange={setEditAliases}
+              onSave={() => void handleSaveArtist()}
+              onCancel={cancelArtistEdit}
+              onDelete={() => void handleDeleteArtist()}
+            />
           )}
         </section>
       </div>

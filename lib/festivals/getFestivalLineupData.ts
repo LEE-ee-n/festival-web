@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabase/client";
 
 export async function getFestivalLineupData(
-  festivalId: string,
+  festivalId: number,
 ) {
   const [
     festivalResult,

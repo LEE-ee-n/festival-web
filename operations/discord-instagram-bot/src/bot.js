@@ -24,6 +24,10 @@ import {
   normalizeAsciiName,
   normalizeFestivalName,
 } from "./nameNormalization.js";
+import {
+  excludeTicketCandidates,
+  formatTicketExclusionResult,
+} from "./ticketExclusion.js";
 
 const required = [
   "DISCORD_BOT_TOKEN", "DISCORD_ALLOWED_USER_ID", "SUPABASE_URL",
@@ -41,6 +45,8 @@ const profilePath = process.env.INSTAGRAM_PROFILE_PATH || resolve(root, "work", 
 const codexBin = resolve(root, "node_modules", "@openai", "codex", "bin", "codex.js");
 const schemaPath = resolve(root, "src", "codex-output.schema.json");
 const allowedUserId = process.env.DISCORD_ALLOWED_USER_ID;
+const crawlerRoot = process.env.FESTIVAL_CRAWLER_ROOT
+  || resolve(root, "..", "..", "crawler-output", "ticket-discovery");
 const adminBaseUrl = (process.env.FESTIBOM_ADMIN_BASE_URL || "http://localhost:3000").replace(/\/$/, "");
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, {
   auth: { persistSession: false, autoRefreshToken: false },
@@ -374,6 +380,22 @@ function resultMessage(result, saved) {
 
 client.on("messageCreate", async (message) => {
   if (message.author.bot || message.author.id !== allowedUserId) return;
+  try {
+    const exclusionResult = await excludeTicketCandidates({
+      content: message.content,
+      crawlerRoot,
+      now: () => new Date(),
+    });
+    if (exclusionResult) {
+      await message.reply(formatTicketExclusionResult(exclusionResult));
+      return;
+    }
+  } catch (error) {
+    if (message.content.trim().toLowerCase().startsWith("!티켓제외")) {
+      await message.reply(`티켓 제외 실패: ${error.message}`);
+      return;
+    }
+  }
   const url = message.content.match(/https?:\/\/(?:www\.)?instagram\.com\/(?:p|reel)\/[A-Za-z0-9_-]+\/?/i)?.[0];
   if (!url) return;
   const regenerate = false;

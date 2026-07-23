@@ -53,7 +53,7 @@ export async function promoteCandidatePoster(
 }
 
 export async function uploadFestivalThumbnail(
-  festivalId: string,
+  festivalId: number,
   file: File,
   previousUrl: string,
   metadata?: { sourceUrl?: string; note?: string },
@@ -71,10 +71,10 @@ export async function uploadFestivalThumbnail(
   const publicUrl = data.publicUrl;
 
   const { error: auditError } = await supabase.rpc("change_festival_thumbnail_with_audit", {
-    p_festival_id: Number(festivalId),
+    p_festival_id: festivalId,
     p_new_url: publicUrl,
-    p_source_url: metadata?.sourceUrl?.trim() || null,
-    p_note: metadata?.note?.trim() || null,
+    p_source_url: metadata?.sourceUrl?.trim() || undefined,
+    p_note: metadata?.note?.trim() || undefined,
   });
 
   if (auditError) {

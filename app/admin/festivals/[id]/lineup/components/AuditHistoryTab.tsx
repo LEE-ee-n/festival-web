@@ -8,10 +8,12 @@ import {
 } from "@/lib/audit/festivalAuditDiff";
 import {
   summarizeAuditOperations,
+  parseJsonAuditSummary,
   type AuditCountSummary,
   type JsonAuditSummary,
 } from "@/lib/audit/auditSummary";
 import { supabase } from "@/lib/supabase/client";
+import type { Json } from "@/lib/supabase/database";
 
 type AuditChange = {
   id: number;
@@ -43,6 +45,17 @@ type AuditEvent = {
   audit_summary: JsonAuditSummary | null;
   audit_changes: AuditChange[];
 };
+
+function parseAuditOperation(value: string): AuditChange["operation"] {
+  if (value === "insert" || value === "update" || value === "delete") return value;
+  throw new Error(`알 수 없는 감사 작업 유형입니다: ${value}`);
+}
+
+function parseAuditSnapshot(value: Json | null): AuditSnapshot | null {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? value
+    : null;
+}
 
 const actionLabels: Record<string, string> = {
   "festival.created": "축제 기본정보 등록",
@@ -113,7 +126,7 @@ function groupArtistBaselines(events: AuditEvent[], enabled: boolean): AuditEven
     .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
 }
 
-type AuditHistoryTabProps = { festivalId?: string; scope?: "festival" | "all" };
+type AuditHistoryTabProps = { festivalId?: number; scope?: "festival" | "all" };
 
 export default function AuditHistoryTab({ festivalId, scope = "festival" }: AuditHistoryTabProps) {
   const [events, setEvents] = useState<AuditEvent[]>([]);
@@ -129,10 +142,23 @@ export default function AuditHistoryTab({ festivalId, scope = "festival" }: Audi
         .select(`id, festival_id, festival_name, target_type, target_id, target_label, actor_name, action_type, created_at, work_type, lineup_round, announcement_date, source_url, reason, source_type, source_file_name, note, audit_summary, audit_changes (id, entity_type, entity_label, operation, before_data, after_data)`)
         .order("created_at", { ascending: false })
         .limit(500);
-      if (scope === "festival" && festivalId) query = query.eq("festival_id", Number(festivalId));
+      if (scope === "festival" && festivalId) query = query.eq("festival_id", festivalId);
       const { data, error } = await query;
       if (error) throw error;
-      setEvents((data ?? []) as AuditEvent[]);
+      setEvents((data ?? []).map((event) => ({
+        ...event,
+        work_type:
+          event.work_type === "announcement" || event.work_type === "correction"
+            ? event.work_type
+            : null,
+        audit_summary: parseJsonAuditSummary(event.audit_summary),
+        audit_changes: event.audit_changes.map((change) => ({
+          ...change,
+          operation: parseAuditOperation(change.operation),
+          before_data: parseAuditSnapshot(change.before_data),
+          after_data: parseAuditSnapshot(change.after_data),
+        })),
+      })));
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "변경 기록을 불러오지 못했습니다.");
     } finally {
