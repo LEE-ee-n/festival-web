@@ -264,6 +264,9 @@ export default function FestivalCandidateJsonUploader({ onCreated }: Props) {
     try {
       setIsChecking(true);
       const incoming = parseFestivalDraftJson(await file.text());
+      delete incoming.festival.source_url;
+      delete incoming.festival.official_url;
+      delete incoming.festival.thumbnail_url;
       const {
         exactMatch,
         dateCandidates,

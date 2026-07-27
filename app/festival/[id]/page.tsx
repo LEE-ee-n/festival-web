@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import FestivalTimetable from "@/components/festival/FestivalTimetable";
 import { formatFestivalPeriod } from "@/lib/calendar";
 import {
   categoryBadgeClasses,
@@ -16,6 +17,7 @@ import {
   getLatestTicketRoundGroup,
   getOpenTicketLinks,
 } from "@/lib/festivals/ticketDisplay";
+import { typography } from "@/lib/typography";
 
   function formatTicketOpenAt(openAt: string) {
     return new Intl.DateTimeFormat("ko-KR", {
@@ -70,7 +72,7 @@ export default function FestivalDetailPage() {
 
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-slate-50 px-4 py-10">
+      <main className="min-h-screen bg-white px-4 py-10">
         <div className="mx-auto max-w-3xl animate-pulse rounded-3xl bg-white p-8 shadow-sm">
           <div className="h-8 w-2/3 rounded bg-slate-200" />
           <div className="mt-6 h-5 w-1/2 rounded bg-slate-100" />
@@ -82,19 +84,19 @@ export default function FestivalDetailPage() {
 
   if (errorMessage || !festival) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+      <main className="flex min-h-screen items-center justify-center bg-white px-4">
         <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-          <h1 className="text-xl font-bold text-slate-900">
+          <h1 className={`${typography.articleSectionTitle} text-slate-900`}>
             축제 정보를 표시할 수 없습니다.
           </h1>
 
-          <p className="mt-3 text-sm text-slate-500">
+          <p className={`${typography.body} mt-3 text-slate-500`}>
             {errorMessage}
           </p>
 
           <Link
             href="/"
-            className="mt-6 inline-flex rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white"
+            className={`${typography.button} mt-6 inline-flex rounded-xl bg-slate-900 px-4 py-2.5 text-white`}
           >
             달력으로 돌아가기
           </Link>
@@ -104,11 +106,11 @@ export default function FestivalDetailPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8 sm:py-12">
+    <main className="min-h-screen bg-white px-4 py-8 sm:py-12">
       <article className="mx-auto max-w-3xl">
         <Link
           href="/"
-          className="text-sm font-medium text-slate-500 hover:text-slate-900"
+          className={`${typography.metaStrong} text-slate-500 hover:text-slate-900`}
         >
           ← 달력으로 돌아가기
         </Link>
@@ -117,28 +119,28 @@ export default function FestivalDetailPage() {
           <header className="border-b border-slate-200 p-6 sm:p-9">
             <span
               className={[
-                "inline-flex rounded-full border px-3 py-1 text-sm font-medium",
+                `${typography.metaStrong} inline-flex rounded-full border px-3 py-1`,
                 categoryBadgeClasses[festival.category],
               ].join(" ")}
             >
               {categoryLabels[festival.category]}
             </span>
 
-            <h1 className="mt-5 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
+            <h1 className={`${typography.pageTitle} mt-5 text-slate-950`}>
               {festival.name}
             </h1>
             {isAdmin && (
               <div className="mt-4 flex flex-wrap gap-2">
                 <Link
                   href={`/admin/festivals/${festival.id}/lineup`}
-                  className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+                  className={`${typography.button} rounded-lg bg-slate-900 px-4 py-2 text-white`}
                 >
                   페스티벌 기본정보·라인업·티켓 관리
                 </Link>
 
                 <Link
                   href="/admin/festivals"
-                  className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700"
+                  className={`${typography.button} rounded-lg border border-slate-300 px-4 py-2 text-slate-700`}
                 >
                   페스티벌 목록
                 </Link>
@@ -149,11 +151,11 @@ export default function FestivalDetailPage() {
           <div className="space-y-8 p-6 sm:p-9">
             <dl className="grid gap-5 sm:grid-cols-2">
               <div>
-                <dt className="text-sm font-medium text-slate-400">
+                <dt className={`${typography.metaStrong} text-slate-400`}>
                   기간
                 </dt>
 
-                <dd className="mt-1 font-semibold text-slate-800">
+                <dd className={`${typography.value} mt-1 text-slate-800`}>
                   {formatFestivalPeriod(
                     festival.start_date,
                     festival.end_date,
@@ -162,22 +164,22 @@ export default function FestivalDetailPage() {
               </div>
 
               <div>
-                <dt className="text-sm font-medium text-slate-400">
+                <dt className={`${typography.metaStrong} text-slate-400`}>
                   장소
                 </dt>
 
-                <dd className="mt-1 font-semibold text-slate-800">
+                <dd className={`${typography.value} mt-1 text-slate-800`}>
                   {festival.location || "장소 확인 중"}
                 </dd>
               </div>
 
               {festival.address && (
                 <div>
-                  <dt className="text-sm font-medium text-slate-400">
+                  <dt className={`${typography.metaStrong} text-slate-400`}>
                     주소
                   </dt>
 
-                  <dd className="mt-1 font-semibold text-slate-800">
+                  <dd className={`${typography.value} mt-1 text-slate-800`}>
                     {festival.address}
                   </dd>
                 </div>
@@ -185,11 +187,11 @@ export default function FestivalDetailPage() {
 
               {festival.region && (
                 <div>
-                  <dt className="text-sm font-medium text-slate-400">
+                  <dt className={`${typography.metaStrong} text-slate-400`}>
                     지역
                   </dt>
 
-                  <dd className="mt-1 font-semibold text-slate-800">
+                  <dd className={`${typography.value} mt-1 text-slate-800`}>
                     {festival.region}
                   </dd>
                 </div>
@@ -197,11 +199,11 @@ export default function FestivalDetailPage() {
 
               {festival.price_type && (
                 <div>
-                  <dt className="text-sm font-medium text-slate-400">
+                  <dt className={`${typography.metaStrong} text-slate-400`}>
                     요금 구분
                   </dt>
 
-                  <dd className="mt-1 font-semibold text-slate-800">
+                  <dd className={`${typography.value} mt-1 text-slate-800`}>
                     {festival.price_type === "free" && "무료"}
                     {festival.price_type === "paid" && "유료"}
                     {festival.price_type === "partial_free" && "부분 무료"}
@@ -212,11 +214,11 @@ export default function FestivalDetailPage() {
 
               {festival.price_info && (
                 <div>
-                  <dt className="text-sm font-medium text-slate-400">
+                  <dt className={`${typography.metaStrong} text-slate-400`}>
                     가격 정보
                   </dt>
 
-                  <dd className="mt-1 font-semibold text-slate-800">
+                  <dd className={`${typography.value} mt-1 text-slate-800`}>
                     {festival.price_info}
                   </dd>
                 </div>
@@ -224,29 +226,27 @@ export default function FestivalDetailPage() {
             </dl>
 
             <section>
-              <h2 className="text-lg font-bold text-slate-900">
+              <h2 className={`${typography.metaStrong} text-slate-400`}>
                 축제 소개
               </h2>
 
-              <p className="mt-3 whitespace-pre-line leading-7 text-slate-600">
+              <p className={`${typography.value} mt-1 whitespace-pre-line leading-7 text-slate-800`}>
                 {festival.description ||
                   "등록된 상세 설명이 없습니다."}
               </p>
             </section>
 
-            {festivalArtists.length > 0 && (
-              <section>
-                <h2 className="text-lg font-bold text-slate-900">
-                  출연진
-                </h2>
+            {festivalArtists.length > 0 &&
+              (festival.timetable_status === "unpublished" ? (
+                <section>
+                  <h2 className={`${typography.sectionTitle} text-slate-900`}>
+                    출연진
+                  </h2>
 
-                {festival.timetable_status === "unpublished" && (
-                  <p className="mt-2 text-sm font-semibold text-slate-500">
+                  <p className={`${typography.label} mt-2 text-slate-500`}>
                     타임테이블 미공개
                   </p>
-                )}
 
-                {festival.timetable_status === "unpublished" ? (
                   <div className="mt-4 flex flex-wrap gap-2">
                     {Array.from(new Map(festivalArtists.map((item) => {
                       const artist = Array.isArray(item.artists) ? item.artists[0] : item.artists;
@@ -255,101 +255,28 @@ export default function FestivalDetailPage() {
                       <Link
                         key={artist.id}
                         href={`/artist/${artist.id}`}
-                        className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-800"
+                        className={`${typography.label} rounded-full border border-slate-200 bg-white px-3 py-2 text-slate-800`}
                       >
                         {artist.name}
                       </Link>
                     ) : null)}
                   </div>
-                ) : (
-                <div className="mt-4 space-y-5">
-                  {Object.entries(artistsByDateAndStage).map(
-  ([date, stageGroups]) => (
-    <div key={date}>
-      <h3 className="font-bold text-slate-800">
-        {date === "날짜 미정"
-          ? "타임테이블 미공개"
-          : new Intl.DateTimeFormat("ko-KR", {
-              timeZone: "Asia/Seoul",
-              month: "long",
-              day: "numeric",
-              weekday: "short",
-            }).format(
-              new Date(`${date}T00:00:00+09:00`),
-            )}
-      </h3>
-
-      <div className="mt-4 space-y-5">
-        {Object.entries(stageGroups).map(
-          ([stage, artists]) => (
-            <div
-              key={stage}
-              className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
-            >
-              <h4 className="font-bold text-slate-900">
-                {stage}
-              </h4>
-
-              <div className="mt-3 space-y-2">
-                {artists.map((item) => {
-                  const artist = Array.isArray(item.artists)
-                    ? item.artists[0]
-                    : item.artists;
-
-                  return (
-                    <div
-                      key={item.artist_id}
-                      className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white px-4 py-3"
-                    >
-                      <div>
-                        {artist ? (
-                          <Link
-                            href={`/artist/${artist.id}`}
-                            className="font-semibold text-slate-900 hover:text-blue-600 hover:underline"
-                          >
-                            {artist.name}
-                          </Link>
-                        ) : (
-                          <p className="font-semibold text-slate-900">
-                            아티스트 정보 없음
-                          </p>
-                        )}
-                      </div>
-
-                      {(item.performance_time ||
-                        item.performance_end_time) && (
-                        <span className="rounded-md bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700">
-                          {item.performance_time
-                            ? item.performance_time.slice(0, 5)
-                            : "시작 미정"}
-
-                          {item.performance_end_time &&
-                            ` ~ ${item.performance_end_time.slice(0, 5)}`}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ),
-        )}
-      </div>
-    </div>
-  ),
-)}
-                </div>
-                )}
-              </section>
-            )}
+                </section>
+              ) : (
+                <FestivalTimetable
+                  artistsByDateAndStage={artistsByDateAndStage}
+                  artistCount={festivalArtists.length}
+                  layout="page"
+                />
+              ))}
 
             {festival.program_info && (
               <section>
-                <h2 className="text-lg font-bold text-slate-900">
+                <h2 className={`${typography.metaStrong} text-slate-400`}>
                   프로그램
                 </h2>
 
-                <p className="mt-3 whitespace-pre-line leading-7 text-slate-600">
+                <p className={`${typography.value} mt-1 whitespace-pre-line leading-7 text-slate-800`}>
                   {festival.program_info}
                 </p>
               </section>
@@ -358,25 +285,25 @@ export default function FestivalDetailPage() {
 
             {latestTicketRounds.length > 0 && (
               <section>
-                <h2 className="text-lg font-bold text-slate-900">
+                <h2 className={`${typography.sectionTitle} text-slate-900`}>
                   티켓 안내
                 </h2>
 
-                <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-5">
                   {latestTicketInfo && (
                     <div className="mt-3 rounded-xl bg-white p-4">
-                      <h3 className="font-bold text-slate-900">
+                      <h3 className={`${typography.subsectionTitle} text-slate-900`}>
                         {latestTicketInfo.round_name}
                       </h3>
 
                       {latestOpenAt && (
-                        <p className="mt-2 text-sm font-semibold text-slate-700">
+                        <p className={`${typography.label} mt-2 text-slate-700`}>
                           {formatTicketOpenAt(latestOpenAt)}
                         </p>
                       )}
 
                       {latestTicketInfo.price_info && (
-                        <p className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-600">
+                        <p className={`${typography.bodyCompact} mt-2 whitespace-pre-line text-slate-600`}>
                           {latestTicketInfo.price_info}
                         </p>
                       )}
@@ -391,7 +318,7 @@ export default function FestivalDetailPage() {
                             href={round.ticket_url || "#"}
                             target="_blank"
                             rel="noreferrer"
-                            className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700"
+                            className={`${typography.button} rounded-xl bg-slate-900 px-4 py-2.5 text-white hover:bg-slate-700`}
                           >
                             {round.ticket_platform || "예매하기"}
                           </a>
@@ -408,7 +335,7 @@ export default function FestivalDetailPage() {
                   href={festival.official_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                  className={`${typography.button} rounded-xl border border-slate-200 px-4 py-2.5 text-slate-700 hover:bg-slate-50`}
                 >
                   공식 홈페이지
                 </a>

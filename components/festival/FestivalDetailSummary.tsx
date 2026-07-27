@@ -1,14 +1,8 @@
-type FestivalSummary = {
-  name: string;
-  location: string | null;
-  address: string | null;
-  region: string | null;
-  price_type: string | null;
-  price_info: string | null;
-};
+import type { FestivalPanelSummary } from "@/lib/types";
+import { typography } from "@/lib/typography";
 
 type FestivalDetailSummaryProps = {
-  festival: FestivalSummary;
+  festival: FestivalPanelSummary;
   periodText: string;
 };
 
@@ -17,12 +11,12 @@ export default function FestivalDetailSummary({
   periodText,
 }: FestivalDetailSummaryProps) {
   const summaryRowClass =
-  "grid grid-cols-[44px_minmax(0,1fr)] items-baseline gap-2 text-sm";
+    `${typography.meta} grid grid-cols-[44px_minmax(0,1fr)] items-baseline gap-2`;
 
     return (
     <>
       <header className="pt-6">
-        <h1 className="text-center text-2xl font-bold leading-tight tracking-tight text-slate-700">
+        <h1 className={`${typography.panelTitle} text-center text-slate-700`}>
           {festival.name}
         </h1>
       </header>
@@ -30,28 +24,28 @@ export default function FestivalDetailSummary({
         <dl className="space-y-3 pt-3">
             <div className={summaryRowClass}>
                 <dt className="text-slate-700">기간</dt>
-                <dd className="font-semibold text-slate-700">
+                <dd className={`${typography.label} text-slate-700`}>
                 {periodText}
                 </dd>
             </div>
 
             <div className={summaryRowClass}>
                 <dt className="text-slate-700">지역</dt>
-                <dd className="font-semibold text-slate-700">
+                <dd className={`${typography.label} text-slate-700`}>
                 {festival.region || "지역 확인 중"}
                 </dd>
             </div>
 
             <div className={summaryRowClass}>
                 <dt className="text-slate-700">장소</dt>
-                <dd className="font-semibold text-slate-700">
+                <dd className={`${typography.label} text-slate-700`}>
                 {festival.location || "장소 확인 중"}
                 </dd>
             </div>
 
             <div className={summaryRowClass}>
                 <dt className="text-slate-700">주소</dt>
-                <dd className="break-words font-semibold text-slate-700">
+                <dd className={`${typography.label} break-words text-slate-700`}>
                 {festival.address || "주소 확인 중"}
                 </dd>
             </div>
@@ -59,7 +53,7 @@ export default function FestivalDetailSummary({
             {festival.price_type && (
                 <div className={summaryRowClass}>
                 <dt className="text-slate-700">요금</dt>
-                <dd className="font-semibold text-slate-700">
+                <dd className={`${typography.label} text-slate-700`}>
                     {festival.price_type === "free" && "무료"}
                     {festival.price_type === "paid" && "유료"}
                     {festival.price_type === "partial_free" && "부분 무료"}
@@ -71,7 +65,7 @@ export default function FestivalDetailSummary({
             {festival.price_info && (
                 <div className={summaryRowClass}>
                 <dt className="text-slate-700">가격</dt>
-                <dd className="break-words font-semibold text-slate-700">
+                <dd className={`${typography.label} break-words text-slate-700`}>
                     {festival.price_info}
                 </dd>
                 </div>

@@ -10,6 +10,7 @@
 ```cmd
 npm run crawler:sample
 npm run bookmarklet:nol
+npm run bookmarklet:instagram
 npm run crawler:import:nol -- --input="C:\\경로\\nol-tickets.json"
 npm run crawler:import:nol -- --latest
 npm test
@@ -30,7 +31,11 @@ npm test
 - `crawler-output/ticket-discovery/crawl`: 북마클릿 JSON 원본 보관
 - `crawler-output/ticket-discovery/reports`: 후보 번호·제외 URL·비교 보고서 보관
 - `crawler-output/ticket-discovery/discord-webhook-url.txt`: Git 밖에서 보관하는 Discord 웹훅 URL 한 줄
-- `bookmarklet/`: NOL·티켓링크·YES24의 현재 목록 화면을 JSON으로 다운로드하는 북마클릿과 설치 파일 생성
+- `bookmarklet/`: NOL·티켓링크·YES24 목록 저장 북마클릿과 Instagram 상세 첫 사진 WebP 저장 북마클릿의 설치 파일 생성
+
+Instagram 북마클릿은 게시물을 상세 팝업으로 열고 캐러셀 첫 사진이 보이는 상태에서
+실행한다. 첫 사진을 품질 92% WebP로 저장하며 브라우저 보안 정책으로 변환이
+차단되면 원본 사진을 새 탭으로 연다.
 
 YES24는 콘서트 전체보기에서도 동작하지만, 페스티벌 탭에서 실행하면 불필요한 상품이 줄어든다. 상세 페이지를 자동으로 열지 않고 현재 화면의 상품만 읽는다.
 

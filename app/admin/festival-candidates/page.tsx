@@ -22,7 +22,7 @@ import {
   parseFestivalDraftJsonForEditing,
   validateFestivalDraftForApproval,
 } from "@/lib/festivals/festivalDraft";
-import { promoteCandidatePoster } from "@/lib/festivals/uploadFestivalThumbnail";
+import { removeCandidateSourceAssets } from "@/lib/festivals/candidateSourceAssets";
 import { isValidNormalizedName } from "@/lib/normalizedName";
 import type {
   FestivalCandidate,
@@ -52,7 +52,6 @@ function createInitialDraft(candidate: FestivalCandidate): FestivalDraftJson {
       end_date: candidate.end_date ?? "",
       location: candidate.location ?? undefined,
       category: candidate.category ?? undefined,
-      source_url: candidate.source_url ?? undefined,
     },
     artists: [],
     tickets: [],
@@ -305,26 +304,7 @@ export default function FestivalCandidatesPage() {
       return;
     }
 
-    let promotedPoster: Awaited<ReturnType<typeof promoteCandidatePoster>> = null;
     try {
-      const firstPoster = selectedCandidate.source_assets.find(
-        (asset) => asset.type === "image/webp" && asset.storage_path,
-      );
-      if (firstPoster) {
-        promotedPoster = await promoteCandidatePoster(
-          selectedCandidate.id,
-          firstPoster,
-        );
-        if (promotedPoster) {
-          draft = {
-            ...draft,
-            festival: {
-              ...draft.festival,
-              thumbnail_url: promotedPoster.publicUrl,
-            },
-          };
-        }
-      }
       const result = await approveAndImportCandidate(
         selectedCandidate.id,
         draft,
@@ -335,15 +315,12 @@ export default function FestivalCandidatesPage() {
       setNotice(
         `승인과 정식 등록을 완료했습니다. 축제 ID: ${result.festival_id}`,
       );
-      if (promotedPoster) {
-        try {
-          await promotedPoster.removeTemporary();
-        } catch (cleanupError) {
-          console.error("임시 포스터 정리에 실패했습니다.", cleanupError);
-        }
+      try {
+        await removeCandidateSourceAssets(selectedCandidate.source_assets);
+      } catch (cleanupError) {
+        console.error("임시 수집 이미지 정리에 실패했습니다.", cleanupError);
       }
     } catch {
-      await promotedPoster?.rollback();
       // 훅의 오류 메시지를 화면에 표시한다.
     }
   }

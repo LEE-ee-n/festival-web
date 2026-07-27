@@ -87,6 +87,25 @@ test("비어 있는 기본정보와 신규 라인업·티켓은 자동 병합한
   );
 });
 
+test("추가 수집 JSON은 출처·공식 URL·썸네일을 자동 병합하지 않는다", () => {
+  const current = createDraft();
+  const incoming = createDraft();
+  incoming.festival.source_url = "https://www.instagram.com/p/source/";
+  incoming.festival.official_url = "https://example.com/generated";
+  incoming.festival.thumbnail_url = "https://example.com/lineup.webp";
+
+  const result = mergeFestivalDrafts(current, incoming);
+
+  assert.equal(result.mergedDraft.festival.source_url, undefined);
+  assert.equal(result.mergedDraft.festival.official_url, undefined);
+  assert.equal(result.mergedDraft.festival.thumbnail_url, undefined);
+  assert.equal(
+    result.diffs.some((diff) =>
+      ["source_url", "official_url", "thumbnail_url"].includes(diff.key)),
+    false,
+  );
+});
+
 test("기존 라인업은 삭제하지 않고 신규 아티스트만 추가한다", () => {
   const current = createDraft();
   current.artists.push({

@@ -6,37 +6,20 @@ import { useEffect, useState } from "react";
 
 import { formatFestivalPeriod } from "@/lib/calendar";
 import { supabase } from "@/lib/supabase/client";
-
-type Artist = {
-  id: number;
-  name: string;
-  image_url: string | null;
-};
-
-type FestivalSummary = {
-  id: number;
-  name: string;
-  start_date: string;
-  end_date: string;
-  location: string | null;
-  region: string | null;
-  status: string | null;
-};
-
-type ArtistFestivalRow = {
-  performance_date: string | null;
-  performance_time: string | null;
-  stage_name: string | null;
-  festivals: FestivalSummary | null;
-};
+import { typography } from "@/lib/typography";
+import type {
+  PublicArtistDetail,
+  PublicArtistFestivalAppearance,
+} from "@/lib/types";
 
 export default function ArtistDetailPage() {
   const params = useParams<{ id: string }>();
   const artistId = Number(params.id);
 
-  const [artist, setArtist] = useState<Artist | null>(null);
+  const [artist, setArtist] =
+    useState<PublicArtistDetail | null>(null);
   const [festivalRows, setFestivalRows] = useState<
-    ArtistFestivalRow[]
+    PublicArtistFestivalAppearance[]
   >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<
@@ -119,7 +102,7 @@ export default function ArtistDetailPage() {
 
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-slate-50 px-4 py-10">
+      <main className="min-h-screen bg-white px-4 py-10">
         <div className="mx-auto max-w-3xl animate-pulse rounded-3xl bg-white p-8 shadow-sm">
           <div className="h-8 w-1/2 rounded bg-slate-200" />
           <div className="mt-8 h-32 rounded bg-slate-100" />
@@ -130,19 +113,19 @@ export default function ArtistDetailPage() {
 
   if (errorMessage || !artist) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+      <main className="flex min-h-screen items-center justify-center bg-white px-4">
         <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-          <h1 className="text-xl font-bold text-slate-900">
+          <h1 className={`${typography.articleSectionTitle} text-slate-900`}>
             아티스트 정보를 표시할 수 없습니다.
           </h1>
 
-          <p className="mt-3 text-sm text-slate-500">
+          <p className={`${typography.body} mt-3 text-slate-500`}>
             {errorMessage}
           </p>
 
           <Link
             href="/"
-            className="mt-6 inline-flex rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white"
+            className={`${typography.button} mt-6 inline-flex rounded-xl bg-slate-900 px-4 py-2.5 text-white`}
           >
             달력으로 돌아가기
           </Link>
@@ -152,28 +135,28 @@ export default function ArtistDetailPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8 sm:py-12">
+    <main className="min-h-screen bg-white px-4 py-8 sm:py-12">
       <article className="mx-auto max-w-3xl">
         <Link
           href="/"
-          className="text-sm font-medium text-slate-500 hover:text-slate-900"
+          className={`${typography.metaStrong} text-slate-500 hover:text-slate-900`}
         >
           ← 달력으로 돌아가기
         </Link>
 
         <div className="mt-5 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
           <header className="border-b border-slate-200 p-6 sm:p-9">
-            <p className="text-sm font-semibold text-slate-400">
+            <p className={`${typography.label} text-slate-400`}>
               아티스트
             </p>
 
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
+            <h1 className={`${typography.pageTitle} mt-3 text-slate-950`}>
               {artist.name}
             </h1>
           </header>
 
           <div className="p-6 sm:p-9">
-            <h2 className="text-lg font-bold text-slate-900">
+            <h2 className={`${typography.sectionTitle} text-slate-900`}>
               출연 페스티벌
             </h2>
 
@@ -198,13 +181,13 @@ export default function ArtistDetailPage() {
                     <Link
                       key={`${festival.id}-${index}`}
                       href={`/festival/${festival.id}`}
-                      className="block rounded-2xl border border-slate-200 p-5 transition hover:border-slate-400 hover:bg-slate-50"
+                      className="block rounded-2xl border border-slate-200 bg-white p-5 transition-shadow hover:shadow-md"
                     >
-                      <h3 className="text-lg font-bold text-slate-900">
+                      <h3 className={`${typography.cardTitle} text-slate-900`}>
                         {festival.name}
                       </h3>
 
-                      <p className="mt-2 text-sm font-medium text-slate-600">
+                      <p className={`${typography.metaStrong} mt-2 text-slate-600`}>
                         {formatFestivalPeriod(
                           festival.start_date,
                           festival.end_date,
@@ -213,7 +196,7 @@ export default function ArtistDetailPage() {
 
                       {(festival.location ||
                         festival.region) && (
-                        <p className="mt-1 text-sm text-slate-500">
+                        <p className={`${typography.meta} mt-1 text-slate-500`}>
                           {[festival.region, festival.location]
                             .filter(Boolean)
                             .join(" · ")}
@@ -223,7 +206,7 @@ export default function ArtistDetailPage() {
                       {(row.performance_date ||
                         row.performance_time ||
                         row.stage_name) && (
-                        <p className="mt-3 text-sm text-slate-500">
+                        <p className={`${typography.meta} mt-3 text-slate-500`}>
                           {row.performance_date}
 
                           {row.performance_time &&

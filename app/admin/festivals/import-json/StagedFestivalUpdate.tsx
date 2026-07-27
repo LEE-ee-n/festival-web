@@ -32,8 +32,8 @@ import {
 } from "@/lib/festivals/festivalUpdatePreview";
 import { buildJsonAuditSummary } from "@/lib/audit/auditSummary";
 import { validateLineupWork, type LineupRound, type LineupWorkType } from "@/lib/audit/lineupWork";
+import { removeCandidateSourceAssets } from "@/lib/festivals/candidateSourceAssets";
 import { supabase } from "@/lib/supabase/client";
-import { promoteCandidatePoster, removeFestivalThumbnailByUrl } from "@/lib/festivals/uploadFestivalThumbnail";
 import type { CandidateSourceAsset, FestivalDraftJson, FestivalRegistrationStep } from "@/lib/types";
 
 type Props = { festivalId: number; updateDraftId: number };
@@ -58,7 +58,6 @@ export default function StagedFestivalUpdate({ festivalId, updateDraftId }: Prop
   const [festival, setFestival] = useState<FestivalRecord | null>(null);
   const [currentArtists, setCurrentArtists] = useState<ExistingFestivalArtist[]>([]);
   const [currentTickets, setCurrentTickets] = useState<ExistingFestivalTicket[]>([]);
-  const [posterAsset, setPosterAsset] = useState<CandidateSourceAsset | null>(null);
   const [sourceAssets, setSourceAssets] = useState<CandidateSourceAsset[]>([]);
   const [draftSourceUrl, setDraftSourceUrl] = useState("");
   const [draftSourceType, setDraftSourceType] = useState("");
@@ -184,10 +183,7 @@ export default function StagedFestivalUpdate({ festivalId, updateDraftId }: Prop
         setCurrentArtists(lineup);
         setCurrentTickets(loadedTickets);
         setSourceUrl(updateDraft.source_url || incoming.candidate?.source_url || "");
-        const firstPoster = candidateAssets[0] ?? null;
         const initialIds = savedSelection.selected_ids ?? preview.filter((item) => item.status === "add").map((item) => item.id);
-        if (!savedSelection.selected_ids && firstPoster?.storage_path) initialIds.push("basic:poster_asset");
-        setPosterAsset(firstPoster);
         setSourceAssets(hydratedAssets);
         setDraftSourceUrl(updateDraft.source_url || incoming.candidate?.source_url || "");
         setDraftSourceType(incoming.candidate?.source_type || "미지정");
@@ -211,23 +207,9 @@ export default function StagedFestivalUpdate({ festivalId, updateDraftId }: Prop
 
   const step = draft ? getRegistrationStep(draft) : "artist_review";
   const activeArtists = draft ? getActiveDraftArtists(draft) : [];
-  const posterComparisonItem: FestivalUpdateItem | null =
-    posterAsset?.storage_path
-      ? {
-          id: "basic:poster_asset",
-          section: "basic",
-          label: "대표 썸네일",
-          status: festival?.thumbnail_url ? "conflict" : "add",
-          current: festival?.thumbnail_url || "없음",
-          incoming: posterAsset.name || "새 게시물의 첫 이미지",
-        }
-      : null;
-  const informationItems = [
-    ...(posterComparisonItem ? [posterComparisonItem] : []),
-    ...items.filter(
-      (item) => item.section !== "lineup" && item.status !== "same",
-    ),
-  ];
+  const informationItems = items.filter(
+    (item) => item.section !== "lineup" && item.status !== "same",
+  );
   const informationSameCount = items.filter(
     (item) => item.section !== "lineup" && item.status === "same",
   ).length;
@@ -471,39 +453,25 @@ export default function StagedFestivalUpdate({ festivalId, updateDraftId }: Prop
       const validationError = validateLineupWork({ workType, lineupRound, announcementDate, sourceUrl, reason });
       if (validationError) { setErrorMessage(validationError); return; }
     }
-    let promotedPoster: Awaited<ReturnType<typeof promoteCandidatePoster>> = null;
     try {
       setIsSaving(true); setErrorMessage(null);
-      if (posterAsset?.storage_path && selectedIds.has("basic:poster_asset")) {
-        promotedPoster = await promoteCandidatePoster(updateDraftId, posterAsset);
-        if (promotedPoster) basicChanges.thumbnail_url = promotedPoster.publicUrl;
-      }
       await saveState(draft);
       const { data, error } = await supabase.rpc("finalize_festival_update_draft", {
         p_update_draft_id: updateDraftId, p_basic_changes: basicChanges, p_artists: artists, p_tickets: tickets,
         p_work_type: artists.length ? workType : undefined, p_lineup_round: artists.length ? lineupRound : undefined,
         p_announcement_date: artists.length ? announcementDate || undefined : undefined, p_reason: artists.length ? reason.trim() || undefined : undefined,
-        p_audit_summary: buildJsonAuditSummary(
-          posterAsset?.storage_path
-            ? [...items, { id: "basic:poster_asset", section: "basic", status: "conflict" as const }]
-            : items,
-          selectedIds,
-        ),
+        p_audit_summary: buildJsonAuditSummary(items, selectedIds),
       });
       if (error) throw new Error(error.message);
       const result = data as { audit_event_id: number; change_count: number };
-      if (promotedPoster) {
-        try {
-          await promotedPoster.removeTemporary();
-          if (festival.thumbnail_url) await removeFestivalThumbnailByUrl(festival.thumbnail_url);
-        } catch (cleanupError) {
-          console.error("기존 수정 썸네일 정리에 실패했습니다.", cleanupError);
-        }
+      try {
+        await removeCandidateSourceAssets(sourceAssets);
+      } catch (cleanupError) {
+        console.error("임시 수집 이미지 정리에 실패했습니다.", cleanupError);
       }
       setNotice(`수정을 완료했습니다. 감사 작업 #${result.audit_event_id} · 변경 ${result.change_count}건`);
       setDraft(null);
     } catch (error) {
-      await promotedPoster?.rollback();
       setErrorMessage(error instanceof Error ? error.message : "최종 반영에 실패했습니다.");
     } finally { setIsSaving(false); }
   }
@@ -590,8 +558,7 @@ export default function StagedFestivalUpdate({ festivalId, updateDraftId }: Prop
                 <div key={section} className="rounded-xl border border-gray-200 bg-white p-3">
                   <p className="text-xs text-gray-500">{SECTION_LABEL[section]}</p>
                   <p className="text-xl font-bold text-gray-900">
-                    {items.filter((item) => item.section === section && selectedIds.has(item.id)).length
-                      + (section === "basic" && selectedIds.has("basic:poster_asset") ? 1 : 0)}건
+                    {items.filter((item) => item.section === section && selectedIds.has(item.id)).length}건
                   </p>
                 </div>
               ))}

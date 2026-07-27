@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 import { supabase } from "@/lib/supabase/client";
 import { getCurrentAdminAccess } from "@/lib/auth/getCurrentAdminAccess";
+import { typography } from "@/lib/typography";
 
 export default function CommonHeader() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -59,7 +60,7 @@ export default function CommonHeader() {
     <div className="mx-auto flex h-14 w-full max-w-[1500px] items-center justify-between px-4 sm:px-6">
       <Link
         href="/"
-        className="flex items-center gap-2.5 font-bold tracking-tight"
+        className={`${typography.brand} flex items-center gap-2.5`}
       >
         <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg bg-festival-coral">
           <span className="inline-block text-xl leading-none text-white animate-[note-bounce_6s_ease-in-out_infinite]">
@@ -70,7 +71,7 @@ export default function CommonHeader() {
         <span>Festival Calendar</span>
       </Link>
 
-      <div className="flex items-center gap-3 text-sm">
+      <div className={`${typography.meta} flex items-center gap-3`}>
         {isLoading ? (
           <span className="text-white/50">
             로그인 확인 중
@@ -84,7 +85,7 @@ export default function CommonHeader() {
             {isAdmin && (
               <Link
                 href="/admin"
-                className="rounded-full border border-white/20 px-4 py-1.5 font-medium text-white hover:bg-white/10"
+                className={`${typography.metaStrong} rounded-full border border-white/20 px-4 py-1.5 text-white hover:bg-white/10`}
               >
                 관리자
               </Link>
@@ -93,7 +94,7 @@ export default function CommonHeader() {
             <button
               type="button"
               onClick={handleLogout}
-              className="rounded-full border border-white/20 px-4 py-1.5 font-medium text-white hover:bg-white/10"
+              className={`${typography.metaStrong} rounded-full border border-white/20 px-4 py-1.5 text-white hover:bg-white/10`}
             >
               로그아웃
             </button>
@@ -101,7 +102,7 @@ export default function CommonHeader() {
         ) : (
           <Link
             href="/admin/login"
-            className="rounded-full border border-white/20 px-4 py-1.5 font-medium text-white hover:bg-white/10"
+            className={`${typography.metaStrong} rounded-full border border-white/20 px-4 py-1.5 text-white hover:bg-white/10`}
           >
             로그인
           </Link>

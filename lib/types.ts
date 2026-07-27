@@ -71,6 +71,46 @@ export interface ArtistReference {
   }>;
 }
 
+export interface PublicArtistDetail {
+  id: number;
+  name: string;
+  image_url: string | null;
+}
+
+export interface PublicArtistFestivalSummary {
+  id: number;
+  name: string;
+  start_date: string;
+  end_date: string;
+  location: string | null;
+  region: string | null;
+  status: string | null;
+}
+
+export interface PublicArtistFestivalAppearance {
+  performance_date: string | null;
+  performance_time: string | null;
+  stage_name: string | null;
+  festivals: PublicArtistFestivalSummary | null;
+}
+
+export type FestivalPanelSummary = Pick<
+  Festival,
+  | "name"
+  | "location"
+  | "address"
+  | "region"
+  | "price_type"
+  | "price_info"
+>;
+
+export type RecentFestivalSummary = Pick<
+  Festival,
+  "id" | "name"
+> & {
+  created_at: string;
+};
+
 export interface FestivalArtist {
   id: number;
   artist_id: number;

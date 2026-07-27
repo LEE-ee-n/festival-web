@@ -17,6 +17,7 @@
     "bookmarklet:nol": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON crawler/bookmarklet/createInstaller.ts",
     "bookmarklet:ticketlink": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON crawler/bookmarklet/createTicketlinkInstaller.ts",
     "bookmarklet:yes24": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON crawler/bookmarklet/createYes24Installer.ts",
+    "bookmarklet:instagram": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON crawler/bookmarklet/createInstagramFirstImageInstaller.ts",
     "db:types": "supabase gen types typescript --project-id cljzrgjatdnefiogedmz --schema public > lib/supabase/database.types.ts",
     "typecheck": "tsc --noEmit",
     "check": "npm test && npm run lint && npm run typecheck && npm run build"

@@ -33,9 +33,6 @@ const BASIC_FIELDS: Array<{
   { key: "description", label: "설명" },
   { key: "price_info", label: "가격 정보" },
   { key: "program_info", label: "프로그램 정보" },
-  { key: "source_url", label: "출처 URL" },
-  { key: "official_url", label: "공식 URL" },
-  { key: "thumbnail_url", label: "썸네일 URL" },
   { key: "price_type", label: "가격 유형" },
   { key: "status", label: "상태" },
 ];

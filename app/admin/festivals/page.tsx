@@ -1,24 +1,29 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { supabase } from "@/lib/supabase/client";
 import { deleteFestival } from "@/lib/festivals/deleteFestival";
+import { findFestivalThumbnailMatches } from "@/lib/festivals/festivalThumbnailSync";
 import { getSupabaseErrorMessage } from "@/lib/supabase/errorMessage";
 
 type Festival = {
   id: number;
   name: string;
+  normalized_name: string;
   start_date: string;
   end_date: string;
   location: string | null;
   status: string | null;
+  thumbnail_url: string | null;
 };
 
 export default function AdminFestivalsPage() {
   const [festivals, setFestivals] = useState<Festival[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [thumbnailSyncMessage, setThumbnailSyncMessage] = useState<string | null>(null);
+  const hasLoadedRef = useRef(false);
 
   const [deletingId, setDeletingId] = useState<number | null>(
     null,
@@ -39,10 +44,12 @@ export default function AdminFestivalsPage() {
         .select(`
           id,
           name,
+          normalized_name,
           start_date,
           end_date,
           location,
-          status
+          status,
+          thumbnail_url
         `)
         .order("start_date", {
           ascending: true,
@@ -52,7 +59,76 @@ export default function AdminFestivalsPage() {
         throw error;
       }
 
-      setFestivals(data ?? []);
+      const loadedFestivals = data ?? [];
+      setFestivals(loadedFestivals);
+
+      try {
+        const { data: storageFiles, error: storageError } = await supabase.storage
+          .from("festival-thumbnails")
+          .list("", {
+            limit: 1000,
+            sortBy: { column: "name", order: "asc" },
+          });
+
+        if (storageError) throw storageError;
+
+        const matches = findFestivalThumbnailMatches(
+          loadedFestivals,
+          (storageFiles ?? []).map((file) => file.name),
+        );
+        let connectedCount = 0;
+        let failedCount = 0;
+        const thumbnailUrls = new Map<number, string>();
+
+        for (const match of matches.matched) {
+          const { data: publicUrlData } = supabase.storage
+            .from("festival-thumbnails")
+            .getPublicUrl(match.fileName);
+          const publicUrl = publicUrlData.publicUrl;
+          const { error: updateError } = await supabase.rpc(
+            "change_festival_thumbnail_with_audit",
+            {
+              p_festival_id: match.festival.id,
+              p_new_url: publicUrl,
+              p_note: "대표 이미지 파일명 규칙으로 자동 연결",
+            },
+          );
+
+          if (updateError) {
+            failedCount += 1;
+            continue;
+          }
+
+          connectedCount += 1;
+          thumbnailUrls.set(match.festival.id, publicUrl);
+        }
+
+        if (thumbnailUrls.size > 0) {
+          setFestivals((current) =>
+            current.map((festival) => ({
+              ...festival,
+              thumbnail_url:
+                thumbnailUrls.get(festival.id) ?? festival.thumbnail_url,
+            })),
+          );
+        }
+
+        const messages = [
+          connectedCount > 0 ? `대표 이미지 ${connectedCount}개 자동 연결` : "",
+          matches.duplicateFileNames.length > 0
+            ? `중복 매칭 ${matches.duplicateFileNames.length}개 제외`
+            : "",
+          failedCount > 0 ? `연결 실패 ${failedCount}개` : "",
+        ].filter(Boolean);
+        setThumbnailSyncMessage(messages.length > 0 ? messages.join(" · ") : null);
+      } catch (syncError) {
+        setThumbnailSyncMessage(
+          `대표 이미지 자동 연결 실패: ${getSupabaseErrorMessage(
+            syncError,
+            "Storage 파일을 확인하지 못했습니다.",
+          )}`,
+        );
+      }
     } catch (error) {
       setErrorMessage(getSupabaseErrorMessage(
         error,
@@ -64,6 +140,8 @@ export default function AdminFestivalsPage() {
   }
 
   useEffect(() => {
+    if (hasLoadedRef.current) return;
+    hasLoadedRef.current = true;
     queueMicrotask(() => {
       void loadFestivals();
     });
@@ -139,6 +217,12 @@ export default function AdminFestivalsPage() {
         {errorMessage && (
           <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
             {errorMessage}
+          </div>
+        )}
+
+        {thumbnailSyncMessage && (
+          <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm font-semibold text-blue-700">
+            {thumbnailSyncMessage}
           </div>
         )}
 

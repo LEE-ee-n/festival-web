@@ -3,6 +3,7 @@ import { Tag, Ticket } from "lucide-react";
 import { useCurrentTimeAt } from "@/lib/hooks/useCurrentTimeAt";
 import { getOpenTicketLinks } from "@/lib/festivals/ticketDisplay";
 import type { FestivalTicketRound } from "@/lib/types";
+import { typography } from "@/lib/typography";
 
 type FestivalTicketSectionProps = {
   ticketRounds: FestivalTicketRound[];
@@ -31,26 +32,26 @@ export default function FestivalTicketSection({
   return (
     <section>
 
-      <h2 className="pt-6 flex items-center justify-center gap-2 text-sm font-bold text-slate-700">
+      <h2 className={`${typography.panelSectionTitle} flex items-center justify-center gap-2 pt-6 text-slate-700`}>
         <Ticket size={16} />
         <span>티켓 안내</span>
       </h2>
 
       <div className="pt-3">
         <div className="pt-3">
-          <h3 className="flex items-center gap-2 overflow-hidden rounded-xl bg-teal-100 px-3 py-3 text-sm font-bold text-slate-700">
+          <h3 className={`${typography.panelSectionTitle} flex items-center gap-2 overflow-hidden rounded-xl bg-teal-100 px-3 py-3 text-slate-700`}>
             <Tag size={16} />
             <span>{ticketInfo.round_name}</span>
           </h3>
 
           {openAtText && (
-            <p className="px-6 pt-2 text-sm font-semibold text-slate-700">
+            <p className={`${typography.label} px-6 pt-2 text-slate-700`}>
               {openAtText}
             </p>
           )}
 
           {ticketInfo.price_info && (
-            <p className="whitespace-pre-line px-6 pt-2 text-sm leading-6 text-slate-700">
+            <p className={`${typography.bodyCompact} whitespace-pre-line px-6 pt-2 text-slate-700`}>
               {ticketInfo.price_info}
             </p>
           )}
@@ -72,7 +73,7 @@ export default function FestivalTicketSection({
                   href={round.ticket_url || "#"}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex w-full items-center justify-center rounded-xl py-3 bg-slate-800 text-center text-sm font-semibold text-white hover:bg-slate-700"
+                  className={`${typography.button} flex w-full items-center justify-center rounded-xl bg-slate-800 py-3 text-center text-white hover:bg-slate-700`}
                 >
                   {round.ticket_platform || "예매하기"}
                 </a>

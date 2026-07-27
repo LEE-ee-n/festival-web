@@ -1,5 +1,6 @@
 import FestivalCard from "@/components/FestivalCard";
 import type { Festival } from "@/lib/types";
+import { typography } from "@/lib/typography";
 import Image from "next/image";
 
 interface FestivalListProps {
@@ -18,11 +19,11 @@ export default function FestivalList({
   return (
     <section className="@container">
       <div className="flex items-center gap-3 pt-3">
-        <h2 className="text-sm font-bold text-slate-700">
+        <h2 className={`${typography.panelSectionTitle} text-slate-700`}>
           {dateText}
         </h2>
 
-        <span className="text-xs text-slate-700">
+        <span className={`${typography.caption} text-slate-700`}>
           {festivals.length}개 축제
         </span>
       </div>
@@ -40,11 +41,11 @@ export default function FestivalList({
               className="mx-auto"
             />
 
-            <p className="pt-3 font-medium text-slate-700">
+            <p className={`${typography.value} pt-3 text-slate-700`}>
               등록된 축제가 없습니다.
             </p>
 
-            <p className="pt-3 text-sm text-slate-400">
+            <p className={`${typography.body} pt-3 text-slate-400`}>
               다른 날짜를 선택해 주세요.
             </p>
           </div>

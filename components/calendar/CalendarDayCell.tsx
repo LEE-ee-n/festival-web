@@ -1,13 +1,7 @@
-import type { Festival } from "@/lib/types";
+import type { CalendarDay, Festival } from "@/lib/types";
 import { getFestivalBarSegment } from "@/lib/calendarFestivalBar";
 import { MAX_VISIBLE_FESTIVAL_LANES } from "@/lib/calendarFestivalLanes";
-
-type CalendarDay = {
-  dateKey: string;
-  dayNumber: number;
-  isCurrentMonth: boolean;
-  isToday: boolean;
-};
+import { typography } from "@/lib/typography";
 
 type CalendarDayCellProps = {
   day: CalendarDay;
@@ -64,7 +58,7 @@ export default function CalendarDayCell({
     >
       <span
         className={[
-          "absolute left-1 top-[2px] inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-xs font-semibold sm:left-2 sm:top-2 sm:h-7 sm:min-w-7 sm:text-[15px]",
+          `${typography.calendarDate} absolute left-1 top-[2px] inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1 sm:left-2 sm:top-2 sm:h-7 sm:min-w-7`,
           day.isToday ? "bg-slate-900 text-white" : "",
           dayIndex % 7 === 0 && !day.isToday
             ? "text-red-600"
@@ -78,7 +72,7 @@ export default function CalendarDayCell({
       </span>
 
       {!isLoading && hiddenFestivalCount > 0 && (
-        <span className="absolute right-2 top-[2px] inline-flex h-6 items-center text-[10px] font-medium text-slate-500 sm:top-2 sm:h-7 sm:text-xs">
+        <span className={`${typography.calendarOverflow} absolute right-2 top-[2px] inline-flex h-6 items-center text-slate-500 sm:top-2 sm:h-7`}>
           +{hiddenFestivalCount}개
         </span>
       )}
@@ -148,7 +142,7 @@ export default function CalendarDayCell({
                       >
                         <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-white/80" />
 
-                        <span className="whitespace-nowrap text-[11px] font-semibold text-white">
+                        <span className={`${typography.calendarEvent} whitespace-nowrap text-white`}>
                           {festival.name.replace(
                             /^\d{4}\s*/,
                             "",

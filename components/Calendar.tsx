@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState, useRef } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   usePathname,
   useRouter,
@@ -13,6 +19,7 @@ import {
   getFestivalsForDate,
   toDateKey,
 } from "@/lib/calendar";
+import { typography } from "@/lib/typography";
 import { supabase } from "@/lib/supabase/client";
 import type { Festival } from "@/lib/types";
 import { assignFestivalLanes } from "@/lib/calendarFestivalLanes";
@@ -102,21 +109,24 @@ export default function Calendar() {
   const isActiveDatePanelOpen =
     isSelectedDateInCurrentMonth && isDatePanelOpen;
 
-  function navigateToMonth(year: number, monthIndex: number) {
-    const nextSearchParams = new URLSearchParams(
-      searchParams.toString(),
-    );
+  const navigateToMonth = useCallback(
+    (year: number, monthIndex: number) => {
+      const nextSearchParams = new URLSearchParams(
+        searchParams.toString(),
+      );
 
-    nextSearchParams.set("year", String(year));
-    nextSearchParams.set("month", String(monthIndex + 1));
+      nextSearchParams.set("year", String(year));
+      nextSearchParams.set("month", String(monthIndex + 1));
 
-    setSelectedDateKey(toDateKey(new Date(year, monthIndex, 1)));
-    setSelectedFestival(null);
-    setIsDatePanelOpen(false);
-    router.push(`${pathname}?${nextSearchParams.toString()}`, {
-      scroll: false,
-    });
-  }
+      setSelectedDateKey(toDateKey(new Date(year, monthIndex, 1)));
+      setSelectedFestival(null);
+      setIsDatePanelOpen(false);
+      router.push(`${pathname}?${nextSearchParams.toString()}`, {
+        scroll: false,
+      });
+    },
+    [pathname, router, searchParams],
+  );
 
   function selectDate(dateKey: string) {
     const adjacentMonth = getAdjacentMonthForDate(
@@ -253,55 +263,74 @@ export default function Calendar() {
 
   const pointerStartX = useRef<number | null>(null);
   const pointerStartY = useRef<number | null>(null);
+  const calendarWheelTargetRef = useRef<HTMLDivElement>(null);
   const wheelDeltaY = useRef(0);
   const wheelLastEventAt = useRef(0);
   const wheelLockedUntil = useRef(0);
 
-  function moveMonth(amount: number) {
-    const nextMonth = new Date(
-      currentYear,
-      currentMonthIndex + amount,
-      1,
-    );
+  const moveMonth = useCallback(
+    (amount: number) => {
+      const nextMonth = new Date(
+        currentYear,
+        currentMonthIndex + amount,
+        1,
+      );
 
-    navigateToMonth(nextMonth.getFullYear(), nextMonth.getMonth());
-  }
+      navigateToMonth(nextMonth.getFullYear(), nextMonth.getMonth());
+    },
+    [currentMonthIndex, currentYear, navigateToMonth],
+  );
 
-  function handleCalendarWheel(
-    event: React.WheelEvent<HTMLDivElement>,
-  ) {
-    if (
-      event.ctrlKey ||
-      window.matchMedia("(pointer: coarse)").matches ||
-      Math.abs(event.deltaY) <= Math.abs(event.deltaX)
-    ) {
-      return;
-    }
+  const handleCalendarWheel = useCallback(
+    (event: WheelEvent) => {
+      if (
+        event.ctrlKey ||
+        window.matchMedia("(pointer: coarse)").matches ||
+        Math.abs(event.deltaY) <= Math.abs(event.deltaX)
+      ) {
+        return;
+      }
 
-    event.preventDefault();
+      event.preventDefault();
 
-    const now = Date.now();
+      const now = Date.now();
 
-    if (now < wheelLockedUntil.current) {
-      return;
-    }
+      if (now < wheelLockedUntil.current) {
+        return;
+      }
 
-    if (now - wheelLastEventAt.current > 180) {
+      if (now - wheelLastEventAt.current > 180) {
+        wheelDeltaY.current = 0;
+      }
+
+      wheelLastEventAt.current = now;
+      wheelDeltaY.current += event.deltaY;
+
+      if (Math.abs(wheelDeltaY.current) < 80) {
+        return;
+      }
+
+      const direction = wheelDeltaY.current > 0 ? 1 : -1;
       wheelDeltaY.current = 0;
-    }
+      wheelLockedUntil.current = now + 450;
+      moveMonth(direction);
+    },
+    [moveMonth],
+  );
 
-    wheelLastEventAt.current = now;
-    wheelDeltaY.current += event.deltaY;
+  useEffect(() => {
+    const wheelTarget = calendarWheelTargetRef.current;
 
-    if (Math.abs(wheelDeltaY.current) < 80) {
-      return;
-    }
+    if (!wheelTarget) return;
 
-    const direction = wheelDeltaY.current > 0 ? 1 : -1;
-    wheelDeltaY.current = 0;
-    wheelLockedUntil.current = now + 450;
-    moveMonth(direction);
-  }
+    wheelTarget.addEventListener("wheel", handleCalendarWheel, {
+      passive: false,
+    });
+
+    return () => {
+      wheelTarget.removeEventListener("wheel", handleCalendarWheel);
+    };
+  }, [handleCalendarWheel]);
 
   function handlePointerDown(
   event: React.PointerEvent<HTMLDivElement>,
@@ -400,8 +429,8 @@ function handlePointerUp(
       >
       <div className="min-w-0">
         <div
+          ref={calendarWheelTargetRef}
           className="overflow-hidden shadow-sm"
-          onWheel={handleCalendarWheel}
         >
           <CalendarHeader
             currentYear={currentYear}
@@ -414,7 +443,7 @@ function handlePointerUp(
           />
 
           {errorMessage && (
-            <div className="border-b border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div className={`${typography.body} border-b border-red-200 bg-red-50 px-4 py-3 text-red-700`}>
               {errorMessage}
             </div>
           )}

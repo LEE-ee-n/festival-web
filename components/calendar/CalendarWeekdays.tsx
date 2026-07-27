@@ -1,3 +1,5 @@
+import { typography } from "@/lib/typography";
+
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
 export default function CalendarWeekdays() {
@@ -8,7 +10,7 @@ export default function CalendarWeekdays() {
           <div
             key={weekday}
             className={[
-              "flex h-7 items-center justify-center text-center text-[13px] font-semibold sm:h-11",
+              `${typography.calendarWeekday} flex h-7 items-center justify-center text-center sm:h-11`,
               index === 0
                 ? "text-red-600"
                 : index === 6

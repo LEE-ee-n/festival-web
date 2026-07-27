@@ -5,6 +5,7 @@ import {
   Music,
 } from "lucide-react";
 import type { FestivalArtist } from "@/lib/types";
+import { typography } from "@/lib/typography";
 
 type ArtistsByDateAndStage = Record<
   string,
@@ -14,11 +15,13 @@ type ArtistsByDateAndStage = Record<
 type FestivalTimetableProps = {
   artistsByDateAndStage: ArtistsByDateAndStage;
   artistCount: number;
+  layout?: "panel" | "page";
 };
 
 export default function FestivalTimetable({
   artistsByDateAndStage,
   artistCount,
+  layout = "panel",
 }: FestivalTimetableProps) {
   if (artistCount === 0) {
     return null;
@@ -26,7 +29,7 @@ export default function FestivalTimetable({
 
   return (
     <section>
-      <h2 className="pt-6 flex items-center justify-center gap-2 text-sm font-bold text-slate-700">
+      <h2 className={`${typography.panelSectionTitle} flex items-center justify-center gap-2 pt-6 text-slate-700`}>
         <Music size={16} />
         <span>출연진</span>
       </h2>
@@ -35,7 +38,7 @@ export default function FestivalTimetable({
         {Object.entries(artistsByDateAndStage).map(
           ([date, stageGroups]) => (
             <div key={date}>
-              <h3 className="inline-flex items-center gap-2 rounded-xl bg-slate-800 px-3 py-3 text-sm font-bold text-white">
+              <h3 className={`${typography.panelSectionTitle} inline-flex items-center gap-2 rounded-xl bg-slate-800 px-3 py-3 text-white`}>
                 <CalendarDays size={16} />
 
                 <span>
@@ -59,6 +62,7 @@ export default function FestivalTimetable({
                       key={stage}
                       stage={stage}
                       artists={artists}
+                      layout={layout}
                     />
                   ),
                 )}

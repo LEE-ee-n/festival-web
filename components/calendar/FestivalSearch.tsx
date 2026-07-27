@@ -9,6 +9,7 @@ import {
   type PublicSearchResults,
 } from "@/lib/publicSearch";
 import type { Festival } from "@/lib/types";
+import { typography } from "@/lib/typography";
 
 type FestivalSearchProps = {
   onSelectFestival: (festival: Festival) => void;
@@ -111,7 +112,7 @@ export default function FestivalSearch({
                   if (!event.target.value.trim()) clearResults();
                 }}
                 placeholder="축제 또는 아티스트 검색"
-                className="min-w-0 flex-1 border-0 bg-transparent text-base outline-none"
+                className={`${typography.searchInput} min-w-0 flex-1 border-0 bg-transparent outline-none`}
               />
               <button
                 type="button"
@@ -125,12 +126,12 @@ export default function FestivalSearch({
 
             <div className="max-h-[calc(75dvh-77px)] overflow-y-auto p-3">
               {isSearching && (
-                <p className="p-4 text-center text-sm text-slate-500">
+                <p className={`${typography.body} p-4 text-center text-slate-500`}>
                   검색 중...
                 </p>
               )}
               {errorMessage && (
-                <p className="rounded-xl bg-red-50 p-3 text-sm font-semibold text-red-700">
+                <p className={`${typography.label} rounded-xl bg-red-50 p-3 text-red-700`}>
                   {errorMessage}
                 </p>
               )}
@@ -138,7 +139,7 @@ export default function FestivalSearch({
                 keyword.trim() &&
                 !hasResults &&
                 !errorMessage && (
-                  <p className="p-4 text-center text-sm text-slate-500">
+                  <p className={`${typography.body} p-4 text-center text-slate-500`}>
                     검색 결과가 없습니다.
                   </p>
                 )}
@@ -154,10 +155,10 @@ export default function FestivalSearch({
                     }}
                     className="w-full rounded-xl border border-slate-200 p-3 text-left transition hover:border-slate-400 hover:bg-slate-50"
                   >
-                    <p className="font-bold text-slate-900">
+                    <p className={`${typography.subsectionTitle} text-slate-900`}>
                       {festival.name}
                     </p>
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className={`${typography.caption} mt-1 text-slate-500`}>
                       {festival.start_date === festival.end_date
                         ? festival.start_date
                         : `${festival.start_date} ~ ${festival.end_date}`}
@@ -175,10 +176,10 @@ export default function FestivalSearch({
                     }}
                     className="w-full rounded-xl border border-slate-200 p-3 text-left transition hover:border-slate-400 hover:bg-slate-50"
                   >
-                    <p className="font-bold text-slate-900">
+                    <p className={`${typography.subsectionTitle} text-slate-900`}>
                       {artist.name}
                     </p>
-                    <p className="mt-1 truncate text-xs text-slate-500">
+                    <p className={`${typography.caption} mt-1 truncate text-slate-500`}>
                       {artist.aliases.length > 0
                         ? artist.aliases.join(", ")
                         : artist.normalized_name}

@@ -93,7 +93,7 @@
 | `description` | text | YES | 없음 | 축제 소개 |
 | `price_info` | text | YES | 없음 | 기본 가격 안내 |
 | `program_info` | text | YES | 없음 | 프로그램 안내 |
-| `source_url` | text | YES | 없음 | 정보 출처 URL |
+| `source_url` | text | YES | 없음 | 구형 축제 단일 출처 URL. 신규 수집 출처는 후보·수정 작업·감사 로그에 저장 |
 | `confidence_score` | integer | YES | `60` | 구형 수집 신뢰도 |
 | `verification_status` | text | YES | `pending` | 검증 상태 |
 | `created_at` | timestamptz | YES | `now()` | 생성 시각 |
@@ -241,7 +241,7 @@
 | `updated_at` | timestamptz | YES | `now()` | 수정 시각 |
 | `festival_id` | bigint | YES | 없음 | 승인 후 정식 축제 FK |
 | `draft_json` | jsonb | YES | 없음 | 전체 축제 후보 JSON |
-| `source_assets` | jsonb | NO | `[]` | 포스터 등 원본 파일 정보 |
+| `source_assets` | jsonb | NO | `[]` | 승인 전 OCR·검토용 임시 이미지 정보 |
 | `review_notes` | text | YES | 없음 | 관리자 검수 메모 |
 | `reviewed_by` | uuid | YES | 없음 | 검수 관리자 |
 | `work_type` | text | NO | `new` | 신규·판별 확인용. Migration 041 이후 update 저장 차단 |
@@ -260,11 +260,13 @@
 
 Bot과 화면의 신규 전용 분기를 수정했고, Migration 030을 운영 DB에 적용해 RPC도 신규 작업만 허용한다.
 
-Migration 037~039는 2026-07-22 운영 DB에 적용했다. 최종 승인 시 후보 원문 제거, 타임테이블 상태·신규 연결 `input_name` 반영, Discord 수집 초안 RPC를 제공한다. 파일 객체 삭제와 정식 썸네일 승격은 애플리케이션에서 처리한다.
+Migration 037~039는 2026-07-22 운영 DB에 적용했다. 최종 승인 시 후보 원문 제거, 타임테이블 상태·신규 연결 `input_name` 반영, Discord 수집 초안 RPC를 제공한다. 수집 이미지는 승인 성공 후 애플리케이션에서 삭제하며 대표 이미지로 자동 승격하지 않는다.
 
 승인된 `festival_candidates` 행은 삭제하지 않고 신규 등록 이력으로 남긴다. `status = approved`와 `festival_id`로 정식 `festivals` 행을 가리키며, OCR·JSON·임시 이미지 메타데이터는 제거한다. Migration 040은 승인 완료 행을 읽기 전용으로 잠그고 임시저장 때문에 `pending`으로 잘못 돌아간 신규 등록 이력을 복구한다. 운영 적용을 확인했다.
 
 Migration 042는 관리자 검토가 끝난 `needs_review` 후보를 최종 등록 트랜잭션 안에서 `new`로 전환하고 기존 신규 승인 RPC를 호출하는 `approve_reviewed_festival_candidate`를 추가한다. 기존 축제 식별값 중복 차단과 필수정보 검증은 유지한다. 운영 DB 적용 전이다.
+
+Migration 046은 신규 승인 시 후보의 수집 게시물 URL이 `festivals.source_url`로 복사되지 않게 분리한다. 후보와 감사 로그의 `source_url`은 유지하고 `festivals.official_url`은 관리자 수동 입력으로만 관리한다. 2026-07-27 운영 DB 적용 완료.
 
 ## 6-1. festival_update_drafts
 

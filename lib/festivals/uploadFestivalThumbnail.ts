@@ -1,6 +1,5 @@
 import { supabase } from "@/lib/supabase/client";
 import { getFestivalThumbnailExtension, validateFestivalThumbnailFile } from "@/lib/festivals/thumbnailValidation";
-import type { CandidateSourceAsset } from "@/lib/types";
 
 function thumbnailPath(url: string) {
   const marker = "/festival-thumbnails/";
@@ -13,43 +12,6 @@ export async function removeFestivalThumbnailByUrl(url: string) {
   if (!path) return;
   const { error } = await supabase.storage.from("festival-thumbnails").remove([path]);
   if (error) throw error;
-}
-
-export async function promoteCandidatePoster(
-  candidateId: number,
-  asset: CandidateSourceAsset,
-) {
-  if (!asset.storage_path) return null;
-
-  const { data: poster, error: downloadError } = await supabase.storage
-    .from("festival-candidate-posters")
-    .download(asset.storage_path);
-  if (downloadError) throw downloadError;
-
-  const finalPath = `candidate-${candidateId}/${Date.now()}.webp`;
-  const { error: uploadError } = await supabase.storage
-    .from("festival-thumbnails")
-    .upload(finalPath, poster, {
-      upsert: false,
-      contentType: "image/webp",
-    });
-  if (uploadError) throw uploadError;
-
-  const { data } = supabase.storage
-    .from("festival-thumbnails")
-    .getPublicUrl(finalPath);
-
-  return {
-    publicUrl: data.publicUrl,
-    async rollback() {
-      await supabase.storage.from("festival-thumbnails").remove([finalPath]);
-    },
-    async removeTemporary() {
-      await supabase.storage
-        .from("festival-candidate-posters")
-        .remove([asset.storage_path as string]);
-    },
-  };
 }
 
 export async function uploadFestivalThumbnail(

@@ -5,18 +5,15 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { supabase } from "@/lib/supabase/client";
-
-type RecentFestival = {
-  id: number;
-  name: string;
-  created_at: string;
-};
+import { typography } from "@/lib/typography";
+import type { RecentFestivalSummary } from "@/lib/types";
 
 const RECENT_DAYS = 7;
 const ROTATION_MS = 3000;
 
 export default function RecentFestivalTicker() {
-  const [festivals, setFestivals] = useState<RecentFestival[]>([]);
+  const [festivals, setFestivals] =
+    useState<RecentFestivalSummary[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [previousIndex, setPreviousIndex] = useState<number | null>(
     null,
@@ -40,7 +37,15 @@ export default function RecentFestivalTicker() {
 
       if (error || isCancelled) return;
 
-      setFestivals((data ?? []) as RecentFestival[]);
+      const recentFestivals = (data ?? []).filter(
+        (
+          festival,
+        ): festival is typeof festival & {
+          created_at: string;
+        } => festival.created_at !== null,
+      );
+
+      setFestivals(recentFestivals);
     }
 
     void fetchRecentFestivals();
@@ -73,7 +78,7 @@ export default function RecentFestivalTicker() {
       className="border-b border-slate-200 bg-white"
     >
       <div className="flex h-10 items-center px-4 sm:px-6">
-        <span className="mr-2 shrink-0 rounded bg-rose-500 px-1.5 py-0.5 text-[10px] font-extrabold tracking-wide text-white">
+        <span className={`${typography.tickerBadge} mr-2 shrink-0 rounded bg-rose-500 px-1.5 py-0.5 text-white`}>
           NEW
         </span>
 
@@ -82,7 +87,7 @@ export default function RecentFestivalTicker() {
             <Link
               key={`previous-${previousFestival.id}`}
               href={`/festival/${previousFestival.id}`}
-              className="recent-festival-ticker-out absolute inset-0 flex min-w-0 items-center text-sm font-medium text-slate-700"
+              className={`${typography.metaStrong} recent-festival-ticker-out absolute inset-0 flex min-w-0 items-center text-slate-700`}
             >
               <span className="truncate">
                 {previousFestival.name}이 새로 등록되었습니다.
@@ -94,7 +99,7 @@ export default function RecentFestivalTicker() {
             key={`current-${currentFestival.id}`}
             href={`/festival/${currentFestival.id}`}
             className={[
-              "absolute inset-0 flex min-w-0 items-center text-sm font-medium text-slate-700 hover:text-slate-950",
+              `${typography.metaStrong} absolute inset-0 flex min-w-0 items-center text-slate-700 hover:text-slate-950`,
               previousFestival ? "recent-festival-ticker-in" : "",
             ].join(" ")}
           >

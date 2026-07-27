@@ -442,7 +442,8 @@ async function extractInstagramPost(url, jobId, update) {
     );
     draft.candidate.source_type = "instagram_discord";
     draft.candidate.source_url = source.post_url;
-    draft.festival.source_url = source.post_url;
+    draft.festival.source_url = "";
+    draft.festival.official_url = "";
     draft.festival.thumbnail_url = "";
     await update("DB 아티스트와 축제를 비교하는 중");
     await matchArtists(draft);

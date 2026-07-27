@@ -2,19 +2,22 @@ import { HandMetal } from "lucide-react";
 
 import ArtistScheduleRow from "@/components/festival/ArtistScheduleRow";
 import type { FestivalArtist } from "@/lib/types";
+import { typography } from "@/lib/typography";
 
 type StageScheduleProps = {
   stage: string;
   artists: FestivalArtist[];
+  layout?: "panel" | "page";
 };
 
 export default function StageSchedule({
   stage,
   artists,
+  layout = "panel",
 }: StageScheduleProps) {
   return (
     <div>
-      <h4 className="flex items-center gap-2 overflow-hidden rounded-xl border border-slate-200 bg-blue-100 px-3 py-3 text-sm font-bold text-slate-700">
+      <h4 className={`${typography.panelSectionTitle} flex items-center gap-2 overflow-hidden rounded-xl border border-slate-200 bg-blue-100 px-3 py-3 text-slate-700`}>
         <HandMetal size={14} />
         <span>{stage}</span>
       </h4>
@@ -24,6 +27,7 @@ export default function StageSchedule({
             <ArtistScheduleRow
                 key={item.artist_id}
                 item={item}
+                layout={layout}
             />
             ))}
       </div>

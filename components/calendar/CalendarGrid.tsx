@@ -1,12 +1,5 @@
 import CalendarDayCell from "@/components/calendar/CalendarDayCell";
-import type { Festival } from "@/lib/types";
-
-type CalendarDay = {
-  dateKey: string;
-  dayNumber: number;
-  isCurrentMonth: boolean;
-  isToday: boolean;
-};
+import type { CalendarDay, Festival } from "@/lib/types";
 
 type CalendarGridProps = {
   calendarDays: CalendarDay[];

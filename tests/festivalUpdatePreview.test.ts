@@ -46,6 +46,23 @@ test("기존 기본정보와 다른 JSON 값은 자동 추가가 아니라 충�
   assert.equal(location?.current, "기존 공연장");
 });
 
+test("수집 JSON의 출처·공식 URL·썸네일은 운영 기본정보 변경 대상에서 제외한다", () => {
+  const incoming = draft();
+  incoming.festival.source_url = "https://www.instagram.com/p/source/";
+  incoming.festival.official_url = "https://example.com/generated";
+  incoming.festival.thumbnail_url = "https://example.com/lineup.webp";
+
+  const items = createFestivalUpdatePreview(draft().festival, [], [], incoming);
+
+  assert.equal(
+    items.some((item) =>
+      ["source_url", "official_url", "thumbnail_url"].includes(
+        item.basicField ?? "",
+      )),
+    false,
+  );
+});
+
 test("같은 아티스트라도 공연 날짜가 다르면 신규 라인업으로 표시한다", () => {
   const currentArtists: ExistingFestivalArtist[] = [{
     id: 1,

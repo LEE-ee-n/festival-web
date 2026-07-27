@@ -3,6 +3,7 @@ import { CalendarDays } from "lucide-react";
 import FestivalSearch from "@/components/calendar/FestivalSearch";
 import type { PublicArtistSearchResult } from "@/lib/publicSearch";
 import type { Festival } from "@/lib/types";
+import { typography } from "@/lib/typography";
 
 type CalendarHeaderProps = {
   currentYear: number;
@@ -52,7 +53,7 @@ export default function CalendarHeader({
         />
       </div>
 
-      <h1 className="text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">
+      <h1 className={`${typography.calendarTitle} text-slate-950`}>
         {currentYear}년 {currentMonthIndex + 1}월
       </h1>
 

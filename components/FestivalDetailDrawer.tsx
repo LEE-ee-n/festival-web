@@ -13,6 +13,7 @@ import FestivalTimetableSkeleton from "@/components/festival/loading/FestivalTim
 import { formatFestivalPeriod } from "@/lib/calendar";
 import { getLatestTicketRoundGroup } from "@/lib/festivals/ticketDisplay";
 import { useFestivalDetail } from "@/lib/hooks/useFestivalDetail";
+import { typography } from "@/lib/typography";
 
 type FestivalDetailDrawerProps = {
   festivalId: number | null;
@@ -75,10 +76,10 @@ export default function FestivalDetailDrawer({
       ) : errorMessage || !festival ? (
         <div className="p-6 sm:p-8">
           <div className="rounded-3xl border border-red-200 bg-white p-8 text-center shadow-sm">
-            <h2 className="text-xl font-bold text-slate-700">
+            <h2 className={`${typography.articleSectionTitle} text-slate-700`}>
               축제 정보를 표시할 수 없습니다.
             </h2>
-            <p className="mt-3 text-sm text-slate-500">
+            <p className={`${typography.body} mt-3 text-slate-500`}>
               {errorMessage}
             </p>
           </div>
@@ -101,11 +102,11 @@ export default function FestivalDetailDrawer({
 
           {festival.program_info && (
             <section>
-              <h2 className="flex items-center justify-center gap-2 pt-6 text-sm font-bold text-slate-700">
+              <h2 className={`${typography.label} flex items-center justify-center gap-2 pt-6 text-slate-700`}>
                 <ListMusic size={16} />
                 <span>프로그램</span>
               </h2>
-              <p className="whitespace-pre-line px-6 pt-3 text-sm leading-7 text-slate-700">
+              <p className={`${typography.bodyRelaxed} whitespace-pre-line px-6 pt-3 text-slate-700`}>
                 {festival.program_info}
               </p>
               <div className="border-b border-slate-200 pt-6" />

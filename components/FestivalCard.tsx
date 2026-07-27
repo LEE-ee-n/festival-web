@@ -1,5 +1,6 @@
 import { formatFestivalPeriod } from "@/lib/calendar";
 import type { Festival } from "@/lib/types";
+import { typography } from "@/lib/typography";
 
 import {CalendarDays,   MapPin, } from "lucide-react";
 
@@ -53,12 +54,12 @@ export default function FestivalCard({
 
     <div className="min-w-0 flex-1">
       <div className="pt-3">
-        <h3 className="min-w-0 text-lg font-bold text-slate-700">
+        <h3 className={`${typography.cardTitle} min-w-0 text-slate-700`}>
           {festival.name.replace(/^\d{4}\s*/, "")}
         </h3>
 
         <div className="pt-6 space-y-3">
-          <p className="flex items-center gap-1.5 text-sm text-slate-700">
+          <p className={`${typography.meta} flex items-center gap-1.5 text-slate-700`}>
             <MapPin className="h-4 w-4 shrink-0" />
 
             <span>
@@ -66,7 +67,7 @@ export default function FestivalCard({
             </span>
           </p>
 
-          <p className="flex items-center gap-1.5 text-sm text-slate-700">
+          <p className={`${typography.meta} flex items-center gap-1.5 text-slate-700`}>
             <CalendarDays className="h-4 w-4 shrink-0" />
 
             <span>
