@@ -3,90 +3,34 @@
 import { Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { supabase } from "@/lib/supabase/client";
+import {
+  searchPublicContent,
+  type PublicArtistSearchResult,
+  type PublicSearchResults,
+} from "@/lib/publicSearch";
 import type { Festival } from "@/lib/types";
 
 type FestivalSearchProps = {
   onSelectFestival: (festival: Festival) => void;
+  onSelectArtist: (artist: PublicArtistSearchResult) => void;
 };
 
-const FESTIVAL_SELECT_COLUMNS = `
-  id,
-  name,
-  start_date,
-  end_date,
-  location,
-  address,
-  region,
-  category,
-  description,
-  official_url,
-  thumbnail_url,
-  price_info,
-  price_type,
-  program_info,
-  source_url,
-  slug,
-  status,
-  confidence_score,
-  verification_status,
-  created_at,
-  updated_at
-`;
-
-function normalizeSearchText(value: string) {
-  return value
-    .normalize("NFKC")
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, "");
-}
-
-async function searchFestivals(keyword: string) {
-  const normalizedKeyword = normalizeSearchText(keyword);
-  const columns = ["name", "search_aliases"];
-
-  if (normalizedKeyword) {
-    columns.push("normalized_name");
-  }
-
-  const results = await Promise.all(
-    columns.map((column) =>
-      supabase
-        .from("festivals")
-        .select(FESTIVAL_SELECT_COLUMNS)
-        .eq("verification_status", "approved")
-        .neq("status", "cancelled")
-        .ilike(
-          column,
-          `%${column === "normalized_name" ? normalizedKeyword : keyword}%`,
-        )
-        .order("start_date", { ascending: true })
-        .limit(20),
-    ),
-  );
-
-  const failedResult = results.find((result) => result.error);
-  if (failedResult?.error) throw failedResult.error;
-
-  return Array.from(
-    new Map(
-      results
-        .flatMap((result) => (result.data ?? []) as Festival[])
-        .map((festival) => [festival.id, festival]),
-    ).values(),
-  ).sort((left, right) =>
-    left.start_date.localeCompare(right.start_date),
-  );
-}
+const EMPTY_RESULTS: PublicSearchResults = {
+  festivals: [],
+  artists: [],
+};
 
 export default function FestivalSearch({
   onSelectFestival,
+  onSelectArtist,
 }: FestivalSearchProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [keyword, setKeyword] = useState("");
-  const [results, setResults] = useState<Festival[]>([]);
+  const [results, setResults] =
+    useState<PublicSearchResults>(EMPTY_RESULTS);
   const [isSearching, setIsSearching] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] =
+    useState<string | null>(null);
 
   useEffect(() => {
     const searchKeyword = keyword.trim();
@@ -97,7 +41,8 @@ export default function FestivalSearch({
       try {
         setIsSearching(true);
         setErrorMessage(null);
-        const nextResults = await searchFestivals(searchKeyword);
+        const nextResults =
+          await searchPublicContent(searchKeyword);
 
         if (!isCancelled) setResults(nextResults);
       } catch (error) {
@@ -105,7 +50,7 @@ export default function FestivalSearch({
           setErrorMessage(
             error instanceof Error
               ? error.message
-              : "축제 검색에 실패했습니다.",
+              : "검색에 실패했습니다.",
           );
         }
       } finally {
@@ -119,43 +64,53 @@ export default function FestivalSearch({
     };
   }, [isOpen, keyword]);
 
+  function clearResults() {
+    setResults(EMPTY_RESULTS);
+    setErrorMessage(null);
+  }
+
   function closeSearch() {
     setIsOpen(false);
     setKeyword("");
-    setResults([]);
-    setErrorMessage(null);
+    clearResults();
   }
+
+  const hasResults =
+    results.festivals.length > 0 || results.artists.length > 0;
 
   return (
     <>
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        aria-label="축제 검색"
-        className="flex h-11 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-sm sm:hidden"
+        aria-label="축제 및 아티스트 검색"
+        title="축제 및 아티스트 검색"
+        className="flex h-11 w-11 items-center justify-center rounded-xl text-slate-700 transition hover:bg-slate-100 hover:ring-1 hover:ring-slate-300"
       >
-        <Search size={17} />
-        검색
+        <Search size={22} strokeWidth={2} />
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-[60] bg-slate-950/45 p-4 sm:hidden">
+        <div className="fixed inset-0 z-[60] bg-slate-950/45 p-4">
           <section
             role="dialog"
             aria-modal="true"
-            aria-label="축제 검색"
-            className="mx-auto mt-16 max-h-[75dvh] max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl"
+            aria-label="축제 및 아티스트 검색"
+            className="mx-auto mt-16 max-h-[75dvh] max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl sm:mt-24"
           >
             <div className="flex items-center gap-2 border-b border-slate-200 p-4">
-              <Search className="shrink-0 text-slate-500" size={19} />
+              <Search
+                className="shrink-0 text-slate-500"
+                size={19}
+              />
               <input
                 autoFocus
                 value={keyword}
                 onChange={(event) => {
                   setKeyword(event.target.value);
-                  if (!event.target.value.trim()) setResults([]);
+                  if (!event.target.value.trim()) clearResults();
                 }}
-                placeholder="축제명 검색"
+                placeholder="축제 또는 아티스트 검색"
                 className="min-w-0 flex-1 border-0 bg-transparent text-base outline-none"
               />
               <button
@@ -179,27 +134,54 @@ export default function FestivalSearch({
                   {errorMessage}
                 </p>
               )}
-              {!isSearching && keyword.trim() && results.length === 0 && !errorMessage && (
-                <p className="p-4 text-center text-sm text-slate-500">
-                  검색 결과가 없습니다.
-                </p>
-              )}
+              {!isSearching &&
+                keyword.trim() &&
+                !hasResults &&
+                !errorMessage && (
+                  <p className="p-4 text-center text-sm text-slate-500">
+                    검색 결과가 없습니다.
+                  </p>
+                )}
+
               <div className="space-y-2">
-                {results.map((festival) => (
+                {results.festivals.map((festival) => (
                   <button
-                    key={festival.id}
+                    key={`festival-${festival.id}`}
                     type="button"
                     onClick={() => {
                       onSelectFestival(festival);
                       closeSearch();
                     }}
-                    className="w-full rounded-xl border border-slate-200 p-3 text-left"
+                    className="w-full rounded-xl border border-slate-200 p-3 text-left transition hover:border-slate-400 hover:bg-slate-50"
                   >
-                    <p className="font-bold text-slate-900">{festival.name}</p>
+                    <p className="font-bold text-slate-900">
+                      {festival.name}
+                    </p>
                     <p className="mt-1 text-xs text-slate-500">
                       {festival.start_date === festival.end_date
                         ? festival.start_date
                         : `${festival.start_date} ~ ${festival.end_date}`}
+                    </p>
+                  </button>
+                ))}
+
+                {results.artists.map((artist) => (
+                  <button
+                    key={`artist-${artist.id}`}
+                    type="button"
+                    onClick={() => {
+                      onSelectArtist(artist);
+                      closeSearch();
+                    }}
+                    className="w-full rounded-xl border border-slate-200 p-3 text-left transition hover:border-slate-400 hover:bg-slate-50"
+                  >
+                    <p className="font-bold text-slate-900">
+                      {artist.name}
+                    </p>
+                    <p className="mt-1 truncate text-xs text-slate-500">
+                      {artist.aliases.length > 0
+                        ? artist.aliases.join(", ")
+                        : artist.normalized_name}
                     </p>
                   </button>
                 ))}

@@ -1,4 +1,4 @@
-import { parseFestivalDraftJson } from "./festivalDraft.ts";
+import { parseFestivalDraftJsonForEditing } from "./festivalDraft.ts";
 import type { Json, Tables } from "../supabase/database.ts";
 import type {
   CandidateSourceAsset,
@@ -37,7 +37,9 @@ function parseCandidateWorkType(value: string): FestivalCandidateWorkType {
 export function parseFestivalDraftValue(
   value: Json | null,
 ): FestivalDraftJson | null {
-  return value === null ? null : parseFestivalDraftJson(JSON.stringify(value));
+  return value === null
+    ? null
+    : parseFestivalDraftJsonForEditing(JSON.stringify(value));
 }
 
 export function parseCandidateSourceAssets(

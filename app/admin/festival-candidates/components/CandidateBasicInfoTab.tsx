@@ -1,7 +1,8 @@
 import type { FestivalDraftJson } from "@/lib/types";
 import {
   findYearLikeSequence,
-  normalizeNormalizedName,
+  isValidNormalizedName,
+  normalizeNormalizedNameInput,
 } from "@/lib/normalizedName";
 import { useFestivalDuplicateCheck } from "@/lib/hooks/useFestivalDuplicateCheck";
 
@@ -25,6 +26,10 @@ export default function CandidateBasicInfoTab({
   const normalizedNameYear = findYearLikeSequence(
     festival.normalized_name ?? "",
   );
+  const normalizedName = festival.normalized_name ?? "";
+  const hasInvalidNormalizedName =
+    normalizedName.length > 0
+    && !isValidNormalizedName(normalizedName);
   const duplicateCheck = useFestivalDuplicateCheck({
     normalizedName: festival.normalized_name ?? "",
     startDate: festival.start_date,
@@ -111,12 +116,18 @@ export default function CandidateBasicInfoTab({
             onChange={(event) =>
               onChange(
                 "normalized_name",
-                normalizeNormalizedName(event.target.value),
+                normalizeNormalizedNameInput(event.target.value),
               )
             }
             placeholder="예: gratefulcamp"
             className={inputClass}
           />
+          {hasInvalidNormalizedName && (
+            <span className="mt-2 block text-xs font-semibold text-red-700">
+              영문 소문자와 숫자만 입력해 주세요. 입력한 문자는 자동으로
+              삭제되지 않습니다.
+            </span>
+          )}
           {normalizedNameYear && (
             <span className="mt-2 block text-xs font-semibold text-amber-700">
               ⚠️ 연도로 보이는 {normalizedNameYear}이 포함되어 있습니다. 매년

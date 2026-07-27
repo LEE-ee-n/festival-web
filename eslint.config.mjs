@@ -14,6 +14,7 @@ export default defineConfig([
     ".env.*",
     ".tmp/**",
     "_crawler_review*/**",
+    "operations/discord-instagram-bot/work/**",
     "next-env.d.ts",
   ]),
 ]);

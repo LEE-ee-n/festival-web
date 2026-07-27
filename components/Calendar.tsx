@@ -16,10 +16,12 @@ import {
 import { supabase } from "@/lib/supabase/client";
 import type { Festival } from "@/lib/types";
 import { assignFestivalLanes } from "@/lib/calendarFestivalLanes";
+import type { PublicArtistSearchResult } from "@/lib/publicSearch";
 import FestivalSidePanel from "@/components/calendar/FestivalSidePanel";
 import CalendarHeader from "@/components/calendar/CalendarHeader";
 import CalendarWeekdays from "@/components/calendar/CalendarWeekdays";
 import CalendarGrid from "@/components/calendar/CalendarGrid";
+import RecentFestivalTicker from "@/components/calendar/RecentFestivalTicker";
 
 const FESTIVAL_BAR_COLORS = [
   "bg-festival-orange",
@@ -378,8 +380,16 @@ function handlePointerUp(
     });
   }
 
+  function selectSearchedArtist(
+    artist: PublicArtistSearchResult,
+  ) {
+    router.push(`/artist/${artist.id}`);
+  }
+
   return (
   <section className="mx-auto w-full max-w-[1500px]">
+    <RecentFestivalTicker />
+
     <div
       className={[
         "grid items-start gap-6",
@@ -400,6 +410,7 @@ function handlePointerUp(
             onNextMonth={() => moveMonth(1)}
             onMoveToToday={moveToToday}
             onSelectSearchFestival={selectSearchedFestival}
+            onSelectSearchArtist={selectSearchedArtist}
           />
 
           {errorMessage && (

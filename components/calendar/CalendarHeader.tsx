@@ -1,4 +1,7 @@
+import { CalendarDays } from "lucide-react";
+
 import FestivalSearch from "@/components/calendar/FestivalSearch";
+import type { PublicArtistSearchResult } from "@/lib/publicSearch";
 import type { Festival } from "@/lib/types";
 
 type CalendarHeaderProps = {
@@ -8,6 +11,7 @@ type CalendarHeaderProps = {
   onNextMonth: () => void;
   onMoveToToday: () => void;
   onSelectSearchFestival: (festival: Festival) => void;
+  onSelectSearchArtist: (artist: PublicArtistSearchResult) => void;
 };
 
 export default function CalendarHeader({
@@ -17,6 +21,7 @@ export default function CalendarHeader({
   onNextMonth,
   onMoveToToday,
   onSelectSearchFestival,
+  onSelectSearchArtist,
 }: CalendarHeaderProps) {
   return (
     <div className="grid grid-cols-[1fr_auto_1fr] items-center px-4 pt-[10px] sm:px-6 sm:pt-3">
@@ -41,20 +46,33 @@ export default function CalendarHeader({
       </div>
 
       <div className="justify-self-start sm:hidden">
-        <FestivalSearch onSelectFestival={onSelectSearchFestival} />
+        <FestivalSearch
+          onSelectFestival={onSelectSearchFestival}
+          onSelectArtist={onSelectSearchArtist}
+        />
       </div>
 
       <h1 className="text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">
         {currentYear}년 {currentMonthIndex + 1}월
       </h1>
 
-      <button
-        type="button"
-        onClick={onMoveToToday}
-        className="justify-self-end rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
-      >
-        오늘
-      </button>
+      <div className="flex items-center gap-2 justify-self-end">
+        <div className="hidden sm:block">
+          <FestivalSearch
+            onSelectFestival={onSelectSearchFestival}
+            onSelectArtist={onSelectSearchArtist}
+          />
+        </div>
+        <button
+          type="button"
+          onClick={onMoveToToday}
+          aria-label="오늘로 이동"
+          title="오늘로 이동"
+          className="flex h-11 w-11 items-center justify-center rounded-xl text-slate-700 transition hover:bg-slate-100 hover:ring-1 hover:ring-slate-300"
+        >
+          <CalendarDays size={22} strokeWidth={2} />
+        </button>
+      </div>
     </div>
   );
 }

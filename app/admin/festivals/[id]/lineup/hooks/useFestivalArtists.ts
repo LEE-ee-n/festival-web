@@ -1,13 +1,18 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
 import {
   buildLineupOperations,
+  hasLineupArtistDateDuplicate,
   validateLineupWork,
   type LineupRound,
   type LineupWorkType,
 } from "@/lib/audit/lineupWork";
 import { applyLineupWork } from "@/lib/festivals/applyLineupWork";
+import {
+  searchArtists,
+  type ArtistSearchResult,
+} from "@/lib/artists/searchArtists";
 import { supabase } from "@/lib/supabase/client";
 import type { FestivalArtist } from "@/lib/types";
 
@@ -34,6 +39,21 @@ export function useFestivalArtists(festivalId: number, setErrorMessage: SetError
   const [rows, setRows] = useState<FestivalArtist[]>([]);
   const [originalRows, setOriginalRows] = useState<FestivalArtist[]>([]);
   const [savingArtistId, setSavingArtistId] = useState<number | null>(null);
+  const nextTemporaryId = useRef(-1);
+
+  const [artistSearchQuery, setArtistSearchQuery] = useState("");
+  const [artistSearchResults, setArtistSearchResults] = useState<
+    ArtistSearchResult[]
+  >([]);
+  const [selectedArtist, setSelectedArtist] =
+    useState<ArtistSearchResult | null>(null);
+  const [isSearchingArtists, setIsSearchingArtists] = useState(false);
+  const [hasSearchedArtists, setHasSearchedArtists] = useState(false);
+  const [newPerformanceDate, setNewPerformanceDate] = useState("");
+  const [newPerformanceTime, setNewPerformanceTime] = useState("");
+  const [newPerformanceEndTime, setNewPerformanceEndTime] = useState("");
+  const [newStageName, setNewStageName] = useState("");
+  const [newStatus, setNewStatus] = useState("confirmed");
 
   const [workType, setWorkType] = useState<LineupWorkType>("announcement");
   const [lineupRound, setLineupRound] = useState<LineupRound>("unspecified");
@@ -50,6 +70,106 @@ export function useFestivalArtists(festivalId: number, setErrorMessage: SetError
 
   function updateRow(lineupId: number, field: ArtistField, value: string) {
     setRows((current) => current.map((row) => row.id === lineupId ? { ...row, [field]: value || null } : row));
+  }
+
+  async function searchForArtists() {
+    const keyword = artistSearchQuery.trim();
+    if (!keyword) {
+      setErrorMessage("검색할 아티스트 이름을 입력해 주세요.");
+      return;
+    }
+
+    try {
+      setIsSearchingArtists(true);
+      setHasSearchedArtists(true);
+      setErrorMessage(null);
+      setSelectedArtist(null);
+      setArtistSearchResults(await searchArtists(keyword));
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "아티스트 검색에 실패했습니다.",
+      );
+    } finally {
+      setIsSearchingArtists(false);
+    }
+  }
+
+  function updateArtistSearchQuery(value: string) {
+    setArtistSearchQuery(value);
+    setArtistSearchResults([]);
+    setSelectedArtist(null);
+    setHasSearchedArtists(false);
+  }
+
+  function chooseArtist(artist: ArtistSearchResult) {
+    setSelectedArtist(artist);
+    setArtistSearchQuery(artist.name);
+    setArtistSearchResults([]);
+    setErrorMessage(null);
+  }
+
+  function addSelectedArtist() {
+    if (!selectedArtist) {
+      setErrorMessage("추가할 기존 아티스트를 검색해서 선택해 주세요.");
+      return;
+    }
+    if (!newPerformanceDate) {
+      setErrorMessage("공연 날짜를 입력해 주세요.");
+      return;
+    }
+    if (
+      newPerformanceTime &&
+      newPerformanceEndTime &&
+      newPerformanceEndTime <= newPerformanceTime
+    ) {
+      setErrorMessage("종료 시간은 시작 시간보다 늦어야 합니다.");
+      return;
+    }
+    if (
+      hasLineupArtistDateDuplicate(
+        rows,
+        selectedArtist.id,
+        newPerformanceDate,
+      )
+    ) {
+      setErrorMessage(
+        "같은 아티스트가 같은 공연 날짜에 이미 등록되어 있습니다.",
+      );
+      return;
+    }
+
+    const temporaryId = nextTemporaryId.current;
+    nextTemporaryId.current -= 1;
+    const aliases = selectedArtist.aliases ?? [];
+    const newRow: FestivalArtist = {
+      id: temporaryId,
+      artist_id: selectedArtist.id,
+      input_name: selectedArtist.name,
+      performance_date: newPerformanceDate,
+      performance_time: newPerformanceTime || null,
+      performance_end_time: newPerformanceEndTime || null,
+      stage_name: newStageName.trim() || null,
+      status: newStatus,
+      artists: {
+        id: selectedArtist.id,
+        name: selectedArtist.name,
+        normalized_name: selectedArtist.normalized_name,
+        artist_aliases: aliases.map((alias_name) => ({ alias_name })),
+      },
+      alias_text: aliases.join(", "),
+      group_date: newPerformanceDate,
+      group_stage: newStageName.trim() || null,
+    };
+
+    setRows((current) => [...current, newRow]);
+    setSelectedArtist(null);
+    setArtistSearchQuery("");
+    setArtistSearchResults([]);
+    setNewPerformanceTime("");
+    setNewPerformanceEndTime("");
+    setErrorMessage(null);
   }
 
   async function saveRow(row: FestivalArtist) {
@@ -115,15 +235,13 @@ export function useFestivalArtists(festivalId: number, setErrorMessage: SetError
   }
 
   const operations = useMemo(() => buildLineupOperations(originalRows, rows), [originalRows, rows]);
-
-  useEffect(() => {
-    if (operations.length > 0 && operations.every((operation) => operation.operation === "delete")) {
-      setWorkType("correction");
-    }
-  }, [operations]);
+  const effectiveWorkType: LineupWorkType =
+    operations.length > 0 && operations.every((operation) => operation.operation === "delete")
+      ? "correction"
+      : workType;
 
   async function saveLineupWork() {
-    const input = { workType, lineupRound, announcementDate, sourceUrl, reason };
+    const input = { workType: effectiveWorkType, lineupRound, announcementDate, sourceUrl, reason };
     const validationError = validateLineupWork(input);
     if (validationError) {
       setErrorMessage(validationError);
@@ -133,7 +251,7 @@ export function useFestivalArtists(festivalId: number, setErrorMessage: SetError
       setErrorMessage("저장할 라인업 변경이 없습니다.");
       return;
     }
-    if (!window.confirm(`${operations.length}건의 라인업 변경을 하나의 ${workType === "announcement" ? "발표" : "정정"} 기록으로 저장하시겠습니까?`)) return;
+    if (!window.confirm(`${operations.length}건의 라인업 변경을 하나의 ${effectiveWorkType === "announcement" ? "발표" : "정정"} 기록으로 저장하시겠습니까?`)) return;
 
     try {
       setIsSavingWork(true);
@@ -166,8 +284,29 @@ export function useFestivalArtists(festivalId: number, setErrorMessage: SetError
 
   return {
     initializeArtists,
+    addSectionProps: {
+      artistSearchQuery,
+      updateArtistSearchQuery,
+      artistSearchResults,
+      selectedArtist,
+      isSearchingArtists,
+      hasSearchedArtists,
+      searchForArtists,
+      chooseArtist,
+      newPerformanceDate,
+      setNewPerformanceDate,
+      newPerformanceTime,
+      setNewPerformanceTime,
+      newPerformanceEndTime,
+      setNewPerformanceEndTime,
+      newStageName,
+      setNewStageName,
+      newStatus,
+      setNewStatus,
+      addSelectedArtist,
+    },
     workPanelProps: {
-      workType, setWorkType, lineupRound, setLineupRound,
+      workType: effectiveWorkType, setWorkType, lineupRound, setLineupRound,
       announcementDate, setAnnouncementDate, sourceUrl, setSourceUrl,
       reason, setReason, pendingCount: operations.length,
       saveLineupWork, isSavingWork,

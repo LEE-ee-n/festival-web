@@ -64,7 +64,7 @@ export default function CalendarDayCell({
     >
       <span
         className={[
-          "absolute left-2 top-[2px] inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-xs font-semibold sm:top-2 sm:h-7 sm:min-w-7 sm:text-[15px]",
+          "absolute left-1 top-[2px] inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-xs font-semibold sm:left-2 sm:top-2 sm:h-7 sm:min-w-7 sm:text-[15px]",
           day.isToday ? "bg-slate-900 text-white" : "",
           dayIndex % 7 === 0 && !day.isToday
             ? "text-red-600"
@@ -76,6 +76,12 @@ export default function CalendarDayCell({
       >
         {day.dayNumber}
       </span>
+
+      {!isLoading && hiddenFestivalCount > 0 && (
+        <span className="absolute right-2 top-[2px] inline-flex h-6 items-center text-[10px] font-medium text-slate-500 sm:top-2 sm:h-7 sm:text-xs">
+          +{hiddenFestivalCount}개
+        </span>
+      )}
 
       {isLoading ? (
         <div className="mx-auto mt-4 h-2 w-5 animate-pulse rounded-full bg-slate-200" />
@@ -155,11 +161,6 @@ export default function CalendarDayCell({
               );
             })}
 
-            {hiddenFestivalCount > 0 && (
-              <span className="absolute left-1 top-[66px] text-[10px] font-medium text-slate-500 sm:top-[90px]">
-                +{hiddenFestivalCount}개
-              </span>
-            )}
           </div>
         )
       )}

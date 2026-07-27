@@ -51,6 +51,18 @@ export function validateLineupWork(input: LineupWorkInput): string | null {
   return null;
 }
 
+export function hasLineupArtistDateDuplicate(
+  rows: FestivalArtist[],
+  artistId: number,
+  performanceDate: string,
+) {
+  return rows.some(
+    (row) =>
+      row.artist_id === artistId &&
+      (row.performance_date ?? "") === performanceDate,
+  );
+}
+
 export function buildLineupOperations(
   originalRows: FestivalArtist[],
   currentRows: FestivalArtist[],

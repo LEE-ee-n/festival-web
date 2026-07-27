@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import CandidateLineupTab from "@/app/admin/festival-candidates/components/CandidateLineupTab";
+import CandidateSourcePreview from "@/app/admin/festival-candidates/components/CandidateSourcePreview";
 import JsonLineupAuditFields from "./JsonLineupAuditFields";
+import FestivalUpdateComparisonTable from "./FestivalUpdateComparisonTable";
 import { matchFestivalDraftArtists } from "@/lib/artists/matchFestivalDraftArtists";
 import {
   applyExistingArtistSelection,
@@ -23,6 +25,7 @@ import {
 } from "@/lib/festivals/festivalDraft";
 import {
   createFestivalUpdatePreview,
+  setFestivalUpdateItemSelections,
   type ExistingFestivalArtist,
   type ExistingFestivalTicket,
   type FestivalUpdateItem,
@@ -56,6 +59,9 @@ export default function StagedFestivalUpdate({ festivalId, updateDraftId }: Prop
   const [currentArtists, setCurrentArtists] = useState<ExistingFestivalArtist[]>([]);
   const [currentTickets, setCurrentTickets] = useState<ExistingFestivalTicket[]>([]);
   const [posterAsset, setPosterAsset] = useState<CandidateSourceAsset | null>(null);
+  const [sourceAssets, setSourceAssets] = useState<CandidateSourceAsset[]>([]);
+  const [draftSourceUrl, setDraftSourceUrl] = useState("");
+  const [draftSourceType, setDraftSourceType] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [workType, setWorkType] = useState<LineupWorkType>("announcement");
   const [lineupRound, setLineupRound] = useState<LineupRound>("unspecified");
@@ -162,15 +168,29 @@ export default function StagedFestivalUpdate({ festivalId, updateDraftId }: Prop
         };
         const loadedTickets: ExistingFestivalTicket[] = ticketResult.data ?? [];
         const preview = createFestivalUpdatePreview(loadedFestival, lineup, loadedTickets, incoming);
+        const candidateAssets = incoming.candidate?.source_assets ?? [];
+        const hydratedAssets = await Promise.all(
+          candidateAssets.map(async (asset) => {
+            if (asset.url || !asset.storage_path) return asset;
+            const { data: signed } = await supabase.storage
+              .from("festival-candidate-posters")
+              .createSignedUrl(asset.storage_path, 3600);
+            return { ...asset, url: signed?.signedUrl };
+          }),
+        );
+        if (cancelled) return;
         setDraft(incoming);
         setFestival(loadedFestival);
         setCurrentArtists(lineup);
         setCurrentTickets(loadedTickets);
         setSourceUrl(updateDraft.source_url || incoming.candidate?.source_url || "");
-        const firstPoster = incoming.candidate?.source_assets?.[0] ?? null;
+        const firstPoster = candidateAssets[0] ?? null;
         const initialIds = savedSelection.selected_ids ?? preview.filter((item) => item.status === "add").map((item) => item.id);
         if (!savedSelection.selected_ids && firstPoster?.storage_path) initialIds.push("basic:poster_asset");
         setPosterAsset(firstPoster);
+        setSourceAssets(hydratedAssets);
+        setDraftSourceUrl(updateDraft.source_url || incoming.candidate?.source_url || "");
+        setDraftSourceType(incoming.candidate?.source_type || "미지정");
         setSelectedIds(new Set(initialIds));
         setWorkType(savedSelection.work_type ?? "announcement");
         setLineupRound(savedSelection.lineup_round ?? "unspecified");
@@ -191,7 +211,32 @@ export default function StagedFestivalUpdate({ festivalId, updateDraftId }: Prop
 
   const step = draft ? getRegistrationStep(draft) : "artist_review";
   const activeArtists = draft ? getActiveDraftArtists(draft) : [];
-  const changedItems = items.filter((item) => item.status !== "same");
+  const posterComparisonItem: FestivalUpdateItem | null =
+    posterAsset?.storage_path
+      ? {
+          id: "basic:poster_asset",
+          section: "basic",
+          label: "대표 썸네일",
+          status: festival?.thumbnail_url ? "conflict" : "add",
+          current: festival?.thumbnail_url || "없음",
+          incoming: posterAsset.name || "새 게시물의 첫 이미지",
+        }
+      : null;
+  const informationItems = [
+    ...(posterComparisonItem ? [posterComparisonItem] : []),
+    ...items.filter(
+      (item) => item.section !== "lineup" && item.status !== "same",
+    ),
+  ];
+  const informationSameCount = items.filter(
+    (item) => item.section !== "lineup" && item.status === "same",
+  ).length;
+  const lineupItems = items.filter(
+    (item) => item.section === "lineup" && item.status !== "same",
+  );
+  const lineupSameCount = items.filter(
+    (item) => item.section === "lineup" && item.status === "same",
+  ).length;
 
   function changeArtist(index: number, field: keyof FestivalDraftJson["artists"][number], value: string | string[] | number | null) {
     setDraft((current) => {
@@ -319,6 +364,12 @@ export default function StagedFestivalUpdate({ festivalId, updateDraftId }: Prop
     });
   }
 
+  function setAllItems(itemsToChange: FestivalUpdateItem[], selected: boolean) {
+    setSelectedIds((current) =>
+      setFestivalUpdateItemSelections(current, itemsToChange, selected),
+    );
+  }
+
   async function saveState(nextDraft = draft, ids = selectedIds) {
     if (!nextDraft) return false;
     const selection: SavedSelection = {
@@ -342,6 +393,15 @@ export default function StagedFestivalUpdate({ festivalId, updateDraftId }: Prop
       const hasSelectedLineupChanges = items.some(
         (item) => item.section === "lineup" && selectedIds.has(item.id),
       );
+      if (
+        direction === "next" &&
+        step === "timetable" &&
+        selectedIds.size === 0
+      ) {
+        throw new Error(
+          "반영할 변경사항을 선택해 주세요. 타임테이블 표에서 개별 선택하거나 표시된 변경 전체 반영을 누를 수 있습니다.",
+        );
+      }
       if (direction === "next" && step === "timetable" && hasSelectedLineupChanges) {
         const validationError = validateLineupWork({
           workType,
@@ -460,6 +520,14 @@ export default function StagedFestivalUpdate({ festivalId, updateDraftId }: Prop
           <div className="flex gap-2"><button type="button" onClick={() => void saveOnly()} disabled={isSaving} className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold">임시저장</button><button type="button" onClick={() => void deleteDraft()} disabled={isSaving} className="rounded-xl border border-red-200 px-4 py-2 text-sm font-bold text-red-600">임시저장 삭제</button></div>
         </div>
 
+        <CandidateSourcePreview
+          sourceUrl={draftSourceUrl}
+          sourceType={draftSourceType}
+          rawText={draft.candidate?.raw_text}
+          sourceAssets={sourceAssets}
+          className="mt-6"
+        />
+
         <div className="mt-6 grid gap-2 sm:grid-cols-5">
           {FESTIVAL_REGISTRATION_STEPS.map((item, index) => <div key={item} className={`rounded-xl border p-3 text-xs font-bold ${step === item ? "border-gray-400 bg-gray-200 text-gray-800" : "border-gray-300 bg-white text-gray-400"}`}><span className="block">{index + 1}단계</span>{FESTIVAL_REGISTRATION_STEP_LABELS[item]}</div>)}
         </div>
@@ -467,18 +535,47 @@ export default function StagedFestivalUpdate({ festivalId, updateDraftId }: Prop
         {step === "artist_review" && <CandidateLineupTab artists={draft.artists} designVariant="existing-update" onAdd={addArtist} onMatchAll={() => void matchAll()} isMatching={isMatching} onChange={changeArtist} onReviewFieldChange={changeArtistReviewField} onSelectExisting={selectExistingArtist} onSetMatchStatus={setArtistMatchStatus} />}
 
         {step === "artist_confirmation" && <section className="mt-6 rounded-2xl border border-slate-200 p-5"><h2 className="text-lg font-bold">아티스트 최종 확정</h2><p className="mt-1 text-sm text-slate-500">기존 연결과 이번에 추가할 명단을 한눈에 확인합니다. 이 단계에서는 수정할 수 없습니다.</p><div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {currentArtists.map((item) => <div key={`old-${item.id}`} className="rounded-xl bg-slate-50 p-3"><p className="font-bold">{item.artist.name}</p><p className="text-xs text-slate-500">{item.artist.normalized_name} · 기존</p></div>)}
+          {currentArtists.map((item) => <div key={`old-${item.id}`} className="rounded-xl border border-gray-200 bg-white p-3"><p className="font-bold">{item.artist.name}</p><p className="text-xs text-gray-500">{item.artist.normalized_name} · 기존</p></div>)}
           {activeArtists.filter((artist) => {
             const matchedId = Number(artist.matched_artist_id);
             return !Number.isInteger(matchedId)
               || !currentArtists.some((item) => item.artist_id === matchedId);
-          }).map((artist, index) => <div key={`new-${index}`} className="rounded-xl bg-purple-50 p-3"><p className="font-bold">{artist.display_name}</p><p className="text-xs text-purple-700">{artist.normalized_name} · {artist.match_status === "new" ? "신규 아티스트" : "기존 아티스트 · 추가 라인업"}</p></div>)}
+          }).map((artist, index) => <div key={`new-${index}`} className="rounded-xl border border-gray-200 bg-white p-3"><p className="font-bold">{artist.display_name}</p><p className="text-xs text-gray-500">{artist.normalized_name} · {artist.match_status === "new" ? "신규 아티스트" : "기존 아티스트 · 추가 라인업"}</p></div>)}
         </div></section>}
 
-        {step === "festival_info" && <section className="mt-6"><h2 className="text-lg font-bold">페스티벌 정보·티켓 검토</h2><p className="mt-1 text-sm text-slate-500">빈 값은 기존 값을 지우지 않습니다. 반영할 값만 선택하세요.</p>{posterAsset?.storage_path && <article className="mt-5 rounded-xl border border-slate-200 p-4"><div className="flex items-center justify-between gap-3"><div><p className="font-bold">변경 · 대표 썸네일</p><p className="mt-1 text-sm text-slate-500">새 게시물의 첫 이미지로 교체</p></div><button type="button" onClick={() => setSelectedIds((current) => { const next = new Set(current); if (next.has("basic:poster_asset")) next.delete("basic:poster_asset"); else next.add("basic:poster_asset"); return next; })} className={`rounded-lg px-3 py-2 text-xs font-bold ${selectedIds.has("basic:poster_asset") ? "bg-slate-950 text-white" : "border border-slate-300"}`}>{selectedIds.has("basic:poster_asset") ? "교체 선택됨" : "기존 썸네일 유지"}</button></div></article>}<UpdateChoices items={changedItems.filter((item) => item.section !== "lineup")} selectedIds={selectedIds} onToggle={toggleItem} /></section>}
+        {step === "festival_info" && (
+          <section className="mt-6">
+            <h2 className="text-lg font-bold">페스티벌 정보·티켓 검토</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              빈 값은 기존 값을 지우지 않습니다. 반영할 값만 선택하세요.
+            </p>
+            <FestivalUpdateComparisonTable
+              items={informationItems}
+              selectedIds={selectedIds}
+              onToggle={toggleItem}
+              onSetAll={setAllItems}
+              sameCount={informationSameCount}
+              variant="information"
+            />
+          </section>
+        )}
 
         {step === "timetable" && <section className="mt-6"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-lg font-bold">타임테이블 검토</h2><p className="mt-1 text-sm text-slate-500">확정된 아티스트의 일정만 추가·수정할 수 있습니다.</p></div><div className="flex gap-2"><button type="button" onClick={() => setDraft({ ...draft, workflow: { ...draft.workflow, timetable_visibility: "published" } })} className={`rounded-lg px-3 py-2 text-sm font-bold ${draft.workflow?.timetable_visibility !== "unpublished" ? "bg-slate-950 text-white" : "border"}`}>타임테이블 검토</button><button type="button" onClick={() => setDraft({ ...draft, workflow: { ...draft.workflow, timetable_visibility: "unpublished" } })} className={`rounded-lg px-3 py-2 text-sm font-bold ${draft.workflow?.timetable_visibility === "unpublished" ? "bg-slate-950 text-white" : "border"}`}>전체 미공개</button></div></div>
-          {draft.workflow?.timetable_visibility === "unpublished" ? <p className="mt-5 rounded-xl bg-amber-50 p-4 text-sm font-bold text-amber-800">타임테이블 미공개로 반영합니다. 아티스트 연결만 추가하고 일정은 저장하지 않습니다.</p> : <UpdateChoices items={changedItems.filter((item) => item.section === "lineup")} selectedIds={selectedIds} onToggle={toggleItem} />}
+          {draft.workflow?.timetable_visibility === "unpublished" ? (
+            <p className="mt-5 rounded-xl bg-amber-50 p-4 text-sm font-bold text-amber-800">
+              타임테이블 미공개로 반영합니다. 아티스트 연결만 추가하고
+              일정은 저장하지 않습니다.
+            </p>
+          ) : (
+            <FestivalUpdateComparisonTable
+              items={lineupItems}
+              selectedIds={selectedIds}
+              onToggle={toggleItem}
+              onSetAll={setAllItems}
+              sameCount={lineupSameCount}
+              variant="lineup"
+            />
+          )}
           {items.some((item) => item.section === "lineup" && selectedIds.has(item.id)) && <JsonLineupAuditFields workType={workType} setWorkType={setWorkType} lineupRound={lineupRound} setLineupRound={setLineupRound} announcementDate={announcementDate} setAnnouncementDate={setAnnouncementDate} sourceUrl={sourceUrl} setSourceUrl={setSourceUrl} reason={reason} setReason={setReason} />}
         </section>}
 
@@ -488,7 +585,7 @@ export default function StagedFestivalUpdate({ festivalId, updateDraftId }: Prop
             <p className="mt-1 text-sm text-gray-600">
               선택한 변경 {selectedIds.size}건을 한 번에 반영합니다. 기존 자료는 삭제하지 않습니다.
             </p>
-            <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-[repeat(3,minmax(0,1fr))_minmax(220px,1.1fr)]">
+            <div className="mt-4 grid gap-2 sm:grid-cols-3">
               {(["basic", "lineup", "ticket"] as const).map((section) => (
                 <div key={section} className="rounded-xl border border-gray-200 bg-white p-3">
                   <p className="text-xs text-gray-500">{SECTION_LABEL[section]}</p>
@@ -498,27 +595,14 @@ export default function StagedFestivalUpdate({ festivalId, updateDraftId }: Prop
                   </p>
                 </div>
               ))}
-              <button
-                type="button"
-                onClick={() => void finalize()}
-                disabled={isSaving || selectedIds.size === 0}
-                className="min-h-[72px] rounded-xl border border-gray-300 bg-gray-100 px-5 py-3 text-sm font-bold text-gray-800 hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                {isSaving ? "반영 중..." : "페스티벌 수정 최종 확정"}
-              </button>
             </div>
           </section>
         )}
 
         {errorMessage && <p className="mt-4 rounded-xl bg-red-50 p-3 text-sm font-bold text-red-700">{errorMessage}</p>}
         {notice && <p className="mt-4 rounded-xl bg-blue-50 p-3 text-sm font-bold text-blue-700">{notice}</p>}
-        <div className="mt-6 flex justify-between border-t border-slate-200 pt-5"><button type="button" disabled={isSaving || step === "artist_review"} onClick={() => void move("previous")} className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-bold disabled:opacity-30">이전</button>{step !== "final_confirmation" && <button type="button" disabled={isSaving} onClick={() => void move("next")} className="rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white disabled:opacity-40">이 단계 확정 후 다음</button>}</div>
+        <div className="mt-6 flex justify-between border-t border-slate-200 pt-5"><button type="button" disabled={isSaving || step === "artist_review"} onClick={() => void move("previous")} className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-bold disabled:opacity-30">이전</button>{step !== "final_confirmation" ? <button type="button" disabled={isSaving} onClick={() => void move("next")} className="rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white disabled:opacity-40">이 단계 확정 후 다음</button> : <button type="button" onClick={() => void finalize()} disabled={isSaving || selectedIds.size === 0} className="rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40">{isSaving ? "반영 중..." : "페스티벌 수정 최종 확정"}</button>}</div>
       </div>
     </main>
   );
-}
-
-function UpdateChoices({ items, selectedIds, onToggle }: { items: FestivalUpdateItem[]; selectedIds: Set<string>; onToggle: (item: FestivalUpdateItem, selected?: boolean) => void }) {
-  if (!items.length) return <p className="mt-5 rounded-xl bg-slate-50 p-4 text-sm text-slate-500">추가하거나 변경할 항목이 없습니다.</p>;
-  return <div className="mt-5 grid gap-3 md:grid-cols-2">{items.map((item) => { const selected = selectedIds.has(item.id); return <article key={item.id} className="min-w-0 rounded-xl border border-slate-200 p-4"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="font-bold">{item.status === "add" ? "신규 · " : "변경 · "}{item.label}</p><p className="mt-2 break-words text-sm text-slate-500">현재: {item.current || "없음"}</p><p className="mt-1 break-words text-sm text-slate-800">새 값: {item.incoming || "없음"}</p></div><button type="button" onClick={() => onToggle(item)} className={`shrink-0 rounded-lg px-3 py-2 text-xs font-bold ${selected ? "bg-slate-950 text-white" : "border border-slate-300 bg-white"}`}>{selected ? "반영 선택됨" : item.status === "add" ? "추가하지 않음" : "현재값 유지"}</button></div></article>; })}</div>;
 }

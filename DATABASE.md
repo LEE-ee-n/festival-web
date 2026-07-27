@@ -48,6 +48,7 @@
 - `032_link_artist_audit_to_festival.sql`의 `update_artist_from_festival_admin` 함수는 운영 DB에 남아 있지만, 페스티벌 관리 화면은 더 이상 이 함수를 호출하지 않는다. 기존 아티스트 공통정보 수정은 아티스트 관리 페이지에서만 수행한다.
 - `033_discord_festival_update_drafts.sql`은 기존 축제에 매칭된 Discord JSON을 `festival_update_drafts`에 보관한다. Bot은 초안 생성만 하고 관리자가 해당 페스티벌의 기본정보·라인업·티켓 탭에서 검토·반영한다.
 - `041_staged_existing_festival_updates.sql`은 기존 수정 초안의 단계·선택·기준 버전을 저장하고, `finalize_festival_update_draft`로 마지막에 한 번만 반영한다. 2026-07-22 운영 적용을 확인했다.
+- `045_fix_festival_update_conflict_retry.sql`은 동일 값 재저장 시 `updated_at`을 유지하고, 기존 수정 초안의 충돌을 전체 데이터 해시로만 판정한다. 업무 충돌에 재시도 코드 `40001`을 사용하지 않으며 임시 차단한 최종 반영 RPC 권한도 복구한다.
 
 ### 아티스트
 
@@ -263,6 +264,8 @@ Migration 037~039는 2026-07-22 운영 DB에 적용했다. 최종 승인 시 후
 
 승인된 `festival_candidates` 행은 삭제하지 않고 신규 등록 이력으로 남긴다. `status = approved`와 `festival_id`로 정식 `festivals` 행을 가리키며, OCR·JSON·임시 이미지 메타데이터는 제거한다. Migration 040은 승인 완료 행을 읽기 전용으로 잠그고 임시저장 때문에 `pending`으로 잘못 돌아간 신규 등록 이력을 복구한다. 운영 적용을 확인했다.
 
+Migration 042는 관리자 검토가 끝난 `needs_review` 후보를 최종 등록 트랜잭션 안에서 `new`로 전환하고 기존 신규 승인 RPC를 호출하는 `approve_reviewed_festival_candidate`를 추가한다. 기존 축제 식별값 중복 차단과 필수정보 검증은 유지한다. 운영 DB 적용 전이다.
+
 ## 6-1. festival_update_drafts
 
 기존 페스티벌 수정 전용 임시작업이다. `source_url`과 대상 `festival_id`를 유지하고, `draft_json`, `workflow_json`, `selection_json`에 최종 확정 전 작업을 보관한다. `base_festival_updated_at`과 `base_data_hash`는 시작 당시 기본정보·아티스트 연결·타임테이블·티켓을 묶어 검사한다.
@@ -381,3 +384,17 @@ Supabase Auth 사용자와 애플리케이션 역할을 연결한다.
 8. `festival_ticket_rounds`와 `festivals`의 ordinal 번호 공백은 삭제된 과거 칼럼 자리이며 중복 칼럼이 아니다.
 
 정리 후보는 호출·데이터 보존 여부를 확인하기 전 삭제하지 않는다.
+
+## 페스티벌 표시 이름 연도 규칙
+
+- 정식 `festivals.name`은 `start_date` 연도를 앞에 붙인 `20XX 축제명` 형식이다.
+- `normalized_name`에는 연도를 넣지 않아 같은 축제의 연도별 기록을 묶는다.
+- migration `043_festival_name_start_year.sql`은 이름을 자동 보정하는 트리거와 시작일 연도 일치 제약조건을 추가한다.
+- 운영 DB 기존 데이터 사전 조회 결과 불일치 행은 없었으며 migration `043` 적용을 완료했다.
+
+## 승인 이력과 페스티벌 삭제
+
+- 승인된 `festival_candidates`는 계속 읽기 전용으로 보존한다.
+- migration `044`는 연결된 페스티벌 삭제로 발생하는 `festival_id → NULL` 변경만 잠금 예외로 허용한다.
+- 이 예외는 `festival_id`와 자동 갱신 시각을 제외한 다른 값이 동일할 때만 적용한다.
+- migration 파일 작성과 코드 검증은 완료했으며 운영 DB 적용은 대기 중이다.

@@ -295,7 +295,9 @@ export function validateFestivalDraftForApproval(
   };
 }
 
-export function parseFestivalDraftJson(value: string): FestivalDraftJson {
+export function parseFestivalDraftJsonForEditing(
+  value: string,
+): FestivalDraftJson {
   const parsed: unknown = JSON.parse(value);
 
   if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
@@ -333,11 +335,41 @@ export function parseFestivalDraftJson(value: string): FestivalDraftJson {
     throw new Error("festival 정보가 없습니다.");
   }
 
-  if (!festival.name?.trim()) {
+  if (!Array.isArray(draft.artists)) {
+    throw new Error("artists는 배열이어야 합니다.");
+  }
+
+  if (draft.tickets !== undefined && !Array.isArray(draft.tickets)) {
+    throw new Error("tickets는 배열이어야 합니다.");
+  }
+
+  return normalizeFestivalDraft({
+    ...draft,
+    festival: {
+      ...festival,
+      name: typeof festival.name === "string" ? festival.name : "",
+      normalized_name:
+        typeof festival.normalized_name === "string"
+          ? festival.normalized_name
+          : "",
+      start_date:
+        typeof festival.start_date === "string" ? festival.start_date : "",
+      end_date:
+        typeof festival.end_date === "string" ? festival.end_date : "",
+    },
+    artists: draft.artists,
+  });
+}
+
+export function parseFestivalDraftJson(value: string): FestivalDraftJson {
+  const draft = parseFestivalDraftJsonForEditing(value);
+  const festival = draft.festival;
+
+  if (!festival.name.trim()) {
     throw new Error("festival.name이 필요합니다.");
   }
 
-  if (!festival.normalized_name?.trim()) {
+  if (!festival.normalized_name.trim()) {
     throw new Error("festival.normalized_name이 필요합니다.");
   }
 
@@ -349,15 +381,7 @@ export function parseFestivalDraftJson(value: string): FestivalDraftJson {
     throw new Error("종료일은 시작일보다 빠를 수 없습니다.");
   }
 
-  if (!Array.isArray(draft.artists)) {
-    throw new Error("artists는 배열이어야 합니다.");
-  }
-
-  if (draft.tickets !== undefined && !Array.isArray(draft.tickets)) {
-    throw new Error("tickets는 배열이어야 합니다.");
-  }
-
-  return normalizeFestivalDraft(draft as FestivalDraftJson);
+  return draft;
 }
 
 export function getFestivalDraftFileName(draft: FestivalDraftJson) {

@@ -23,6 +23,37 @@
 # misc
 .DS_Store
 *.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# credentials and local authentication data
+*.dpapi
+*.token
+*.tokens
+*.secret
+*.secrets
+credentials.json
+service-account*.json
+*-service-account.json
+auth.json
+session.json
+
+# local databases and generated runtime data
+*.db
+*.sqlite
+*.sqlite3
+/work/
+**/work/
+**/instagram-chrome-profile/
+/.scratch/
+
+# generated archives and backups
+*.zip
+*.bak
+*.backup
 
 # debug
 npm-debug.log*
@@ -32,7 +63,6 @@ yarn-error.log*
 # local env files
 .env
 .env.*
-!.env.example
 
 # vercel
 .vercel
@@ -40,3 +70,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+.vercel

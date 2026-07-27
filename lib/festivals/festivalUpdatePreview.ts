@@ -2,6 +2,11 @@ import type { FestivalDraftJson } from "../types.ts";
 
 export type FestivalUpdateStatus = "same" | "add" | "conflict";
 export type FestivalUpdateSection = "basic" | "lineup" | "ticket";
+export type FestivalUpdateDisplayStatus =
+  | "add"
+  | "change"
+  | "remove"
+  | "same";
 
 export type FestivalUpdateItem = {
   id: string;
@@ -93,6 +98,53 @@ function ticketKey(ticket: {
     .join("|");
 }
 
+function lineupSchedule(values: {
+  performance_date?: string | null;
+  performance_time?: string | null;
+  performance_end_time?: string | null;
+  stage_name?: string | null;
+  status?: string | null;
+}) {
+  const time = values.performance_time
+    ? values.performance_end_time
+      ? `${values.performance_time}~${values.performance_end_time}`
+      : values.performance_time
+    : "";
+  return [
+    values.performance_date,
+    time,
+    values.stage_name,
+    values.status === "cancelled" ? "취소" : "",
+  ].filter(Boolean).join(" · ");
+}
+
+export function getFestivalUpdateDisplayStatus(
+  item: FestivalUpdateItem,
+): FestivalUpdateDisplayStatus {
+  if (item.status === "same") return "same";
+  if (
+    item.section === "lineup" &&
+    (item.artistPayload?.status === "cancelled" ||
+      item.artistPayload?.comparison_status === "remove_candidate")
+  ) {
+    return "remove";
+  }
+  return item.status === "add" ? "add" : "change";
+}
+
+export function setFestivalUpdateItemSelections(
+  current: ReadonlySet<string>,
+  items: FestivalUpdateItem[],
+  selected: boolean,
+) {
+  const next = new Set(current);
+  items.forEach((item) => {
+    if (selected) next.add(item.id);
+    else next.delete(item.id);
+  });
+  return next;
+}
+
 function getObjectStatus(
   current: Record<string, unknown>,
   incoming: Record<string, unknown>,
@@ -170,14 +222,7 @@ export function createFestivalUpdatePreview(
         label,
         status: "add",
         current: "없음",
-        incoming: [
-          label,
-          artist.performance_date,
-          artist.performance_time && artist.performance_end_time
-            ? `${artist.performance_time}~${artist.performance_end_time}`
-            : artist.performance_time,
-          artist.stage_name,
-        ].filter(Boolean).join(" · "),
+        incoming: lineupSchedule(artist) || label,
         artistPayload: artist,
       });
       return;
@@ -222,10 +267,8 @@ export function createFestivalUpdatePreview(
       section: "lineup",
       label,
       status,
-      current: [existing.performance_date, existing.performance_time, existing.stage_name]
-        .filter(Boolean).join(" · ") || existing.artist.name,
-      incoming: [artist.performance_date, artist.performance_time, artist.stage_name]
-        .filter(Boolean).join(" · ") || label,
+      current: lineupSchedule(existing) || existing.artist.name,
+      incoming: lineupSchedule(payload) || label,
       artistPayload: payload,
     });
     });
@@ -279,9 +322,21 @@ export function createFestivalUpdatePreview(
       section: "ticket",
       label,
       status,
-      current: [existing.round_name, existing.open_at, existing.price_info]
+      current: [
+        existing.round_name,
+        existing.open_at,
+        existing.price_info,
+        existing.ticket_platform,
+        existing.ticket_url,
+      ]
         .filter(Boolean).join(" · "),
-      incoming: [ticket.round_name, ticket.open_at, ticket.price_info]
+      incoming: [
+        payload.round_name,
+        payload.open_at,
+        payload.price_info,
+        payload.ticket_platform,
+        payload.ticket_url,
+      ]
         .filter(Boolean).join(" · "),
       ticketPayload: payload,
     });

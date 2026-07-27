@@ -6,6 +6,7 @@ import { useState } from "react";
 import CandidateBasicInfoTab from "@/app/admin/festival-candidates/components/CandidateBasicInfoTab";
 import CandidateLineupTab from "@/app/admin/festival-candidates/components/CandidateLineupTab";
 import CandidateTicketTab from "@/app/admin/festival-candidates/components/CandidateTicketTab";
+import CandidateSourcePreview from "@/app/admin/festival-candidates/components/CandidateSourcePreview";
 import FestivalCandidateJsonUploader from "@/app/admin/festival-candidates/components/FestivalCandidateJsonUploader";
 import TicketDiscoveryUploader from "@/app/admin/festival-candidates/components/TicketDiscoveryUploader";
 import { useFestivalCandidateDraft } from "@/app/admin/festival-candidates/hooks/useFestivalCandidateDraft";
@@ -18,10 +19,11 @@ import {
   getRegistrationStep,
   moveRegistrationStep,
   normalizeFestivalDraft,
-  parseFestivalDraftJson,
+  parseFestivalDraftJsonForEditing,
   validateFestivalDraftForApproval,
 } from "@/lib/festivals/festivalDraft";
 import { promoteCandidatePoster } from "@/lib/festivals/uploadFestivalThumbnail";
+import { isValidNormalizedName } from "@/lib/normalizedName";
 import type {
   FestivalCandidate,
   FestivalDraftJson,
@@ -145,8 +147,28 @@ export default function FestivalCandidatesPage() {
       return null;
     }
 
+    const normalizedName = draft.festival.normalized_name.trim();
+    if (
+      normalizedName
+      && !isValidNormalizedName(normalizedName)
+    ) {
+      setEditorError(
+        "축제 normalized_name은 영문 소문자와 숫자로 입력해 주세요.",
+      );
+      window.setTimeout(() => {
+        const input = document.querySelector<HTMLInputElement>(
+          '[data-approval-field="festival-normalized-name"]',
+        );
+        input?.scrollIntoView({ block: "center", behavior: "auto" });
+        input?.focus({ preventScroll: true });
+      }, 0);
+      return null;
+    }
+
     try {
-      const validatedDraft = parseFestivalDraftJson(JSON.stringify(draft));
+      const validatedDraft = parseFestivalDraftJsonForEditing(
+        JSON.stringify(draft),
+      );
       setEditorError(null);
       return validatedDraft;
     } catch (error) {
@@ -569,53 +591,14 @@ export default function FestivalCandidatesPage() {
                       ? ` · 점수 ${selectedCandidate.score}`
                       : ""}
                   </p>
-                  {selectedCandidate.source_url
-                    && selectedCandidate.source_type !== "manual" && (
-                    <a
-                      href={selectedCandidate.source_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-2 inline-block break-all text-sm font-medium text-blue-600 hover:underline"
-                    >
-                      원본 출처 열기
-                    </a>
-                  )}
                 </div>
 
-                {selectedCandidate.raw_text && (
-                  <details className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                    <summary className="cursor-pointer text-sm font-bold text-slate-700">
-                      수집 원문 보기
-                    </summary>
-                    <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-600">
-                      {selectedCandidate.raw_text}
-                    </p>
-                  </details>
-                )}
-
-                {Array.isArray(selectedCandidate.source_assets) &&
-                  selectedCandidate.source_assets.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-bold text-slate-700">
-                        첨부 자료
-                      </h3>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {selectedCandidate.source_assets.map((asset, index) =>
-                          asset.url ? (
-                            <a
-                              key={`${asset.url}-${index}`}
-                              href={asset.url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-blue-600"
-                            >
-                              {asset.name || `자료 ${index + 1}`}
-                            </a>
-                          ) : null,
-                        )}
-                      </div>
-                    </div>
-                  )}
+                <CandidateSourcePreview
+                  sourceUrl={selectedCandidate.source_url}
+                  sourceType={selectedCandidate.source_type}
+                  rawText={selectedCandidate.raw_text}
+                  sourceAssets={selectedCandidate.source_assets}
+                />
 
                 <div>
                   <ol className="grid gap-2 sm:grid-cols-5">

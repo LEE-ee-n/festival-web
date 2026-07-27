@@ -1,3 +1,5 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -16,7 +18,14 @@ body {
   background-color: #fffaf0;
   color: #0f172a;
   font-family:
-    Arial,
+    "Pretendard Variable",
+    Pretendard,
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    Roboto,
+    "Helvetica Neue",
+    "Segoe UI",
     "Noto Sans KR",
     "Apple SD Gothic Neo",
     sans-serif;
@@ -59,4 +68,43 @@ a {
 .scrollbar-thin::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 9999px;
+}
+
+@keyframes recent-festival-ticker-in {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes recent-festival-ticker-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+}
+
+.recent-festival-ticker-in {
+  animation: recent-festival-ticker-in 400ms ease-out both;
+}
+
+.recent-festival-ticker-out {
+  animation: recent-festival-ticker-out 400ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recent-festival-ticker-in,
+  .recent-festival-ticker-out {
+    animation-duration: 1ms;
+  }
 }

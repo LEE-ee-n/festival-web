@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   findYearLikeSequence,
   normalizeNormalizedName,
+  normalizeNormalizedNameInput,
 } from "../lib/normalizedName.ts";
 
 test("축제 normalized_name에서 연도와 festival을 제거한다", () => {
@@ -12,6 +13,14 @@ test("축제 normalized_name에서 연도와 festival을 제거한다", () => {
     "oneuniverse",
   );
   assert.equal(normalizeNormalizedName("2025 Waterbomb Festival"), "waterbomb");
+});
+
+test("직접 편집 중인 normalized_name 문자를 삭제하지 않는다", () => {
+  assert.equal(
+    normalizeNormalizedNameInput("New Festival 2026"),
+    "new festival 2026",
+  );
+  assert.equal(normalizeNormalizedNameInput("새 축제"), "새 축제");
 });
 
 test("19로 시작하는 연도 형태를 찾는다", () => {

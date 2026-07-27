@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildLineupOperations, validateLineupWork } from "../lib/audit/lineupWork.ts";
+import {
+  buildLineupOperations,
+  hasLineupArtistDateDuplicate,
+  validateLineupWork,
+} from "../lib/audit/lineupWork.ts";
 import type { FestivalArtist } from "../lib/types.ts";
 
 function row(id: number, artistId: number, stage: string): FestivalArtist {
@@ -29,4 +33,21 @@ test("여러 추가·수정·삭제를 하나의 작업 배열로 만든다", ()
   const inserted = row(-1, 3, "C");
   const operations = buildLineupOperations(original, [updated, inserted]);
   assert.deepEqual(operations.map((item) => item.operation).sort(), ["delete", "insert", "update"]);
+});
+
+test("같은 아티스트와 같은 공연 날짜만 중복으로 판단한다", () => {
+  const rows = [row(1, 10, "A")];
+
+  assert.equal(
+    hasLineupArtistDateDuplicate(rows, 10, "2026-09-01"),
+    true,
+  );
+  assert.equal(
+    hasLineupArtistDateDuplicate(rows, 10, "2026-09-02"),
+    false,
+  );
+  assert.equal(
+    hasLineupArtistDateDuplicate(rows, 11, "2026-09-01"),
+    false,
+  );
 });

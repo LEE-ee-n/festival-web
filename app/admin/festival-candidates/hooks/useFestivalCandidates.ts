@@ -108,8 +108,8 @@ export function useFestivalCandidates(
         .update({
           draft_json: draft,
           festival_name: draft.festival.name,
-          start_date: draft.festival.start_date,
-          end_date: draft.festival.end_date,
+          start_date: draft.festival.start_date.trim() || null,
+          end_date: draft.festival.end_date.trim() || null,
           location: draft.festival.location || null,
           category: draft.festival.category || null,
           review_notes: reviewNotes.trim() || null,
@@ -217,7 +217,7 @@ export function useFestivalCandidates(
       setErrorMessage(null);
 
       const { data, error } = await supabase.rpc(
-        "approve_new_festival_candidate",
+        "approve_reviewed_festival_candidate",
         {
           p_candidate_id: candidateId,
           p_draft: draft,

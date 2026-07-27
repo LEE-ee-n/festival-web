@@ -21,6 +21,7 @@ import {
   uniqueStrings,
 } from "./candidateComparison.js";
 import {
+  formatFestivalDisplayName,
   normalizeAsciiName,
   normalizeFestivalName,
 } from "./nameNormalization.js";
@@ -56,6 +57,33 @@ const client = new Client({
 });
 let browser;
 let catalogCache;
+
+function errorDetails(error) {
+  if (error instanceof Error) return error.stack || error.message;
+  return String(error);
+}
+
+function logInfo(event, details = "") {
+  console.log(`[${new Date().toISOString()}] INFO ${event}${details ? ` | ${details}` : ""}`);
+}
+
+function logError(event, error, details = "") {
+  console.error(
+    `[${new Date().toISOString()}] ERROR ${event}${details ? ` | ${details}` : ""}\n${errorDetails(error)}`,
+  );
+}
+
+process.on("unhandledRejection", (error) => {
+  logError("unhandled rejection", error);
+});
+
+process.on("uncaughtExceptionMonitor", (error, origin) => {
+  logError("uncaught exception", error, `origin=${origin}`);
+});
+
+process.on("exit", (code) => {
+  console.log(`[${new Date().toISOString()}] INFO process exit | code=${code}`);
+});
 
 async function signInBot() {
   const { error } = await supabase.auth.signInWithPassword({
@@ -157,6 +185,8 @@ async function runCodex(imagePaths, source, jobDir) {
 candidate.raw_text에는 OCR 원문과 유용한 캡션 근거를 보존하세요.
 normalized_name은 영문 소문자와 숫자만 사용하세요. 포스터 원문은 input_name에 보존하세요.
 축제 normalized_name에서는 20XX 연도와 festival 단어를 제거하세요.
+festival.name은 start_date의 연도를 맨 앞에 붙여 "20XX 축제명" 형식으로 작성하세요.
+기존 이름 앞에 다른 20XX 연도가 있으면 제거하고 start_date 연도로 교체하세요.
 아티스트 normalized_name에서는 특수문자를 제거하고 영문 소문자와 숫자만 남기세요.
 영문 아티스트의 통용 한글 독음은 aliases에 추가하세요. 취소나 제외가 명시된 아티스트만 status=cancelled로 두세요.
 POST URL: ${source.post_url}\nCAPTION:\n${source.caption}`;
@@ -172,7 +202,142 @@ POST URL: ${source.post_url}\nCAPTION:\n${source.caption}`;
     child.on("close", (code) => code === 0 ? resolvePromise() : reject(new Error(errors.trim() || `Codex 종료 코드 ${code}`)));
     child.stdin.end(prompt);
   });
-  return JSON.parse(await readFile(outputPath, "utf8"));
+  const result = JSON.parse(await readFile(outputPath, "utf8"));
+  result.festival.name = formatFestivalDisplayName(
+    result.festival.name,
+    result.festival.start_date,
+  );
+  return result;
+}
+
+async function getVisibleInstagramPostImages(page) {
+  return page.evaluate(() => {
+    const dialog = [...document.querySelectorAll('[role="dialog"]')]
+      .find((element) => element.querySelector("img"));
+    const scope = dialog || document.querySelector("article") || document.querySelector("main");
+    if (!scope) return [];
+
+    const scopeRect = scope.getBoundingClientRect();
+    const candidates = [...scope.querySelectorAll("img")]
+      .map((img) => {
+        const rect = img.getBoundingClientRect();
+        const visibleWidth = Math.max(
+          0,
+          Math.min(rect.right, scopeRect.right, window.innerWidth)
+            - Math.max(rect.left, scopeRect.left, 0),
+        );
+        const visibleHeight = Math.max(
+          0,
+          Math.min(rect.bottom, scopeRect.bottom, window.innerHeight)
+            - Math.max(rect.top, scopeRect.top, 0),
+        );
+        const sourceSet = (img.srcset || "")
+          .split(",")
+          .map((item) => item.trim().split(/\s+/)[0])
+          .filter(Boolean);
+
+        return {
+          url: sourceSet.at(-1) || img.currentSrc || img.src,
+          width: img.naturalWidth,
+          height: img.naturalHeight,
+          visibleArea: visibleWidth * visibleHeight,
+        };
+      })
+      .filter((item) => item.width >= 300 && item.height >= 300)
+      .filter((item) => /^https?:/i.test(item.url) && item.visibleArea > 0)
+      .toSorted((a, b) => b.visibleArea - a.visibleArea);
+
+    const largestArea = candidates[0]?.visibleArea || 0;
+    return [...new Set(
+      candidates
+        .filter((item) => item.visibleArea >= largestArea * 0.7)
+        .map((item) => item.url),
+    )];
+  });
+}
+
+async function getVisibleInstagramNextButton(page) {
+  const buttons = await page.$$(
+    'button[aria-label="다음"], button[aria-label="Next"]',
+  );
+
+  for (const button of buttons) {
+    const box = await button.boundingBox();
+    if (box && box.width > 0 && box.height > 0) return button;
+    await button.dispose();
+  }
+
+  return null;
+}
+
+async function collectInstagramCarouselImages(page, jobId, update) {
+  const images = new Set();
+
+  for (let slide = 1; slide <= 5; slide += 1) {
+    const visibleImages = await getVisibleInstagramPostImages(page);
+    visibleImages.slice(0, 1).forEach((imageUrl) => images.add(imageUrl));
+    logInfo(
+      "instagram carousel slide collected",
+      `job_id=${jobId} slide=${slide} visible=${visibleImages.length} total=${images.size}`,
+    );
+
+    const nextButton = await getVisibleInstagramNextButton(page);
+    if (!nextButton) break;
+
+    const currentPrimaryImage = visibleImages[0] || "";
+    await nextButton.click();
+
+    try {
+      await page.waitForFunction(
+        (previousImage) => {
+          const dialog = [...document.querySelectorAll('[role="dialog"]')]
+            .find((element) => element.querySelector("img"));
+          const scope = dialog || document.querySelector("article") || document.querySelector("main");
+          if (!scope) return false;
+
+          const scopeRect = scope.getBoundingClientRect();
+          const current = [...scope.querySelectorAll("img")]
+            .map((img) => {
+              const rect = img.getBoundingClientRect();
+              const sourceSet = (img.srcset || "")
+                .split(",")
+                .map((item) => item.trim().split(/\s+/)[0])
+                .filter(Boolean);
+              const visibleWidth = Math.max(
+                0,
+                Math.min(rect.right, scopeRect.right, window.innerWidth)
+                  - Math.max(rect.left, scopeRect.left, 0),
+              );
+              const visibleHeight = Math.max(
+                0,
+                Math.min(rect.bottom, scopeRect.bottom, window.innerHeight)
+                  - Math.max(rect.top, scopeRect.top, 0),
+              );
+              return {
+                url: sourceSet.at(-1) || img.currentSrc || img.src,
+                area: visibleWidth * visibleHeight,
+              };
+            })
+            .filter((item) => item.url && item.area > 0)
+            .toSorted((a, b) => b.area - a.area)[0]?.url;
+
+          return Boolean(current && current !== previousImage);
+        },
+        currentPrimaryImage,
+        { timeout: 7_000 },
+      );
+    } catch {
+      logInfo(
+        "instagram carousel stopped without image change",
+        `job_id=${jobId} slide=${slide}`,
+      );
+      break;
+    }
+
+    await update(`캐러셀 사진 확인 ${slide + 1}장`);
+  }
+
+  return [...images];
 }
 
 async function extractInstagramPost(url, jobId, update) {
@@ -183,6 +348,7 @@ async function extractInstagramPost(url, jobId, update) {
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60_000 });
     await page.waitForSelector("img", { timeout: 30_000 });
     await new Promise((done) => setTimeout(done, 2500));
+    const carouselImages = await collectInstagramCarouselImages(page, jobId, update);
     const source = await page.evaluate(() => {
       const dialog = [...document.querySelectorAll('[role="dialog"]')].find((element) => element.querySelector("img"));
       const scope = dialog || document.querySelector("article") || document.querySelector("main");
@@ -232,6 +398,11 @@ async function extractInstagramPost(url, jobId, update) {
       const login_required = /가입하기|로그인|sign up|log in/i.test(visibleDialogText);
       return { post_url: location.href, caption, images, candidate_count: candidates.length, login_required };
     });
+    source.images = [...new Set([...carouselImages, ...source.images])].slice(0, 5);
+    logInfo(
+      "instagram carousel collection completed",
+      `job_id=${jobId} images=${source.images.length}`,
+    );
     if (source.login_required) {
       throw new Error("Instagram 로그인이 필요합니다. Bot이 연 Chrome에서 로그인한 뒤 다시 보내주세요.");
     }
@@ -388,6 +559,7 @@ client.on("messageCreate", async (message) => {
     });
     if (exclusionResult) {
       await message.reply(formatTicketExclusionResult(exclusionResult));
+      logInfo("ticket exclusion completed", `message_id=${message.id}`);
       return;
     }
   } catch (error) {
@@ -400,6 +572,7 @@ client.on("messageCreate", async (message) => {
   if (!url) return;
   const regenerate = false;
   const jobId = message.id;
+  logInfo("instagram job received", `message_id=${message.id} url=${url}`);
   const status = await message.reply("Instagram 게시물을 확인하는 중입니다.");
   try {
     const [candidateResult, updateResult] = await Promise.all([
@@ -413,6 +586,7 @@ client.on("messageCreate", async (message) => {
         ? `${adminBaseUrl}/admin/festivals/import-json?festivalId=${existingUpdate.festival_id}&updateDraftId=${existingUpdate.id}`
         : `${adminBaseUrl}/admin/festival-candidates`;
       await status.edit(`이미 처리했거나 진행 중인 URL입니다.\n${existingUrl}`);
+      logInfo("instagram job skipped as duplicate", `message_id=${message.id} url=${url}`);
       return;
     }
     const result = await extractInstagramPost(url, jobId, (text) => status.edit(text));
@@ -421,11 +595,17 @@ client.on("messageCreate", async (message) => {
       await status.edit({
         content: resultMessage(result, saved),
       });
+      logInfo(
+        "instagram job completed",
+        `message_id=${message.id} url=${url} saved_id=${saved?.id ?? "none"}`,
+      );
     } catch (error) {
+      logError("instagram job database save failed", error, `message_id=${message.id} url=${url}`);
       await keepRetry(jobId, result, regenerate);
       await status.edit({ content: `${resultMessage(result, null)}\n${error.message}`, components: [retryButton(jobId)] });
     }
   } catch (error) {
+    logError("instagram job failed", error, `message_id=${message.id} url=${url}`);
     await status.edit(`처리 실패: ${error.message}`);
   }
 });
@@ -444,16 +624,43 @@ client.on("interactionCreate", async (interaction) => {
     await rm(resolve(retryRoot, jobId), { recursive: true, force: true });
     await interaction.editReply("DB 저장이 완료되었습니다.");
     await interaction.message.edit({ components: [] });
+    logInfo("database retry completed", `job_id=${jobId}`);
   } catch (error) {
+    logError("database retry failed", error, `job_id=${jobId}`);
     await interaction.editReply(`DB 저장 실패: ${error.message}`);
   }
 });
 
 client.once("clientReady", async () => {
   await cleanupRetries();
-  console.log(`Festibom Discord Bot 로그인: ${client.user.tag}`);
+  logInfo("discord ready", `bot=${client.user.tag}`);
+});
+
+client.on("error", (error) => {
+  logError("discord client error", error);
+});
+
+client.on("warn", (warning) => {
+  logInfo("discord warning", warning);
+});
+
+client.on("shardDisconnect", (event, shardId) => {
+  logInfo(
+    "discord shard disconnected",
+    `shard=${shardId} code=${event.code} reason=${event.reason || "none"}`,
+  );
+});
+
+client.on("shardReconnecting", (shardId) => {
+  logInfo("discord shard reconnecting", `shard=${shardId}`);
+});
+
+client.on("shardResume", (shardId, replayedEvents) => {
+  logInfo("discord shard resumed", `shard=${shardId} replayed_events=${replayedEvents}`);
 });
 
 await mkdir(jobsRoot, { recursive: true });
+logInfo("bot startup", `root=${root}`);
 await signInBot();
+logInfo("supabase sign-in completed");
 await client.login(process.env.DISCORD_BOT_TOKEN);

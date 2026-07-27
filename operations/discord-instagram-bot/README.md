@@ -23,3 +23,10 @@ Discord에 Instagram 게시물 URL을 보내면 전체 이미지와 캡션을 �
 5. Instagram 로그인용 Chrome 프로필을 준비한 뒤 `scripts/run-bot.ps1` 실행
 
 Bot은 후보와 검수 포스터만 추가할 수 있습니다. 정식 축제·아티스트·별칭의 생성, 변경, 삭제 권한은 없습니다.
+
+## 실행 로그
+
+- 실행 로그는 `work/logs/bot-YYYY-MM-DD.log`에 일자별로 누적됩니다.
+- CMD 화면에도 같은 로그를 계속 표시합니다.
+- 시작·종료 코드, Discord 연결·재연결, 처리한 메시지 ID와 Instagram URL, 처리 성공·실패를 기록합니다.
+- 토큰, 비밀번호, Supabase 키와 Discord 메시지 전체 내용은 기록하지 않습니다.

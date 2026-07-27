@@ -43,16 +43,28 @@ test("후보 첨부 자료 JSON을 구체 타입으로 변환한다", () => {
   assert.throws(() => parseCandidateSourceAssets("invalid"), /형식/);
 });
 
-test("후보 초안 JSON은 기존 초안 검증기를 통과해야 한다", () => {
+test("후보 초안 JSON은 날짜가 비어 있어도 화면 데이터로 변환한다", () => {
   const draft = parseFestivalDraftValue({
     festival: {
       name: "테스트 페스티벌",
       normalized_name: "test",
+      start_date: "",
+      end_date: "",
+    },
+    artists: [],
+  });
+  assert.equal(draft?.festival.normalized_name, "test");
+  assert.equal(draft?.festival.start_date, "");
+
+  const completeDraft = parseFestivalDraftValue({
+    festival: {
+      name: "날짜가 있는 페스티벌",
+      normalized_name: "complete",
       start_date: "2026-07-25",
       end_date: "2026-07-26",
     },
     artists: [],
   });
-  assert.equal(draft?.festival.normalized_name, "test");
+  assert.equal(completeDraft?.festival.start_date, "2026-07-25");
   assert.equal(parseFestivalDraftValue(null), null);
 });

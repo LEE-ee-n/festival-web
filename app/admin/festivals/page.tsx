@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 import { supabase } from "@/lib/supabase/client";
 import { deleteFestival } from "@/lib/festivals/deleteFestival";
+import { getSupabaseErrorMessage } from "@/lib/supabase/errorMessage";
 
 type Festival = {
   id: number;
@@ -53,11 +54,10 @@ export default function AdminFestivalsPage() {
 
       setFestivals(data ?? []);
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "페스티벌 목록을 불러오지 못했습니다.",
-      );
+      setErrorMessage(getSupabaseErrorMessage(
+        error,
+        "페스티벌 목록을 불러오지 못했습니다.",
+      ));
     } finally {
       setIsLoading(false);
     }
@@ -90,11 +90,10 @@ export default function AdminFestivalsPage() {
         ),
       );
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "페스티벌 삭제에 실패했습니다.",
-      );
+      setErrorMessage(getSupabaseErrorMessage(
+        error,
+        "페스티벌 삭제에 실패했습니다.",
+      ));
     } finally {
       setDeletingId(null);
     }

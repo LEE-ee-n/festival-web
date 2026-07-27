@@ -3,6 +3,8 @@ import test from "node:test";
 
 import {
   createFestivalUpdatePreview,
+  getFestivalUpdateDisplayStatus,
+  setFestivalUpdateItemSelections,
   type ExistingFestivalArtist,
   type ExistingFestivalTicket,
 } from "../lib/festivals/festivalUpdatePreview.ts";
@@ -144,4 +146,107 @@ test("같은 티켓의 가격이 다르면 검토할 충돌로 표시한다", ()
 
   assert.equal(ticket?.status, "conflict");
   assert.equal(ticket?.ticketPayload?.existing_ticket_id, 2);
+});
+
+test("라인업 추가·변경·취소를 화면 상태로 구분한다", () => {
+  const added: ReturnType<typeof createFestivalUpdatePreview>[number] = {
+    id: "lineup:add",
+    section: "lineup",
+    label: "신규",
+    status: "add",
+    current: "없음",
+    incoming: "신규",
+  };
+  const changed = { ...added, id: "lineup:change", status: "conflict" as const };
+  const removed = {
+    ...changed,
+    id: "lineup:remove",
+    artistPayload: {
+      input_name: "취소",
+      display_name: "취소",
+      normalized_name: "cancelled",
+      aliases: [],
+      status: "cancelled",
+    },
+  };
+
+  assert.equal(getFestivalUpdateDisplayStatus(added), "add");
+  assert.equal(getFestivalUpdateDisplayStatus(changed), "change");
+  assert.equal(getFestivalUpdateDisplayStatus(removed), "remove");
+});
+
+test("라인업 새 일정에는 최종 반영될 날짜·시간·무대를 표시한다", () => {
+  const festival = draft().festival;
+  const preview = createFestivalUpdatePreview(
+    festival,
+    [{
+      id: 1,
+      artist_id: 10,
+      performance_date: "2026-09-05",
+      performance_time: null,
+      performance_end_time: null,
+      stage_name: "메인",
+      status: "confirmed",
+      artist: {
+        id: 10,
+        name: "Existing",
+        normalized_name: "existing",
+        aliases: [],
+      },
+    }],
+    [],
+    {
+      festival,
+      artists: [{
+        input_name: "Existing",
+        display_name: "Existing",
+        normalized_name: "existing",
+        aliases: [],
+        matched_artist_id: 10,
+        match_status: "matched",
+        performance_date: "2026-09-05",
+        performance_time: "18:00",
+        performance_end_time: "19:00",
+      }],
+    },
+  );
+
+  const lineup = preview.find((item) => item.section === "lineup");
+  assert.equal(
+    lineup?.incoming,
+    "2026-09-05 · 18:00~19:00 · 메인",
+  );
+});
+
+test("타임테이블 전체 선택은 다른 단계의 선택을 유지한다", () => {
+  const informationItem: ReturnType<
+    typeof createFestivalUpdatePreview
+  >[number] = {
+    id: "basic:name",
+    section: "basic",
+    label: "축제명",
+    status: "conflict",
+    current: "기존",
+    incoming: "신규",
+  };
+  const lineupItem = {
+    ...informationItem,
+    id: "lineup:1",
+    section: "lineup" as const,
+    label: "아티스트",
+  };
+
+  const selected = setFestivalUpdateItemSelections(
+    new Set([informationItem.id]),
+    [lineupItem],
+    true,
+  );
+  assert.deepEqual([...selected].sort(), ["basic:name", "lineup:1"]);
+
+  const maintained = setFestivalUpdateItemSelections(
+    selected,
+    [lineupItem],
+    false,
+  );
+  assert.deepEqual([...maintained], ["basic:name"]);
 });

@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import ArtistLineupTable from "./components/ArtistLineupTable";
+import ArtistAddSection from "./components/ArtistAddSection";
 import BasicInfoTab from "./components/BasicInfoTab";
 import TicketTab from "./components/TicketTab";
 import AuditHistoryTab from "./components/AuditHistoryTab";
@@ -168,6 +169,7 @@ export default function FestivalLineupAdminPage() {
         {activeTab === "lineup" && (
           <>
             <LineupWorkPanel {...artists.workPanelProps} />
+            <ArtistAddSection {...artists.addSectionProps} />
             <ArtistLineupTable
               {...artists.tableProps}
               isLoading={isLoading}

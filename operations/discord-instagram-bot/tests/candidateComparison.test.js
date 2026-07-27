@@ -8,6 +8,7 @@ import {
   normalizeDraftDates,
 } from "../src/candidateComparison.js";
 import {
+  formatFestivalDisplayName,
   normalizeAsciiName,
   normalizeFestivalName,
 } from "../src/nameNormalization.js";
@@ -16,6 +17,21 @@ test("festival and artist normalized names use separate rules", () => {
   assert.equal(normalizeFestivalName("ONE UNIVERSE FESTIVAL 2026"), "oneuniverse");
   assert.equal(normalizeAsciiName("Festival 2026"), "festival2026");
   assert.equal(normalizeAsciiName("JOEY VALENCE & BRAE"), "joeyvalenceandbrae");
+});
+
+test("festival display name uses the start date year", () => {
+  assert.equal(
+    formatFestivalDisplayName("ONE UNIVERSE 페스티벌", "2026-07-25"),
+    "2026 ONE UNIVERSE 페스티벌",
+  );
+  assert.equal(
+    formatFestivalDisplayName("2025 ONE UNIVERSE 페스티벌", "2026-07-25"),
+    "2026 ONE UNIVERSE 페스티벌",
+  );
+  assert.equal(
+    formatFestivalDisplayName("ONE UNIVERSE 페스티벌", ""),
+    "ONE UNIVERSE 페스티벌",
+  );
 });
 
 test("festival connection requires normalized name and both dates", () => {

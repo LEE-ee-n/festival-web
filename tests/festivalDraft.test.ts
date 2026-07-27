@@ -9,6 +9,7 @@ import {
   mergeNonBlankValue,
   moveRegistrationStep,
   parseFestivalDraftJson,
+  parseFestivalDraftJsonForEditing,
   validateArtistReview,
   validateFestivalDraftForApproval,
 } from "../lib/festivals/festivalDraft.ts";
@@ -45,6 +46,68 @@ test("종료일이 시작일보다 빠른 초안을 거부한다", () => {
         }),
       ),
     /종료일/,
+  );
+});
+
+test("조회·임시저장용 파서는 비어 있는 축제 필수정보를 허용한다", () => {
+  const draft = parseFestivalDraftJsonForEditing(
+    JSON.stringify({
+      festival: {
+        name: "",
+        normalized_name: "",
+        start_date: "",
+        end_date: "",
+      },
+      artists: [],
+    }),
+  );
+
+  assert.equal(draft.festival.name, "");
+  assert.equal(draft.festival.start_date, "");
+});
+
+test("날짜가 빈 편집 초안은 페스티벌 정보 단계 이후 이동과 최종 등록을 막는다", () => {
+  const draft = parseFestivalDraftJsonForEditing(
+    JSON.stringify({
+      workflow: {
+        step: "festival_info",
+        confirmed_steps: ["artist_review", "artist_confirmation"],
+      },
+      festival: {
+        name: "테스트 페스티벌",
+        normalized_name: "testfestival",
+        start_date: "",
+        end_date: "",
+      },
+      artists: [],
+    }),
+  );
+
+  assert.throws(
+    () => validateFestivalDraftForApproval(draft),
+    /시작일·종료일/,
+  );
+  assert.throws(
+    () => moveRegistrationStep(draft, "timetable"),
+    /시작일·종료일/,
+  );
+});
+
+test("엄격한 초안 파서는 날짜 누락을 계속 거부한다", () => {
+  assert.throws(
+    () =>
+      parseFestivalDraftJson(
+        JSON.stringify({
+          festival: {
+            name: "테스트 페스티벌",
+            normalized_name: "testfestival",
+            start_date: "",
+            end_date: "",
+          },
+          artists: [],
+        }),
+      ),
+    /시작일과 종료일/,
   );
 });
 

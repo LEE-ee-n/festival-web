@@ -6,7 +6,7 @@
 
 - `app/page.tsx`: 메인 달력 화면 진입점
 - `components/Calendar.tsx`: 선택한 월의 축제를 조회하고 달력 이동과 선택 상태 관리
-- `components/calendar/`: 달력 헤더, 날짜 셀, 월간 고정 축제 막대, 상세 패널 UI
+- `components/calendar/`: 달력 헤더, 모바일·PC 축제/아티스트 통합 검색, 날짜 셀, 월간 고정 축제 막대, 상세 패널 UI
 - `components/FestivalList.tsx`, `components/FestivalCard.tsx`: 선택한 날짜의 축제 목록과 카드
 - `components/FestivalDetailDrawer.tsx`: 달력에서 선택한 축제 상세를 우측 패널로 표시
 - `app/festival/[id]/page.tsx`: 독립된 축제 상세 페이지
@@ -44,6 +44,7 @@
 - `lib/calendar.ts`: 날짜 변환과 날짜별 축제 분류
 - `lib/calendarFestivalBar.ts`: 여러 날짜에 걸친 축제 막대 길이와 종료 모양 계산
 - `lib/calendarFestivalLanes.ts`: 월간 축제 겹침을 계산해 축제별 고정 줄 배정
+- `lib/publicSearch.ts`, `lib/publicSearchLogic.ts`: 공개 축제·아티스트 검색 쿼리와 정규화·정렬
 - `lib/auth/getCurrentAdminAccess.ts`: 로그인 사용자 관리자 여부 확인
 - `lib/artists/`: 아티스트 이름 정규화, 검색과 normalized_name 기준 후보 중복 매칭
 - `lib/festivals/`: 축제 기본정보, 출연진, 티켓, 썸네일의 조회·추가·수정·삭제
@@ -77,6 +78,7 @@
 - `tests/calendarFestivalBar.test.ts`: 캘린더 축제 막대 규칙
 - `tests/calendarFestivalLanes.test.ts`: 겹치는 축제의 월간 고정 줄 배정 규칙
 - `tests/calendarSelection.test.ts`: 이전·다음 달 날짜 선택과 월 이동 규칙
+- `tests/publicSearch.test.ts`: 공개 검색 정규화, 와일드카드 처리, 아티스트 정렬·중복 제거
 - `tests/artistMatching.test.ts`: 후보 아티스트의 기존 아티스트 중복 매칭 규칙
 - `tests/artistNameNormalization.test.ts`: `normalized_name` 변환과 허용 형식
 - `tests/festivalDraft.test.ts`: 축제 초안 JSON 필수값, 신뢰도와 표시 순서 검사

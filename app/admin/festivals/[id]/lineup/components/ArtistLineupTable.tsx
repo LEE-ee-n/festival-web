@@ -138,7 +138,8 @@ export default function ArtistLineupTable({
                                     </p>
                                   )}
                                   <p className="mt-1 text-[11px] font-semibold text-gray-400">
-                                    DB #{artist?.id ?? row.artist_id} · 연결됨
+                                    DB #{artist?.id ?? row.artist_id} ·{" "}
+                                    {row.id > 0 ? "연결됨" : "추가 대기"}
                                   </p>
                                 </td>
 

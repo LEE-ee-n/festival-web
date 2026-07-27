@@ -660,6 +660,10 @@ export type Database = {
         Args: { p_candidate_id: number; p_draft: Json; p_review_notes?: string }
         Returns: Json
       }
+      approve_reviewed_festival_candidate: {
+        Args: { p_candidate_id: number; p_draft: Json; p_review_notes?: string }
+        Returns: Json
+      }
       audit_actor_name: { Args: never; Returns: string }
       audit_lineup_snapshot: {
         Args: {
