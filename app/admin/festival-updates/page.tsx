@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import AdminBackLink from "@/components/admin/AdminBackLink";
 import { supabase } from "@/lib/supabase/client";
 
 type UpdateDraft = {
@@ -55,7 +56,7 @@ export default function FestivalUpdatesPage() {
   }, [status]);
 
   return <main className="min-h-screen bg-white px-4 py-10"><div className="mx-auto max-w-6xl">
-    <Link href="/admin" className="text-sm font-semibold text-slate-600 underline">관리자 페이지로 돌아가기</Link>
+    <AdminBackLink />
     <div className="mt-6"><p className="text-sm font-semibold text-slate-500">관리자</p><h1 className="mt-1 text-3xl font-bold text-slate-950">기존 페스티벌 수정</h1><p className="mt-2 text-sm text-slate-500">등록된 페스티벌에 들어온 새 자료를 단계별로 검토해 추가·수정합니다.</p></div>
     <div className="mt-6 flex gap-2"><button type="button" onClick={() => setStatus("pending")} className={`rounded-full px-4 py-2 text-sm font-bold ${status === "pending" ? "bg-slate-950 text-white" : "border"}`}>검토 대기</button><button type="button" onClick={() => setStatus("applied")} className={`rounded-full px-4 py-2 text-sm font-bold ${status === "applied" ? "bg-slate-950 text-white" : "border"}`}>반영 완료</button></div>
     {errorMessage && <p className="mt-5 rounded-xl bg-red-50 p-4 text-sm font-bold text-red-700">{errorMessage}</p>}

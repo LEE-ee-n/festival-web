@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {
   FormEvent,
   useCallback,
@@ -9,6 +8,7 @@ import {
   useState,
 } from "react";
 
+import AdminBackLink from "@/components/admin/AdminBackLink";
 import ArtistCandidateTable, {
   type ArtistCandidate,
 } from "./components/ArtistCandidateTable";
@@ -393,12 +393,7 @@ export default function AdminArtistsPage() {
   return (
     <main className="min-h-screen bg-white px-4 py-8 sm:py-12">
       <div className="mx-auto max-w-6xl">
-        <Link
-          href="/admin"
-          className="inline-flex rounded-lg border border-slate-200 bg-slate-100 px-3.5 py-2 text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-slate-200 hover:text-slate-900"
-        >
-          관리자 페이지로 돌아가기
-        </Link>
+        <AdminBackLink />
 
         <header className="mt-5">
           <p className="text-sm font-semibold text-slate-600">관리자</p>

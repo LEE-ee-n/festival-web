@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
+import AdminBackLink from "@/components/admin/AdminBackLink";
 import { supabase } from "@/lib/supabase/client";
 import { deleteFestival } from "@/lib/festivals/deleteFestival";
 import { findFestivalThumbnailMatches } from "@/lib/festivals/festivalThumbnailSync";
@@ -180,12 +181,7 @@ export default function AdminFestivalsPage() {
   return (
     <main className="min-h-screen bg-white px-4 py-10">
       <div className="mx-auto max-w-6xl">
-        <Link
-          href="/admin"
-          className="mb-6 inline-block text-sm font-medium text-slate-500 hover:text-slate-900"
-        >
-          ← 관리자 페이지로 돌아가기
-        </Link>
+        <AdminBackLink />
 
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>

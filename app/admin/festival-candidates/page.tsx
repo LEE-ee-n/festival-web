@@ -11,6 +11,7 @@ import FestivalCandidateJsonUploader from "@/app/admin/festival-candidates/compo
 import TicketDiscoveryUploader from "@/app/admin/festival-candidates/components/TicketDiscoveryUploader";
 import { useFestivalCandidateDraft } from "@/app/admin/festival-candidates/hooks/useFestivalCandidateDraft";
 import { useFestivalCandidates } from "@/app/admin/festival-candidates/hooks/useFestivalCandidates";
+import AdminBackLink from "@/components/admin/AdminBackLink";
 import { matchFestivalDraftArtists } from "@/lib/artists/matchFestivalDraftArtists";
 import {
   FESTIVAL_REGISTRATION_STEPS,
@@ -363,12 +364,7 @@ export default function FestivalCandidatesPage() {
   return (
     <main className="min-h-screen bg-white px-4 py-10">
       <div className="mx-auto max-w-7xl">
-        <Link
-          href="/admin"
-          className="inline-flex rounded-lg border border-slate-200 bg-slate-100 px-3.5 py-2 text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-slate-200 hover:text-slate-900"
-        >
-          관리자 페이지로 돌아가기
-        </Link>
+        <AdminBackLink />
 
         <div className="mt-6 flex flex-wrap items-end justify-between gap-4">
           <div>
