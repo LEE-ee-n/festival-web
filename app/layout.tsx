@@ -4,10 +4,20 @@ import type { ReactNode } from "react";
 import "./globals.css";
 import CommonHeader from "../components/CommonHeader";
 import PublicFooter from "../components/PublicFooter";
+import {
+  HOME_DESCRIPTION,
+  HOME_TITLE,
+  SITE_NAME,
+  SITE_URL,
+} from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "페스티벌 캘린더",
-  description: "날짜별 전국 축제 정보를 확인하는 달력",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: HOME_TITLE,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: HOME_DESCRIPTION,
   verification: {
     other: {
       "naver-site-verification":

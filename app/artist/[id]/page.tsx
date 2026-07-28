@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -144,17 +145,33 @@ export default function ArtistDetailPage() {
           ← 달력으로 돌아가기
         </Link>
 
-        <div className="mt-5 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-          <header className="border-b border-slate-200 p-6 sm:p-9">
-            <p className={`${typography.label} text-slate-400`}>
-              아티스트
-            </p>
-
-            <h1 className={`${typography.pageTitle} mt-3 text-slate-950`}>
+        <header className="mt-5 flex min-h-44 items-stretch gap-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:min-h-52 sm:gap-8 sm:p-9">
+          <div className="flex min-w-0 flex-1 flex-col">
+            <h1 className={`${typography.pageTitle} break-keep text-slate-950`}>
               {artist.name}
             </h1>
-          </header>
 
+            <div
+              className="mt-5 min-h-12 flex-1"
+              aria-hidden="true"
+            />
+          </div>
+
+          {artist.image_url && (
+            <div className="relative aspect-square w-28 shrink-0 overflow-hidden rounded-2xl bg-slate-100 sm:w-36">
+              <Image
+                src={artist.image_url}
+                alt={`${artist.name} 아티스트 이미지`}
+                fill
+                sizes="(max-width: 640px) 112px, 144px"
+                className="object-cover"
+                unoptimized
+              />
+            </div>
+          )}
+        </header>
+
+        <div className="mt-6 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
           <div className="p-6 sm:p-9">
             <h2 className={`${typography.sectionTitle} text-slate-900`}>
               출연 페스티벌
