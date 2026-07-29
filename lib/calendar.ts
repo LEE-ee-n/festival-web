@@ -37,7 +37,7 @@ export function getCalendarDays(
   monthIndex: number,
 ): CalendarDay[] {
   const firstDayOfMonth = new Date(year, monthIndex, 1);
-  const startDayOffset = firstDayOfMonth.getDay();
+  const startDayOffset = (firstDayOfMonth.getDay() + 6) % 7;
 
   const calendarStartDate = new Date(
     year,

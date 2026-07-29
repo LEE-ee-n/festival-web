@@ -41,7 +41,7 @@
 ## 공통 로직
 
 - `lib/types.ts`: 축제, 출연진, 티켓 등 공통 TypeScript 타입
-- `lib/calendar.ts`: 날짜 변환과 날짜별 축제 분류
+- `lib/calendar.ts`: 월요일 시작 월간 날짜 배열, 날짜 변환과 날짜별 축제 분류
 - `lib/calendarFestivalBar.ts`: 여러 날짜에 걸친 축제 막대 길이와 종료 모양 계산
 - `lib/calendarFestivalLanes.ts`: 월간 축제 겹침을 계산해 축제별 고정 줄 배정
 - `lib/publicSearch.ts`, `lib/publicSearchLogic.ts`: 공개 축제·아티스트 검색 쿼리와 정규화·정렬

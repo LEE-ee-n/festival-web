@@ -3,8 +3,8 @@ import test from "node:test";
 
 import { getFestivalBarSegment } from "../lib/calendarFestivalBar.ts";
 
-test("17일부터 18일까지인 축제 막대는 18일에서 둥글게 끝난다", () => {
-  const segment = getFestivalBarSegment("2026-07-17", "2026-07-18", 19);
+test("토요일부터 일요일까지인 축제 막대는 같은 줄에서 이어진다", () => {
+  const segment = getFestivalBarSegment("2026-08-01", "2026-08-02", 5);
 
   assert.deepEqual(segment, {
     spanDays: 2,
@@ -12,8 +12,8 @@ test("17일부터 18일까지인 축제 막대는 18일에서 둥글게 끝난�
   });
 });
 
-test("다음 주까지 이어지는 축제는 현재 줄에서 둥글게 끝나지 않는다", () => {
-  const segment = getFestivalBarSegment("2026-07-17", "2026-07-20", 19);
+test("월요일까지 이어지는 축제는 일요일 뒤 다음 줄로 이어진다", () => {
+  const segment = getFestivalBarSegment("2026-08-01", "2026-08-03", 5);
 
   assert.deepEqual(segment, {
     spanDays: 2,

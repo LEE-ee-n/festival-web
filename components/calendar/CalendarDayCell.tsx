@@ -60,11 +60,11 @@ export default function CalendarDayCell({
         className={[
           `${typography.calendarDate} absolute left-1 top-[2px] inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1 sm:left-2 sm:top-2 sm:h-7 sm:min-w-7`,
           day.isToday ? "bg-slate-900 text-white" : "",
-          dayIndex % 7 === 0 && !day.isToday
-            ? "text-red-600"
+          dayIndex % 7 === 5 && !day.isToday
+            ? "text-blue-600"
             : "",
           dayIndex % 7 === 6 && !day.isToday
-            ? "text-blue-600"
+            ? "text-red-600"
             : "",
         ].join(" ")}
       >

@@ -1,4 +1,5 @@
-import { CalendarDays } from "lucide-react";
+import Link from "next/link";
+import { CalendarDays, LayoutGrid } from "lucide-react";
 
 import FestivalSearch from "@/components/calendar/FestivalSearch";
 import type { PublicArtistSearchResult } from "@/lib/publicSearch";
@@ -64,6 +65,14 @@ export default function CalendarHeader({
             onSelectArtist={onSelectSearchArtist}
           />
         </div>
+        <Link
+          href="/festivals"
+          aria-label="전체 페스티벌 보기"
+          title="전체 페스티벌 보기"
+          className="flex h-11 w-11 items-center justify-center rounded-xl text-slate-700 transition hover:bg-slate-100 hover:ring-1 hover:ring-slate-300"
+        >
+          <LayoutGrid size={22} strokeWidth={2} />
+        </Link>
         <button
           type="button"
           onClick={onMoveToToday}

@@ -20,6 +20,12 @@ const config: Config = {
           indigo: "#312E81",
           night: "#090A1A",
         },
+        ink: {
+          DEFAULT: "#111111",
+          secondary: "#505050",
+          tertiary: "#767676",
+          muted: "#999999",
+        },
       },
     },
   },
