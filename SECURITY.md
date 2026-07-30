@@ -100,3 +100,80 @@ SQL Editor는 일반적으로 `postgres` 권한으로 실행되기 때문에
 - 공개 SELECT 정책과 관리자 쓰기 정책을 분리한다.
 - 005 마이그레이션은 대상 테이블의 기존 INSERT, UPDATE, DELETE, ALL 정책을 제거하고 관리자 정책으로 교체한다.
 - 운영 DB 변경 전 마이그레이션 SQL을 검토하고 백업한다.
+
+## 2026-07-30 보안 준비도 평가
+
+현재 보안 준비도는 약 55~60%로 평가한다.
+
+- 익명 사용자나 일반 로그인 사용자가 운영 데이터를 직접 변경하는 공격에는 비교적 강한 구조다.
+- 관리자 계정 탈취, 프레임워크 취약점, 공격 탐지와 사고 복구까지 포함하면 공개 운영 전에 보강이 필요하다.
+- 이 평가는 코드와 migration 기준이며 실제 운영 DB 정책·Supabase 설정·Vercel 설정을 직접 확인한 결과는 아니다.
+
+### 현재 강점
+
+- 브라우저에서는 Supabase 익명 키만 사용하며 `service_role` 키를 사용하지 않는다.
+- 화면 가드와 별개로 RLS와 DB 함수가 쓰기 권한을 다시 확인한다.
+- 관리자와 Discord Bot 역할을 분리하고 Bot의 테이블·Storage 접근 범위를 제한한다.
+- `SECURITY DEFINER` 함수는 빈 `search_path`와 정규화된 객체 이름을 사용한다.
+- 이미지의 확장자, MIME, 최대 5MB 용량과 파일 시그니처를 검사한다.
+- React 기본 이스케이프를 사용하고 JSON-LD 직렬화 시 `<`를 이스케이프한다.
+
+### 우선 보강 항목
+
+1. Next.js 보안 버전 업데이트
+   - 현재 `16.2.10`에서 공식 보안 수정 버전인 `16.2.11` 이상으로 업데이트한다.
+   - 업데이트 후 전체 테스트, 타입 검사, 린트와 프로덕션 빌드를 다시 실행한다.
+2. 관리자 MFA 강제
+   - 관리자 계정에 TOTP MFA를 등록한다.
+   - 화면 인증만 추가하지 않고 관리자 RLS·RPC에서도 `aal2`를 요구한다.
+3. 운영 DB 권한 재검증
+   - Supabase Security Advisor를 다시 실행한다.
+   - 이후 추가된 모든 테이블, 함수와 Storage 버킷의 RLS·실행 권한을 확인한다.
+   - 익명·일반 사용자·관리자·Bot 계정으로 허용 및 거부 동작을 각각 시험한다.
+4. HTTP 보안 헤더
+   - CSP, `frame-ancestors`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`를 검토해 적용한다.
+   - 외부 Pretendard 폰트, Supabase Storage 이미지와 JSON-LD가 CSP에서 정상 동작하는지 확인한다.
+5. 인증 공격 방어
+   - Supabase Auth rate limit 설정을 확인한다.
+   - 관리자 로그인에 CAPTCHA 또는 Cloudflare Turnstile 적용을 검토한다.
+   - 비밀번호 최소 길이·문자 조합·유출 비밀번호 차단과 세션 최대 수명 설정을 확인한다.
+6. 탐지와 복구
+   - 관리자 로그인 실패 급증, 관리자·Bot 로그인, RPC 오류와 RLS 거부를 감시한다.
+   - Vercel Firewall 알림과 Supabase 로그 확인 절차를 마련한다.
+   - 관리자·Bot 비밀번호 및 세션 폐기, 키 교체와 사고 대응 순서를 문서화한다.
+   - Supabase 백업 복원 시험을 수행한다.
+
+### 운영 전 보안 확인표
+
+- [ ] Next.js 보안 수정 버전 적용
+- [ ] 웹과 Discord Bot 의존성 보안 감사 통과
+- [ ] 관리자 MFA 등록과 `aal2` 권한 강제
+- [ ] 관리자 로그인 rate limit·CAPTCHA·비밀번호 정책 확인
+- [ ] Supabase Security Advisor 경고 검토
+- [ ] 익명 사용자의 모든 관리 테이블 쓰기 거부 확인
+- [ ] 일반 로그인 사용자의 관리자 RPC 실행 거부 확인
+- [ ] Bot의 관리자 테이블 및 다른 사용자의 후보·파일 접근 거부 확인
+- [ ] 관리자 계정의 정상 등록·수정·삭제 확인
+- [ ] Storage 파일 형식·크기·경로 제한 확인
+- [ ] HTTP 보안 헤더와 CSP 적용 후 공개 화면 회귀 확인
+- [ ] Vercel WAF·로그·알림 확인
+- [ ] Supabase 백업 복구 시험
+- [ ] 사고 시 세션 폐기·비밀번호 및 키 교체 절차 확인
+
+### 이번 평가에서 확인하지 못한 사항
+
+- `npm audit`는 npm 보안 API 연결 실패로 결과를 받지 못했다.
+- 운영 Supabase 프로젝트의 실제 RLS·Auth·세션·Security Advisor 설정은 확인하지 않았다.
+- Vercel Firewall과 보안 알림의 실제 설정은 확인하지 않았다.
+- 실제 침투 테스트, 부하 공격과 계정 탈취 시나리오는 실행하지 않았다.
+
+### 참고 자료
+
+- [Next.js 2026년 7월 보안 릴리스](https://nextjs.org/blog)
+- [Next.js 보안 헤더 설정](https://nextjs.org/docs/app/api-reference/config/next-config-js/headers)
+- [Supabase Row Level Security](https://supabase.com/docs/guides/database/postgres/row-level-security)
+- [Supabase Security Advisor](https://supabase.com/docs/guides/database/database-advisors)
+- [Supabase MFA](https://supabase.com/docs/guides/auth/auth-mfa)
+- [Supabase CAPTCHA](https://supabase.com/docs/guides/auth/auth-captcha)
+- [Supabase Auth rate limits](https://supabase.com/docs/guides/auth/rate-limits)
+- [Vercel Firewall](https://vercel.com/docs/vercel-firewall)
