@@ -67,7 +67,7 @@ const STATUS_META: Record<
   add: {
     label: "추가",
     icon: "➕",
-    className: "bg-slate-100 text-slate-700",
+    className: "bg-surface-muted text-ink-secondary",
   },
   change: {
     label: "변경 확인",
@@ -485,9 +485,9 @@ export default function FestivalCandidateJsonUploader({ onCreated }: Props) {
   }
 
   return (
-    <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-      <h2 className="text-lg font-bold text-slate-950">축제 JSON 가져오기</h2>
-      <p className="mt-1 text-sm text-slate-600">
+    <section className="mt-6 rounded-2xl border border-line bg-surface p-5 shadow-sm sm:p-6">
+      <h2 className="text-lg font-bold text-ink">축제 JSON 가져오기</h2>
+      <p className="mt-1 text-sm text-ink-secondary">
         검토 대기 작업과 자동 매칭하고 기본정보·라인업·티켓의 차이를 비교합니다.
       </p>
 
@@ -497,7 +497,7 @@ export default function FestivalCandidateJsonUploader({ onCreated }: Props) {
           type="file"
           accept="application/json,.json"
           onChange={(event) => void handleFileChange(event.target.files?.[0])}
-          className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-white p-3 text-sm"
+          className="min-w-0 flex-1 rounded-xl border border-line-strong bg-surface p-3 text-sm"
         />
         <button
           type="button"
@@ -510,7 +510,7 @@ export default function FestivalCandidateJsonUploader({ onCreated }: Props) {
             || (!mergePreview && !createAsNew)
           }
           onClick={() => void handleSave()}
-          className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
+          className="rounded-xl bg-surface-dark px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
         >
           {isSaving
             ? "반영 중..."
@@ -521,29 +521,29 @@ export default function FestivalCandidateJsonUploader({ onCreated }: Props) {
       </div>
 
       {isChecking && (
-        <p className="mt-3 text-sm text-slate-500">검토 대기 작업과 비교 중...</p>
+        <p className="mt-3 text-sm text-ink-tertiary">검토 대기 작업과 비교 중...</p>
       )}
 
       {draft && (
-        <div className="mt-3 rounded-xl border border-slate-300 bg-white p-3 text-sm text-slate-700">
+        <div className="mt-3 rounded-xl border border-line-strong bg-surface p-3 text-sm text-ink-secondary">
           <div>
             <strong>{draft.festival.name}</strong>
-            <span className="ml-2 text-slate-500">
+            <span className="ml-2 text-ink-tertiary">
               {draft.festival.start_date} ~ {draft.festival.end_date}
               {` · 출연진 ${draft.artists.length}명`}
               {` · 티켓 ${draft.tickets?.length ?? 0}건`}
             </span>
           </div>
-          <label className="mt-3 block font-semibold text-slate-800">
+          <label className="mt-3 block font-semibold text-ink">
             normalized_name 확인 (정확한 매칭 기준)
             <input
               value={draft.festival.normalized_name}
               onChange={(event) => updateNormalizedName(event.target.value)}
-              className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 font-mono font-normal text-slate-900"
+              className="mt-1 block w-full rounded-lg border border-line-strong px-3 py-2 font-mono font-normal text-ink"
               placeholder="예: soundplanet"
             />
           </label>
-          <p className="mt-1 text-xs text-slate-400">{fileName}</p>
+          <p className="mt-1 text-xs text-ink-muted">{fileName}</p>
         </div>
       )}
 
@@ -556,7 +556,7 @@ export default function FestivalCandidateJsonUploader({ onCreated }: Props) {
           </p>
           <Link
             href={`/admin/festivals/${registeredMatch.id}/lineup`}
-            className="mt-3 inline-flex rounded-lg bg-slate-900 px-4 py-2 text-sm font-bold text-white"
+            className="mt-3 inline-flex rounded-lg bg-surface-dark px-4 py-2 text-sm font-bold text-white"
           >
             기존 축제 관리로 이동
           </Link>
@@ -569,19 +569,19 @@ export default function FestivalCandidateJsonUploader({ onCreated }: Props) {
         && !registeredMatch
         && (
         <div className="mt-4 rounded-2xl border border-amber-300 bg-amber-50 p-4">
-          <p className="font-bold text-slate-900">같은 날짜의 기존 후보</p>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="font-bold text-ink">같은 날짜의 기존 후보</p>
+          <p className="mt-1 text-sm text-ink-secondary">
             같은 축제가 맞으면 병합을 선택하세요. 날짜만 같다는 이유로 자동 병합하지 않습니다.
           </p>
           <div className="mt-3 space-y-2">
             {sameDateFestivals.map((festival) => (
               <div
                 key={`festival-${festival.id}`}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-white p-3"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-surface p-3"
               >
                 <div>
-                  <p className="font-bold text-slate-900">{festival.name}</p>
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="font-bold text-ink">{festival.name}</p>
+                  <p className="mt-1 text-xs text-ink-tertiary">
                     정식 등록됨 · normalized_name: {festival.normalized_name}
                     {` · ${festival.start_date} ~ ${festival.end_date}`}
                   </p>
@@ -601,11 +601,11 @@ export default function FestivalCandidateJsonUploader({ onCreated }: Props) {
               return (
                 <div
                   key={candidate.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-300 bg-white p-3"
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line-strong bg-surface p-3"
                 >
                   <div>
-                    <p className="font-bold text-slate-900">{candidate.title}</p>
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="font-bold text-ink">{candidate.title}</p>
+                    <p className="mt-1 text-xs text-ink-tertiary">
                       normalized_name: {candidateDraft.festival.normalized_name || "미입력"}
                       {` · ${candidateDraft.festival.start_date} ~ ${candidateDraft.festival.end_date}`}
                     </p>
@@ -613,7 +613,7 @@ export default function FestivalCandidateJsonUploader({ onCreated }: Props) {
                   <button
                     type="button"
                     onClick={() => selectMergeCandidate(candidate)}
-                    className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-bold text-white"
+                    className="rounded-lg bg-surface-dark px-4 py-2 text-sm font-bold text-white"
                   >
                     이 작업에 병합
                   </button>
@@ -624,7 +624,7 @@ export default function FestivalCandidateJsonUploader({ onCreated }: Props) {
           <button
             type="button"
             onClick={selectNewCandidate}
-            className="mt-3 rounded-lg border border-slate-400 bg-white px-4 py-2 text-sm font-bold text-slate-800"
+            className="mt-3 rounded-lg border border-line-strong bg-surface px-4 py-2 text-sm font-bold text-ink"
           >
             별도 신규 작업으로 생성
           </button>
@@ -632,8 +632,8 @@ export default function FestivalCandidateJsonUploader({ onCreated }: Props) {
       )}
 
       {mergePreview && (
-        <div className="mt-4 rounded-2xl border border-slate-300 p-4">
-          <p className="font-bold text-slate-900">
+        <div className="mt-4 rounded-2xl border border-line-strong p-4">
+          <p className="font-bold text-ink">
             매칭된 작업: {mergePreview.candidate.title}
           </p>
 
@@ -641,8 +641,8 @@ export default function FestivalCandidateJsonUploader({ onCreated }: Props) {
             {(Object.keys(SECTION_META) as DraftMergeSection[]).map((section) => {
               const diffs = sectionDiffs(section);
               return (
-                <div key={section} className="rounded-xl border border-slate-200 p-3">
-                  <p className="font-bold text-slate-800">{SECTION_META[section]}</p>
+                <div key={section} className="rounded-xl border border-line p-3">
+                  <p className="font-bold text-ink">{SECTION_META[section]}</p>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {(Object.keys(STATUS_META) as DraftMergeStatus[]).map((status) => {
                       const count = diffs.filter((diff) => diff.status === status).length;
@@ -664,8 +664,8 @@ export default function FestivalCandidateJsonUploader({ onCreated }: Props) {
           </div>
 
           {activeDiffs.some((diff) => diff.status !== "add") && (
-            <details className="mt-4 rounded-xl border border-slate-200 p-3">
-              <summary className="cursor-pointer text-sm font-bold text-slate-700">
+            <details className="mt-4 rounded-xl border border-line p-3">
+              <summary className="cursor-pointer text-sm font-bold text-ink-secondary">
                 동일·변경 확인 항목 보기
               </summary>
               <div className="mt-3 space-y-3">
@@ -677,14 +677,14 @@ export default function FestivalCandidateJsonUploader({ onCreated }: Props) {
                     const needsChoice = diff.status === "change"
                       || diff.status === "expression";
                     return (
-                      <div key={`${diff.section}-${diff.key}`} className="rounded-lg bg-slate-50 p-3 text-sm">
-                        <p className="font-bold text-slate-800">
+                      <div key={`${diff.section}-${diff.key}`} className="rounded-lg bg-surface-subtle p-3 text-sm">
+                        <p className="font-bold text-ink">
                           {meta.icon} {SECTION_META[diff.section]} · {diff.label}
                         </p>
-                        <p className="mt-1 text-slate-600">
+                        <p className="mt-1 text-ink-secondary">
                           현재 DB 값: {diff.current || "-"}
                         </p>
-                        <p className="mt-1 text-slate-600">
+                        <p className="mt-1 text-ink-secondary">
                           가져온 JSON 값: {diff.incoming || "-"}
                         </p>
                         {needsChoice && (
@@ -697,8 +697,8 @@ export default function FestivalCandidateJsonUploader({ onCreated }: Props) {
                               }))}
                               className={`rounded-lg border px-3 py-2 text-xs font-bold ${
                                 choice === "current"
-                                  ? "border-slate-900 bg-slate-900 text-white"
-                                  : "border-slate-300 bg-white text-slate-700"
+                                  ? "border-slate-900 bg-surface-dark text-white"
+                                  : "border-line-strong bg-surface text-ink-secondary"
                               }`}
                             >
                               현재 값 유지
@@ -711,13 +711,13 @@ export default function FestivalCandidateJsonUploader({ onCreated }: Props) {
                               }))}
                               className={`rounded-lg border px-3 py-2 text-xs font-bold ${
                                 choice === "incoming"
-                                  ? "border-slate-900 bg-slate-900 text-white"
-                                  : "border-slate-300 bg-white text-slate-700"
+                                  ? "border-slate-900 bg-surface-dark text-white"
+                                  : "border-line-strong bg-surface text-ink-secondary"
                               }`}
                             >
                               JSON 값으로 변경
                             </button>
-                            <span className="self-center text-xs font-semibold text-slate-600">
+                            <span className="self-center text-xs font-semibold text-ink-secondary">
                               선택 결과: {choice === "incoming"
                                 ? "JSON 값으로 변경"
                                 : "현재 값 유지"}
@@ -738,7 +738,7 @@ export default function FestivalCandidateJsonUploader({ onCreated }: Props) {
           {errorMessage}
         </p>
       )}
-      {message && <p className="mt-3 text-sm font-semibold text-slate-800">{message}</p>}
+      {message && <p className="mt-3 text-sm font-semibold text-ink">{message}</p>}
     </section>
   );
 }

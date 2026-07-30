@@ -38,7 +38,7 @@ export default function ArtistManagementTable(props: ArtistManagementTableProps)
 
   if (props.artists.length === 0) {
     return (
-      <p className="mt-6 border-y border-gray-300 py-8 text-center text-sm text-gray-500">
+      <p className="mt-6 border-y border-line-strong py-8 text-center text-sm text-ink-tertiary">
         검색 결과가 없습니다.
       </p>
     );
@@ -70,7 +70,7 @@ export default function ArtistManagementTable(props: ArtistManagementTableProps)
             <col className="w-[31%]" />
             <col className="w-[18%]" />
           </colgroup>
-          <thead className="border-b border-gray-400 text-gray-700">
+          <thead className="border-b border-line-strong text-ink-secondary">
             <tr>
               <th className="px-3 py-3">
                 <button type="button" onClick={() => props.onSort("id")} className="font-semibold">
@@ -103,25 +103,25 @@ export default function ArtistManagementTable(props: ArtistManagementTableProps)
                   key={artist.id}
                   data-artist-id={artist.id}
                   data-artist-view="desktop"
-                  className={isEditing ? "border-y-2 border-gray-500 bg-gray-50" : "bg-white"}
+                  className={isEditing ? "border-y-2 border-gray-500 bg-surface-subtle" : "bg-surface"}
                 >
                   {isEditing ? (
                     <ArtistEditFields layout="desktop" {...editProps} artistId={artist.id} />
                   ) : (
                     <>
-                      <td className="px-3 py-3 text-gray-500">{artist.id}</td>
-                      <td className="px-3 py-3 font-semibold text-gray-950">{artist.name}</td>
-                      <td className="break-all px-3 py-3 font-mono text-gray-700">
+                      <td className="px-3 py-3 text-ink-tertiary">{artist.id}</td>
+                      <td className="px-3 py-3 font-semibold text-ink">{artist.name}</td>
+                      <td className="break-all px-3 py-3 font-mono text-ink-secondary">
                         {artist.normalized_name}
                       </td>
-                      <td className="break-words px-3 py-3 text-gray-600">
+                      <td className="break-words px-3 py-3 text-ink-secondary">
                         {artist.aliases.join(", ") || "-"}
                       </td>
                       <td className="px-3 py-3">
                         <button
                           type="button"
                           onClick={() => props.onSelect(artist)}
-                          className="whitespace-nowrap rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-700"
+                          className="whitespace-nowrap rounded-lg border border-line-strong bg-surface-subtle px-3 py-2 text-xs font-semibold text-ink-secondary"
                         >
                           수정
                         </button>
@@ -146,7 +146,7 @@ export default function ArtistManagementTable(props: ArtistManagementTableProps)
               key={key}
               type="button"
               onClick={() => props.onSort(key)}
-              className="rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-600"
+              className="rounded-lg border border-line-strong bg-surface-subtle px-3 py-2 text-xs font-semibold text-ink-secondary"
             >
               {sortLabel(label, key)}
             </button>
@@ -161,8 +161,8 @@ export default function ArtistManagementTable(props: ArtistManagementTableProps)
                 data-artist-id={artist.id}
                 data-artist-view="mobile"
                 className={[
-                  "rounded-2xl border bg-white p-4 shadow-sm",
-                  isEditing ? "border-gray-500" : "border-gray-300",
+                  "rounded-2xl border bg-surface p-4 shadow-sm",
+                  isEditing ? "border-gray-500" : "border-line-strong",
                 ].join(" ")}
               >
                 {isEditing ? (
@@ -170,19 +170,19 @@ export default function ArtistManagementTable(props: ArtistManagementTableProps)
                 ) : (
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="font-bold text-gray-950">{artist.name}</p>
-                      <p className="mt-1 break-all font-mono text-xs text-gray-600">
+                      <p className="font-bold text-ink">{artist.name}</p>
+                      <p className="mt-1 break-all font-mono text-xs text-ink-secondary">
                         {artist.normalized_name}
                       </p>
-                      <p className="mt-2 break-words text-sm text-gray-600">
+                      <p className="mt-2 break-words text-sm text-ink-secondary">
                         {artist.aliases.join(", ") || "별칭 없음"}
                       </p>
-                      <p className="mt-2 text-xs text-gray-400">ID {artist.id}</p>
+                      <p className="mt-2 text-xs text-ink-muted">ID {artist.id}</p>
                     </div>
                     <button
                       type="button"
                       onClick={() => props.onSelect(artist)}
-                      className="shrink-0 rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-700"
+                      className="shrink-0 rounded-lg border border-line-strong bg-surface-subtle px-3 py-2 text-xs font-semibold text-ink-secondary"
                     >
                       수정
                     </button>

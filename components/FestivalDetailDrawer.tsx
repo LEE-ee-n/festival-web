@@ -70,22 +70,22 @@ export default function FestivalDetailDrawer({
     getLatestTicketRoundGroup(ticketRounds);
 
   return (
-    <div className="bg-white">
+    <div className="bg-surface">
       {isFestivalLoading ? (
         <FestivalDetailSkeleton />
       ) : errorMessage || !festival ? (
         <div className="p-6 sm:p-8">
-          <div className="rounded-3xl border border-red-200 bg-white p-8 text-center shadow-sm">
-            <h2 className={`${typography.articleSectionTitle} text-slate-700`}>
+          <div className="rounded-3xl border border-red-200 bg-surface p-8 text-center shadow-sm">
+            <h2 className={`${typography.articleSectionTitle} text-ink-secondary`}>
               축제 정보를 표시할 수 없습니다.
             </h2>
-            <p className={`${typography.body} mt-3 text-slate-500`}>
+            <p className={`${typography.body} mt-3 text-ink-tertiary`}>
               {errorMessage}
             </p>
           </div>
         </div>
       ) : (
-        <article className="bg-white">
+        <article className="bg-surface">
           <FestivalDetailSummary
             festival={festival}
             periodText={periodText}
@@ -102,14 +102,14 @@ export default function FestivalDetailDrawer({
 
           {festival.program_info && (
             <section>
-              <h2 className={`${typography.label} flex items-center justify-center gap-2 pt-6 text-slate-700`}>
+              <h2 className={`${typography.label} flex items-center justify-center gap-2 pt-6 text-ink-secondary`}>
                 <ListMusic size={16} />
                 <span>프로그램</span>
               </h2>
-              <p className={`${typography.bodyRelaxed} whitespace-pre-line px-6 pt-3 text-slate-700`}>
+              <p className={`${typography.bodyRelaxed} whitespace-pre-line px-6 pt-3 text-ink-secondary`}>
                 {festival.program_info}
               </p>
-              <div className="border-b border-slate-200 pt-6" />
+              <div className="border-b border-line pt-6" />
             </section>
           )}
 

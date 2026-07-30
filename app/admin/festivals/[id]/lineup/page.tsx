@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
+import AdminBackLink from "@/components/admin/AdminBackLink";
 import ArtistLineupTable from "./components/ArtistLineupTable";
 import ArtistAddSection from "./components/ArtistAddSection";
 import BasicInfoTab from "./components/BasicInfoTab";
@@ -100,17 +101,22 @@ export default function FestivalLineupAdminPage() {
   ]);
 
   return (
-    <main className="min-h-screen bg-white px-4 py-10">
+    <main className="min-h-screen bg-surface px-4 py-10">
       <div className="mx-auto max-w-6xl">
+        <AdminBackLink
+          href="/admin/festivals"
+          label="← 페스티벌 관리로 돌아가기"
+        />
+
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="text-sm font-semibold text-blue-600">
               관리자
             </p>
-            <h1 className="mt-2 text-3xl font-bold text-slate-950">
+            <h1 className="mt-2 text-3xl font-bold text-ink">
               페스티벌 관리
             </h1>
-            <p className="mt-2 text-slate-500">
+            <p className="mt-2 text-ink-tertiary">
               {basicInfo.festivalName}
             </p>
           </div>
@@ -118,20 +124,20 @@ export default function FestivalLineupAdminPage() {
           <div className="flex flex-wrap gap-2">
             <Link
               href="/admin/festival-updates"
-              className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white"
+              className="rounded-xl bg-surface-dark px-4 py-2.5 text-sm font-semibold text-white"
             >
               기존 수정 작업함
             </Link>
             <Link
               href={`/festival/${festivalId}`}
-              className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700"
+              className="rounded-xl border border-line-strong bg-surface px-4 py-2.5 text-sm font-semibold text-ink-secondary"
             >
               상세 페이지로 돌아가기
             </Link>
           </div>
         </div>
 
-        <div className="mt-8 flex gap-2 border-b border-slate-200">
+        <div className="mt-8 flex gap-2 border-b border-line">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -141,7 +147,7 @@ export default function FestivalLineupAdminPage() {
                 "border-b-2 px-5 py-3 text-sm font-semibold",
                 activeTab === tab.id
                   ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-slate-500",
+                  : "border-transparent text-ink-tertiary",
               ].join(" ")}
             >
               {tab.label}
@@ -178,7 +184,7 @@ export default function FestivalLineupAdminPage() {
               type="button"
               onClick={artists.workPanelProps.saveLineupWork}
               disabled={artists.workPanelProps.isSavingWork || artists.workPanelProps.pendingCount === 0}
-              className="mt-8 w-full rounded-xl bg-slate-950 px-4 py-4 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
+              className="mt-8 w-full rounded-xl bg-surface-dark px-4 py-4 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
             >
               {artists.workPanelProps.isSavingWork
                 ? "저장 중..."

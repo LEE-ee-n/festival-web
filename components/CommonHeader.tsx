@@ -56,8 +56,8 @@ export default function CommonHeader() {
   }
 
   return (
-  <header className="border-b border-white/10 bg-[#0C0C1E] text-white">
-    <div className="mx-auto flex h-14 w-full max-w-[1500px] items-center justify-between px-4 sm:px-6">
+  <header className="bg-surface text-ink">
+    <div className="mx-auto flex h-14 w-full max-w-[1500px] items-center justify-between border-b border-line px-4 sm:px-6">
       <Link
         href="/"
         className={`${typography.brand} flex items-center gap-2.5`}
@@ -73,19 +73,19 @@ export default function CommonHeader() {
 
       <div className={`${typography.meta} flex items-center gap-3`}>
         {isLoading ? (
-          <span className="text-white/50">
+          <span className="text-ink-muted">
             로그인 확인 중
           </span>
         ) : userEmail ? (
           <>
-            <span className="hidden text-white/70 sm:inline">
+            <span className="hidden text-ink-tertiary sm:inline">
               {isAdmin ? "관리자" : "회원"} · {userEmail}
             </span>
 
             {isAdmin && (
               <Link
                 href="/admin"
-                className={`${typography.metaStrong} rounded-full border border-white/20 px-4 py-1.5 text-white hover:bg-white/10`}
+                className={`${typography.metaStrong} rounded-full border border-line px-4 py-1.5 text-ink-secondary hover:bg-surface-muted`}
               >
                 관리자
               </Link>
@@ -94,7 +94,7 @@ export default function CommonHeader() {
             <button
               type="button"
               onClick={handleLogout}
-              className={`${typography.metaStrong} rounded-full border border-white/20 px-4 py-1.5 text-white hover:bg-white/10`}
+              className={`${typography.metaStrong} rounded-full border border-line px-4 py-1.5 text-ink-secondary hover:bg-surface-muted`}
             >
               로그아웃
             </button>
@@ -102,7 +102,7 @@ export default function CommonHeader() {
         ) : (
           <Link
             href="/admin/login"
-            className={`${typography.metaStrong} rounded-full border border-white/20 px-4 py-1.5 text-white hover:bg-white/10`}
+            className={`${typography.metaStrong} rounded-full border border-line px-4 py-1.5 text-ink-secondary hover:bg-surface-muted`}
           >
             로그인
           </Link>

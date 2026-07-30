@@ -1,12 +1,20 @@
 import Link from "next/link";
 
-export default function AdminBackLink() {
+type AdminBackLinkProps = {
+  href?: string;
+  label?: string;
+};
+
+export default function AdminBackLink({
+  href = "/admin",
+  label = "← 관리자 페이지로 돌아가기",
+}: AdminBackLinkProps) {
   return (
     <Link
-      href="/admin"
-      className="mb-6 inline-block text-sm font-medium text-slate-500 hover:text-slate-900"
+      href={href}
+      className="mb-6 inline-block text-sm font-medium text-ink-tertiary hover:text-ink"
     >
-      ← 관리자 페이지로 돌아가기
+      {label}
     </Link>
   );
 }

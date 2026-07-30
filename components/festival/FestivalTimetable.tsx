@@ -29,7 +29,7 @@ export default function FestivalTimetable({
 
   return (
     <section>
-      <h2 className={`${typography.panelSectionTitle} flex items-center justify-center gap-2 pt-6 text-slate-700`}>
+      <h2 className={`${typography.panelSectionTitle} flex items-center justify-center gap-2 pt-6 text-ink-secondary`}>
         <Music size={16} />
         <span>출연진</span>
       </h2>
@@ -38,7 +38,7 @@ export default function FestivalTimetable({
         {Object.entries(artistsByDateAndStage).map(
           ([date, stageGroups]) => (
             <div key={date}>
-              <h3 className={`${typography.panelSectionTitle} inline-flex items-center gap-2 rounded-xl bg-slate-800 px-3 py-3 text-white`}>
+              <h3 className={`${typography.panelSectionTitle} inline-flex items-center gap-2 rounded-xl bg-surface-dark px-3 py-3 text-white`}>
                 <CalendarDays size={16} />
 
                 <span>
@@ -72,7 +72,7 @@ export default function FestivalTimetable({
         )}
       </div>
 
-      <div className="pt-6 border-b border-slate-200" />
+      <div className="pt-6 border-b border-line" />
 
     </section>
   );

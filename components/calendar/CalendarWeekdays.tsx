@@ -12,10 +12,10 @@ export default function CalendarWeekdays() {
             className={[
               `${typography.calendarWeekday} flex h-7 items-center justify-center text-center sm:h-11`,
               index === 5
-                ? "text-blue-600"
+                ? "text-festival-indigo"
                 : index === 6
-                  ? "text-red-600"
-                  : "text-black",
+                  ? "text-festival-coral"
+                  : "text-ink",
             ].join(" ")}
           >
             {weekday}

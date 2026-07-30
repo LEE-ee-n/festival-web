@@ -19,20 +19,20 @@ export default function FestivalList({
   return (
     <section className="@container">
       <div className="flex items-center gap-3 pt-3">
-        <h2 className={`${typography.panelSectionTitle} text-slate-700`}>
+        <h2 className={`${typography.panelSectionTitle} text-ink-secondary`}>
           {dateText}
         </h2>
 
-        <span className={`${typography.caption} text-slate-700`}>
+        <span className={`${typography.caption} text-ink-secondary`}>
           {festivals.length}개 축제
         </span>
       </div>
 
       <div className="pt-3">
         {isLoading ? (
-          <div className="h-32 animate-pulse rounded-2xl bg-slate-100" />
+          <div className="h-32 animate-pulse rounded-2xl bg-surface-muted" />
         ) : festivals.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 text-center">
+          <div className="rounded-2xl border border-line bg-surface px-5 py-4 text-center">
             <Image
               src="/images/empty/calendar_empty.webp"
               alt="등록된 축제가 없습니다"
@@ -41,11 +41,11 @@ export default function FestivalList({
               className="mx-auto"
             />
 
-            <p className={`${typography.value} pt-3 text-slate-700`}>
+            <p className={`${typography.value} pt-3 text-ink-secondary`}>
               등록된 축제가 없습니다.
             </p>
 
-            <p className={`${typography.body} pt-3 text-slate-400`}>
+            <p className={`${typography.body} pt-3 text-ink-muted`}>
               다른 날짜를 선택해 주세요.
             </p>
           </div>

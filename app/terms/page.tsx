@@ -208,7 +208,7 @@ export default function TermsPage() {
           서비스 이용, 권리 침해, 데이터 이용 허가 및 약관 관련 문의는{" "}
           <a
             href="mailto:festibom.official@gmail.com"
-            className="text-slate-950 underline underline-offset-4"
+            className="text-ink underline underline-offset-4"
           >
             festibom.official@gmail.com
           </a>
@@ -216,7 +216,7 @@ export default function TermsPage() {
         </p>
       </PublicInfoSection>
 
-      <p className={`${typography.meta} border-t border-slate-200 pt-6 text-slate-500`}>
+      <p className={`${typography.meta} border-t border-line pt-6 text-ink-tertiary`}>
         본 약관은 2026년 7월 28일부터 시행합니다.
       </p>
     </PublicInfoPage>

@@ -500,11 +500,11 @@ export default function FestivalImportPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8 sm:py-12">
+    <main className="min-h-screen bg-surface-subtle px-4 py-8 sm:py-12">
       <div className="mx-auto max-w-6xl">
         <Link
           href="/"
-          className="text-sm font-medium text-slate-500 hover:text-slate-900"
+          className="text-sm font-medium text-ink-tertiary hover:text-ink"
         >
           ← 홈페이지로 돌아가기
         </Link>
@@ -514,21 +514,21 @@ export default function FestivalImportPage() {
             관리자
           </p>
 
-          <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950">
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-ink">
             페스티벌 라인업 CSV 가져오기
           </h1>
 
-          <p className="mt-3 text-slate-500">
+          <p className="mt-3 text-ink-tertiary">
             페스티벌을 선택하고 CSV 라인업을
             불러옵니다.
           </p>
         </header>
 
-        <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <section className="mt-8 rounded-3xl border border-line bg-surface p-6 shadow-sm sm:p-8">
           <form onSubmit={handleFestivalSearch}>
             <label
               htmlFor="festivalSearch"
-              className="block text-sm font-semibold text-slate-700"
+              className="block text-sm font-semibold text-ink-secondary"
             >
               연결할 페스티벌 검색
             </label>
@@ -545,7 +545,7 @@ export default function FestivalImportPage() {
                   setSelectedFestival(null);
                 }}
                 placeholder="예: 렛츠락"
-                className="min-w-0 flex-1 rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-slate-900"
+                className="min-w-0 flex-1 rounded-xl border border-line-strong px-4 py-3 text-sm outline-none focus:border-slate-900"
               />
 
               <button
@@ -577,14 +577,14 @@ export default function FestivalImportPage() {
                       "w-full rounded-xl border p-4 text-left transition",
                       isSelected
                         ? "border-blue-500 bg-blue-50"
-                        : "border-slate-200 hover:border-slate-400",
+                        : "border-line hover:border-line-strong",
                     ].join(" ")}
                   >
-                    <p className="font-semibold text-slate-900">
+                    <p className="font-semibold text-ink">
                       {festival.name}
                     </p>
 
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mt-1 text-sm text-ink-tertiary">
                       {formatFestivalPeriod(
                         festival.start_date,
                         festival.end_date,
@@ -618,7 +618,7 @@ export default function FestivalImportPage() {
           <div className="mt-7">
             <label
               htmlFor="csvFile"
-              className="block text-sm font-semibold text-slate-700"
+              className="block text-sm font-semibold text-ink-secondary"
             >
               CSV 파일 선택
             </label>
@@ -629,14 +629,14 @@ export default function FestivalImportPage() {
               type="file"
               accept=".csv,text/csv"
               onChange={handleFileChange}
-              className="mt-3 block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm"
+              className="mt-3 block w-full rounded-xl border border-line-strong bg-surface px-4 py-3 text-sm"
             />
           </div>
 
           {fileName && (
-            <p className="mt-3 text-sm text-slate-600">
+            <p className="mt-3 text-sm text-ink-secondary">
               선택한 파일:{" "}
-              <strong className="text-slate-900">
+              <strong className="text-ink">
                 {fileName}
               </strong>
             </p>
@@ -663,7 +663,7 @@ export default function FestivalImportPage() {
                 isMatching ||
                 !selectedFestival
               }
-              className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-xl bg-surface-dark px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isMatching
                 ? "DB 확인 중..."
@@ -694,7 +694,7 @@ export default function FestivalImportPage() {
             <button
               type="button"
               onClick={resetPage}
-              className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+              className="rounded-xl border border-line-strong px-5 py-3 text-sm font-semibold text-ink-secondary hover:bg-surface-subtle"
             >
               초기화
             </button>
@@ -702,46 +702,46 @@ export default function FestivalImportPage() {
         </section>
 
         {rows.length > 0 && (
-          <section className="mt-6 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
-              <h2 className="text-xl font-bold text-slate-900">
+          <section className="mt-6 overflow-hidden rounded-3xl border border-line bg-surface shadow-sm">
+            <div className="flex items-center justify-between border-b border-line px-6 py-5">
+              <h2 className="text-xl font-bold text-ink">
                 CSV 미리보기
               </h2>
 
-              <span className="text-sm text-slate-500">
+              <span className="text-sm text-ink-tertiary">
                 {rows.length}개 아티스트
               </span>
             </div>
 
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-slate-200 text-sm">
-                <thead className="bg-slate-50">
+                <thead className="bg-surface-subtle">
                   <tr>
-                    <th className="px-4 py-3 text-left font-semibold text-slate-700">
+                    <th className="px-4 py-3 text-left font-semibold text-ink-secondary">
                       순서
                     </th>
 
-                    <th className="px-4 py-3 text-left font-semibold text-slate-700">
+                    <th className="px-4 py-3 text-left font-semibold text-ink-secondary">
                       입력 이름
                     </th>
 
-                    <th className="px-4 py-3 text-left font-semibold text-slate-700">
+                    <th className="px-4 py-3 text-left font-semibold text-ink-secondary">
                       대표 이름
                     </th>
 
-                    <th className="px-4 py-3 text-left font-semibold text-slate-700">
+                    <th className="px-4 py-3 text-left font-semibold text-ink-secondary">
                       정규화 이름
                     </th>
 
-                    <th className="px-4 py-3 text-left font-semibold text-slate-700">
+                    <th className="px-4 py-3 text-left font-semibold text-ink-secondary">
                       별칭
                     </th>
 
-                    <th className="px-4 py-3 text-left font-semibold text-slate-700">
+                    <th className="px-4 py-3 text-left font-semibold text-ink-secondary">
                       DB 매칭 결과
                     </th>
 
-                    <th className="px-4 py-3 text-left font-semibold text-slate-700">
+                    <th className="px-4 py-3 text-left font-semibold text-ink-secondary">
                       상태
                     </th>
                   </tr>
@@ -752,30 +752,30 @@ export default function FestivalImportPage() {
                     <tr
                       key={`${row.input_name}-${index}`}
                     >
-                      <td className="whitespace-nowrap px-4 py-3 text-slate-600">
+                      <td className="whitespace-nowrap px-4 py-3 text-ink-secondary">
                         {index + 1}
                       </td>
 
-                      <td className="whitespace-nowrap px-4 py-3 font-semibold text-slate-900">
+                      <td className="whitespace-nowrap px-4 py-3 font-semibold text-ink">
                         {row.input_name}
                       </td>
 
-                      <td className="whitespace-nowrap px-4 py-3 text-slate-700">
+                      <td className="whitespace-nowrap px-4 py-3 text-ink-secondary">
                         {row.display_name}
                       </td>
 
-                      <td className="whitespace-nowrap px-4 py-3 font-mono text-slate-600">
+                      <td className="whitespace-nowrap px-4 py-3 font-mono text-ink-secondary">
                         {row.normalized_name}
                       </td>
 
                       <td className="min-w-72 px-4 py-3">
                         {row.matchedArtist?.aliases.length ? (
-                          <p className="mb-2 text-xs text-slate-500">
+                          <p className="mb-2 text-xs text-ink-tertiary">
                             기존 DB 별칭:{" "}
                             {row.matchedArtist.aliases.join(", ")}
                           </p>
                         ) : (
-                          <p className="mb-2 text-xs text-slate-400">
+                          <p className="mb-2 text-xs text-ink-muted">
                             기존 DB 별칭 없음
                           </p>
                         )}
@@ -787,7 +787,7 @@ export default function FestivalImportPage() {
                             handleAliasChange(index, event.target.value)
                           }
                           placeholder="추가할 별칭 , 로 구분"
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+                          className="w-full rounded-lg border border-line-strong px-3 py-2 text-sm outline-none focus:border-slate-900"
                         />
                       </td>
 
@@ -807,7 +807,7 @@ export default function FestivalImportPage() {
                                 event.target.value,
                               )
                             }
-                            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-900"
+                            className="w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm outline-none focus:border-slate-900"
                           >
                             {row.candidates.map(
                               (candidate) => (
@@ -835,7 +835,7 @@ export default function FestivalImportPage() {
                             신규 아티스트로 생성
                           </span>
                         ) : (
-                          <span className="text-slate-400">
+                          <span className="text-ink-muted">
                             -
                           </span>
                         )}
@@ -844,7 +844,7 @@ export default function FestivalImportPage() {
                       <td className="whitespace-nowrap px-4 py-3">
                         {row.matchStatus ===
                           "pending" && (
-                          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                          <span className="rounded-full bg-surface-muted px-3 py-1 text-xs font-semibold text-ink-secondary">
                             확인 전
                           </span>
                         )}
@@ -940,7 +940,7 @@ export default function FestivalImportPage() {
               <button
                 type="button"
                 onClick={resetPage}
-                className="rounded-xl border border-green-300 bg-white px-5 py-3 text-sm font-semibold text-green-800 hover:bg-green-100"
+                className="rounded-xl border border-green-300 bg-surface px-5 py-3 text-sm font-semibold text-green-800 hover:bg-green-100"
               >
                 새 CSV 등록
               </button>

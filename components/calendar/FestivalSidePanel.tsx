@@ -56,12 +56,12 @@ export default function FestivalSidePanel({
         type="button"
         aria-label="패널 닫기"
         onClick={onClose}
-        className="fixed inset-0 z-40 bg-slate-950/40 lg:hidden"
+        className="fixed inset-0 z-40 bg-surface-dark/40 lg:hidden"
       />
 
       {/* 모바일: 바텀시트 / PC: 오른쪽 패널 */}
-      <aside className="fixed inset-x-0 bottom-0 z-50 max-h-[85dvh] overflow-hidden rounded-t-3xl bg-white px-6 py-3 shadow-2xl lg:static lg:z-auto lg:max-h-none lg:rounded-none lg:shadow-sm">
-        <div className="mx-auto h-1.5 w-12 rounded-full bg-slate-300 lg:hidden" />
+      <aside className="fixed inset-x-0 bottom-0 z-50 max-h-[85dvh] overflow-hidden rounded-t-3xl bg-surface px-6 py-3 shadow-2xl lg:static lg:z-auto lg:max-h-none lg:rounded-none lg:shadow-sm">
+        <div className="mx-auto h-1.5 w-12 rounded-full bg-surface-strong lg:hidden" />
 
         <FestivalPanelHeader
           title={selectedFestival ? "축제 상세정보" : "선택한 날짜"}

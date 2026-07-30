@@ -31,7 +31,7 @@ export default function FestivalCard({
   <button
     type="button"
     onClick={() => onSelect(festival)}
-    className="flex w-full gap-3 rounded-xl border border-slate-200 bg-white p-3 text-left transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
+    className="flex w-full gap-3 rounded-xl border border-line bg-surface p-3 text-left transition hover:-translate-y-0.5 hover:border-line-strong hover:shadow-md"
   >
     <span
       className={[
@@ -41,7 +41,7 @@ export default function FestivalCard({
     />
 
     {festival.thumbnail_url && (
-      <div className="hidden aspect-[4/5] w-28 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100 @[360px]:flex">
+      <div className="hidden aspect-[4/5] w-28 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-surface-muted @[360px]:flex">
         {/* Thumbnail hosts are user-configurable, so keep the original external URL. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -54,12 +54,12 @@ export default function FestivalCard({
 
     <div className="min-w-0 flex-1">
       <div className="pt-3">
-        <h3 className={`${typography.cardTitle} min-w-0 text-slate-700`}>
+        <h3 className={`${typography.cardTitle} min-w-0 text-ink-secondary`}>
           {festival.name.replace(/^\d{4}\s*/, "")}
         </h3>
 
         <div className="pt-6 space-y-3">
-          <p className={`${typography.meta} flex items-center gap-1.5 text-slate-700`}>
+          <p className={`${typography.meta} flex items-center gap-1.5 text-ink-secondary`}>
             <MapPin className="h-4 w-4 shrink-0" />
 
             <span>
@@ -67,7 +67,7 @@ export default function FestivalCard({
             </span>
           </p>
 
-          <p className={`${typography.meta} flex items-center gap-1.5 text-slate-700`}>
+          <p className={`${typography.meta} flex items-center gap-1.5 text-ink-secondary`}>
             <CalendarDays className="h-4 w-4 shrink-0" />
 
             <span>

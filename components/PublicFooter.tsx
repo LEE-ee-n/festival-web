@@ -13,30 +13,30 @@ export default function PublicFooter() {
   if (pathname.startsWith("/admin")) return null;
 
   return (
-    <footer className="mt-10 border-t border-slate-200 bg-white text-slate-500">
+    <footer className="mt-10 border-t border-line bg-surface text-ink-tertiary">
       <div className="mx-auto min-h-[140px] w-full max-w-[1500px] px-4 py-5 sm:px-6">
         <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center sm:gap-6">
           <nav
             aria-label="푸터 메뉴"
             className={`${typography.meta} grid grid-cols-2 items-center justify-items-center gap-x-4 gap-y-3 sm:flex sm:flex-wrap`}
           >
-            <Link href="/notices" className="hover:text-slate-950">
+            <Link href="/notices" className="hover:text-ink">
               공지사항
             </Link>
-            <Link href="/terms" className="hover:text-slate-950">
+            <Link href="/terms" className="hover:text-ink">
               이용약관
             </Link>
-            <Link href="/privacy" className="hover:text-slate-950">
+            <Link href="/privacy" className="hover:text-ink">
               개인정보처리방침
             </Link>
-            <Link href="/report" className="hover:text-slate-950">
+            <Link href="/report" className="hover:text-ink">
               정보 수정 제보
             </Link>
           </nav>
 
           <a
             href={`mailto:${CONTACT_EMAIL}`}
-            className={`${typography.caption} hover:text-slate-950 hover:underline sm:text-sm`}
+            className={`${typography.caption} hover:text-ink hover:underline sm:text-sm`}
           >
             {CONTACT_EMAIL}
           </a>
@@ -54,7 +54,7 @@ export default function PublicFooter() {
           </p>
         </div>
 
-        <div className={`${typography.caption} mt-3 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-slate-400`}>
+        <div className={`${typography.caption} mt-3 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-ink-muted`}>
           <span>© 2026 Festibom. All rights reserved.</span>
           <span aria-hidden="true">·</span>
           <span>festibom.com</span>

@@ -36,11 +36,11 @@ export default function CandidateSourcePreview({
       )}
 
       {rawText && (
-        <details className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <summary className="cursor-pointer text-sm font-bold text-slate-700">
+        <details className="rounded-xl border border-line bg-surface-subtle p-4">
+          <summary className="cursor-pointer text-sm font-bold text-ink-secondary">
             수집 원문 보기
           </summary>
-          <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-600">
+          <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-ink-secondary">
             {rawText}
           </p>
         </details>
@@ -48,7 +48,7 @@ export default function CandidateSourcePreview({
 
       {linkedAssets.length > 0 && (
         <div>
-          <h3 className="text-sm font-bold text-slate-700">첨부 자료</h3>
+          <h3 className="text-sm font-bold text-ink-secondary">첨부 자료</h3>
           <div className="mt-2 flex flex-wrap gap-2">
             {linkedAssets.map((asset, index) => (
               <a
@@ -56,7 +56,7 @@ export default function CandidateSourcePreview({
                 href={asset.url}
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-blue-600"
+                className="rounded-lg border border-line-strong px-3 py-2 text-sm text-blue-600"
               >
                 {asset.name || `자료 ${index + 1}`}
               </a>

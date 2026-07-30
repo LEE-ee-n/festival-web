@@ -158,7 +158,75 @@ test("WebP 변환이 차단되면 원본 사진을 새 탭으로 열기", async 
   assert.match(alerts[0], /원본 사진을 새 탭/);
 });
 
-test("Instagram 상세 팝업이 아니면 안내 후 중단", async () => {
+test("Instagram 계정 경로가 포함된 독립 상세 페이지에서도 저장한다", async () => {
+  const alerts: string[] = [];
+  let filename = "";
+  const { article } = createInstagramPage();
+  const download = {
+    href: "",
+    set download(value: string) { filename = value; },
+    click() {},
+    remove() {},
+  };
+  const canvas = {
+    width: 0,
+    height: 0,
+    getContext: () => ({ drawImage() {} }),
+    toBlob(callback: (blob: { type: string }) => void) {
+      callback({ type: "image/webp" });
+    },
+  };
+  class TestUrl extends URL {
+    static createObjectURL() { return "blob:webp"; }
+    static revokeObjectURL() {}
+  }
+  const bookmarklet = buildInstagramFirstImageBookmarklet()
+    .slice("javascript:".length);
+
+  await runInNewContext(bookmarklet, {
+    location: {
+      hostname: "www.instagram.com",
+      pathname: "/gyeonggimusic/p/DbDN-kdk-DY/",
+    },
+    document: {
+      querySelectorAll: (selector: string) => {
+        if (selector === "article") return [article];
+        return [];
+      },
+      querySelector: () => null,
+      createElement: (tagName: string) =>
+        tagName === "canvas" ? canvas : download,
+      body: { appendChild() {} },
+    },
+    window: {
+      innerWidth: 1200,
+      innerHeight: 1000,
+      open: () => null,
+    },
+    fetch: async () => ({
+      ok: true,
+      blob: async () => ({ type: "image/jpeg" }),
+    }),
+    createImageBitmap: async () => ({
+      width: 1080,
+      height: 1350,
+      close() {},
+    }),
+    URL: TestUrl,
+    Date,
+    Promise,
+    alert: (message: string) => alerts.push(message),
+    setTimeout: (callback: () => void) => callback(),
+  });
+
+  assert.match(
+    filename,
+    /^\d{8}-instagram-DbDN-kdk-DY\.webp$/,
+  );
+  assert.match(alerts[0], /WebP로 저장/);
+});
+
+test("Instagram 게시물 상세 주소가 아니면 안내 후 중단", async () => {
   const alerts: string[] = [];
   const bookmarklet = buildInstagramFirstImageBookmarklet()
     .slice("javascript:".length);
@@ -174,7 +242,7 @@ test("Instagram 상세 팝업이 아니면 안내 후 중단", async () => {
     alert: (message: string) => alerts.push(message),
   });
 
-  assert.match(alerts[0], /상세 팝업/);
+  assert.match(alerts[0], /상세 화면/);
 });
 
 test("설치 HTML은 Instagram 북마클릿과 WebP 안내를 포함", () => {
@@ -182,5 +250,6 @@ test("설치 HTML은 Instagram 북마클릿과 WebP 안내를 포함", () => {
 
   assert.match(html, /javascript:/);
   assert.match(html, /Instagram 첫 사진 저장/);
+  assert.match(html, /독립 상세 페이지/);
   assert.match(html, /WebP/);
 });

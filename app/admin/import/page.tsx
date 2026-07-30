@@ -578,11 +578,11 @@ setExistingFestival({
         통합 페스티벌 XLSX 등록
       </h1>
 
-      <p className="mb-6 text-sm text-gray-600">
+      <p className="mb-6 text-sm text-ink-secondary">
         festival 시트와 artists 시트를 한 번에 읽습니다.
       </p>
 
-      <div className="mb-6 rounded-lg border bg-white p-5">
+      <div className="mb-6 rounded-lg border bg-surface p-5">
         <input
           ref={fileInputRef}
           type="file"
@@ -653,14 +653,14 @@ setExistingFestival({
             <table className="min-w-full text-sm">
               <tbody>
                 <tr className="border-b">
-                  <th className="w-48 bg-gray-50 p-3 text-left">
+                  <th className="w-48 bg-surface-subtle p-3 text-left">
                     페스티벌명
                   </th>
                   <td className="p-3">{festival.name}</td>
                 </tr>
 
                 <tr className="border-b">
-                  <th className="bg-gray-50 p-3 text-left">
+                  <th className="bg-surface-subtle p-3 text-left">
                     normalized_name
                   </th>
                   <td className="p-3">
@@ -669,7 +669,7 @@ setExistingFestival({
                 </tr>
 
                 <tr className="border-b">
-                  <th className="bg-gray-50 p-3 text-left">
+                  <th className="bg-surface-subtle p-3 text-left">
                     검색 별칭
                   </th>
                   <td className="p-3">
@@ -678,7 +678,7 @@ setExistingFestival({
                 </tr>
 
                 <tr className="border-b">
-                  <th className="bg-gray-50 p-3 text-left">
+                  <th className="bg-surface-subtle p-3 text-left">
                     기간
                   </th>
                   <td className="p-3">
@@ -687,7 +687,7 @@ setExistingFestival({
                 </tr>
 
                 <tr>
-                  <th className="bg-gray-50 p-3 text-left">
+                  <th className="bg-surface-subtle p-3 text-left">
                     장소
                   </th>
                   <td className="p-3">
@@ -704,14 +704,14 @@ setExistingFestival({
         <section>
           <h2 className="mb-3 text-xl font-semibold">
             아티스트 미리보기
-            <span className="ml-2 text-sm font-normal text-gray-500">
+            <span className="ml-2 text-sm font-normal text-ink-tertiary">
               총 {artists.length}명
             </span>
           </h2>
 
           <div className="overflow-x-auto rounded-lg border">
             <table className="min-w-full text-sm">
-              <thead className="bg-gray-50">
+              <thead className="bg-surface-subtle">
                 <tr>
                   <th className="border-b p-3 text-left">입력명</th>
                   <th className="border-b p-3 text-left">공식명</th>
@@ -810,7 +810,7 @@ setExistingFestival({
                             업데이트
                             </span>
                         ) : (
-                            <span className="text-gray-500">
+                            <span className="text-ink-tertiary">
                             변경 없음
                             </span>
                         )}
@@ -824,7 +824,7 @@ setExistingFestival({
         </section>
       )}
       {festival && artists.length > 0 && !importResult && (
-        <div className="mt-8 rounded-lg border bg-white p-5">
+        <div className="mt-8 rounded-lg border bg-surface p-5">
             <button
             type="button"
             onClick={handleApplyImport}

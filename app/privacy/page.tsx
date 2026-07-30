@@ -39,7 +39,7 @@ export default function PrivacyPage() {
 
       <PublicInfoSection title="2. 처리하는 개인정보 항목">
         <div>
-          <h3 className={`${typography.readingSubheading} text-slate-950`}>이메일 문의·제보</h3>
+          <h3 className={`${typography.readingSubheading} text-ink`}>이메일 문의·제보</h3>
           <ul className="mt-2 list-disc space-y-2 pl-6">
             <li>필수: 발신 이메일 주소, 문의 또는 제보 내용</li>
             <li>
@@ -49,7 +49,7 @@ export default function PrivacyPage() {
           </ul>
         </div>
         <div>
-          <h3 className={`${typography.readingSubheading} text-slate-950`}>
+          <h3 className={`${typography.readingSubheading} text-ink`}>
             서비스 이용 과정에서 처리될 수 있는 정보
           </h3>
           <p className="mt-2">
@@ -93,7 +93,7 @@ export default function PrivacyPage() {
         <div className="overflow-x-auto">
           <table className={`${typography.meta} w-full min-w-[560px] border-collapse text-left`}>
             <thead>
-              <tr className="border-y border-slate-300 text-slate-950">
+              <tr className="border-y border-line-strong text-ink">
                 <th className="px-3 py-3">수탁자</th>
                 <th className="px-3 py-3">업무 내용</th>
                 <th className="px-3 py-3">처리될 수 있는 정보</th>
@@ -165,7 +165,7 @@ export default function PrivacyPage() {
           정정·삭제 및 처리 정지를 요청할 수 있습니다. 요청은{" "}
           <a
             href="mailto:festibom.official@gmail.com"
-            className="text-slate-950 underline underline-offset-4"
+            className="text-ink underline underline-offset-4"
           >
             festibom.official@gmail.com
           </a>
@@ -200,7 +200,7 @@ export default function PrivacyPage() {
             이메일:{" "}
             <a
               href="mailto:festibom.official@gmail.com"
-              className="text-slate-950 underline underline-offset-4"
+              className="text-ink underline underline-offset-4"
             >
               festibom.official@gmail.com
             </a>
@@ -233,7 +233,7 @@ export default function PrivacyPage() {
         </p>
       </PublicInfoSection>
 
-      <p className={`${typography.meta} border-t border-slate-200 pt-6 text-slate-500`}>
+      <p className={`${typography.meta} border-t border-line pt-6 text-ink-tertiary`}>
         공고일·시행일: 2026년 7월 28일
       </p>
     </PublicInfoPage>

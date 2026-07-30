@@ -14,12 +14,12 @@ export const metadata: Metadata = {
 
 export default function FestivalsPage() {
   return (
-    <main className="bg-white px-4 py-8 sm:px-6 sm:py-12">
+    <main className="bg-surface px-4 py-8 sm:px-6 sm:py-12">
       <div className="mx-auto w-full max-w-[1200px]">
-        <h1 className={`${typography.pageTitle} text-slate-950`}>
+        <h1 className={`${typography.pageTitle} text-ink`}>
           전체 페스티벌
         </h1>
-        <p className={`${typography.meta} mt-2 text-slate-500`}>
+        <p className={`${typography.meta} mt-2 text-ink-tertiary`}>
           예정된 행사부터 지난 페스티벌 기록까지 확인할 수 있습니다.
         </p>
 

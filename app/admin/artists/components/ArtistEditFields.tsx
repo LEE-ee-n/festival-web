@@ -32,7 +32,7 @@ function ActionButtons({
         type="button"
         onClick={onSave}
         disabled={isBusy}
-        className="whitespace-nowrap rounded-lg border border-gray-400 bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-900 disabled:opacity-50"
+        className="whitespace-nowrap rounded-lg border border-line-strong bg-surface-muted px-3 py-2 text-xs font-semibold text-ink disabled:opacity-50"
       >
         {isSaving ? "저장 중" : "저장"}
       </button>
@@ -40,7 +40,7 @@ function ActionButtons({
         type="button"
         onClick={onCancel}
         disabled={isBusy}
-        className="whitespace-nowrap rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-600 disabled:opacity-50"
+        className="whitespace-nowrap rounded-lg border border-line-strong bg-surface px-3 py-2 text-xs font-semibold text-ink-secondary disabled:opacity-50"
       >
         취소
       </button>
@@ -48,7 +48,7 @@ function ActionButtons({
         type="button"
         onClick={onDelete}
         disabled={isBusy}
-        className="whitespace-nowrap rounded-lg border border-red-300 bg-white px-3 py-2 text-xs font-semibold text-red-600 disabled:opacity-50"
+        className="whitespace-nowrap rounded-lg border border-red-300 bg-surface px-3 py-2 text-xs font-semibold text-red-600 disabled:opacity-50"
       >
         {isDeleting ? "삭제 중" : "삭제"}
       </button>
@@ -58,12 +58,12 @@ function ActionButtons({
 
 export default function ArtistEditFields(props: ArtistEditFieldsProps) {
   const inputClassName =
-    "w-full min-w-0 border-0 border-b border-gray-400 bg-transparent px-1 py-2 text-center text-sm outline-none focus:border-gray-900";
+    "w-full min-w-0 border-0 border-b border-line-strong bg-transparent px-1 py-2 text-center text-sm outline-none focus:border-gray-900";
 
   if (props.layout === "desktop") {
     return (
       <>
-        <td className="px-3 py-3 text-center text-gray-500">{props.artistId}</td>
+        <td className="px-3 py-3 text-center text-ink-tertiary">{props.artistId}</td>
         <td className="px-3 py-3">
           <input
             value={props.name}
@@ -98,8 +98,8 @@ export default function ArtistEditFields(props: ArtistEditFieldsProps) {
 
   return (
     <div className="space-y-3">
-      <p className="text-xs font-semibold text-gray-500">ID {props.artistId}</p>
-      <label className="block text-xs font-semibold text-gray-600">
+      <p className="text-xs font-semibold text-ink-tertiary">ID {props.artistId}</p>
+      <label className="block text-xs font-semibold text-ink-secondary">
         표시 이름
         <input
           value={props.name}
@@ -107,7 +107,7 @@ export default function ArtistEditFields(props: ArtistEditFieldsProps) {
           className={`${inputClassName} mt-1 text-left`}
         />
       </label>
-      <label className="block text-xs font-semibold text-gray-600">
+      <label className="block text-xs font-semibold text-ink-secondary">
         normalized_name
         <input
           value={props.normalizedName}
@@ -115,7 +115,7 @@ export default function ArtistEditFields(props: ArtistEditFieldsProps) {
           className={`${inputClassName} mt-1 text-left font-mono`}
         />
       </label>
-      <label className="block text-xs font-semibold text-gray-600">
+      <label className="block text-xs font-semibold text-ink-secondary">
         별칭
         <input
           value={props.aliases}

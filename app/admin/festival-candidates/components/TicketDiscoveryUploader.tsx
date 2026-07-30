@@ -24,7 +24,7 @@ type Props = {
 };
 
 const STATUS_STYLE = {
-  duplicate: "bg-gray-200 text-gray-700",
+  duplicate: "bg-surface-strong text-ink-secondary",
   possible: "bg-amber-100 text-amber-800",
   new: "bg-emerald-100 text-emerald-800",
 };
@@ -176,9 +176,9 @@ export default function TicketDiscoveryUploader({ onCreated }: Props) {
   }
 
   return (
-    <section className="mt-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
-      <h2 className="text-lg font-bold text-gray-950">티켓페이지 크롤링 검토</h2>
-      <p className="mt-1 text-sm text-gray-600">
+    <section className="mt-6 rounded-2xl border border-line bg-surface p-5 shadow-sm sm:p-6">
+      <h2 className="text-lg font-bold text-ink">티켓페이지 크롤링 검토</h2>
+      <p className="mt-1 text-sm text-ink-secondary">
         discovery JSON을 불러와 기존 축제·검토 후보·티켓 URL과 비교합니다.
       </p>
 
@@ -188,13 +188,13 @@ export default function TicketDiscoveryUploader({ onCreated }: Props) {
           type="file"
           accept="application/json,.json"
           onChange={(event) => void handleFile(event.target.files?.[0])}
-          className="min-w-0 flex-1 rounded-xl border border-gray-300 bg-white p-3 text-sm"
+          className="min-w-0 flex-1 rounded-xl border border-line-strong bg-surface p-3 text-sm"
         />
         <button
           type="button"
           disabled={isLoading || isSaving || selectedUrls.size === 0}
           onClick={() => void handleSave()}
-          className="rounded-xl bg-gray-900 px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
+          className="rounded-xl bg-surface-dark px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
         >
           {isSaving ? "저장 중..." : `선택 후보 저장 (${selectedUrls.size})`}
         </button>
@@ -205,7 +205,7 @@ export default function TicketDiscoveryUploader({ onCreated }: Props) {
           {reviewedItems.map(({ item, match }) => (
             <label
               key={item.source_url}
-              className="flex cursor-pointer gap-3 rounded-xl border border-gray-200 p-4"
+              className="flex cursor-pointer gap-3 rounded-xl border border-line p-4"
             >
               <input
                 type="checkbox"
@@ -216,16 +216,16 @@ export default function TicketDiscoveryUploader({ onCreated }: Props) {
               />
               <span className="min-w-0 flex-1">
                 <span className="flex flex-wrap items-center gap-2">
-                  <strong className="text-sm text-gray-950">{item.title}</strong>
+                  <strong className="text-sm text-ink">{item.title}</strong>
                   <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${STATUS_STYLE[match.status]}`}>
                     {STATUS_LABEL[match.status]}
                   </span>
                 </span>
-                <span className="mt-1 block text-xs text-gray-500">
+                <span className="mt-1 block text-xs text-ink-tertiary">
                   {item.start_date || "날짜 미확인"}
                   {item.end_date ? ` ~ ${item.end_date}` : ""}
                 </span>
-                <span className="mt-1 block text-xs text-gray-600">{match.reason}</span>
+                <span className="mt-1 block text-xs text-ink-secondary">{match.reason}</span>
                 {match.reference && (
                   <span className="mt-1 block text-xs font-semibold text-amber-700">
                     비교 대상: {match.reference.title}
@@ -237,8 +237,8 @@ export default function TicketDiscoveryUploader({ onCreated }: Props) {
         </div>
       )}
 
-      {isLoading && <p className="mt-3 text-sm text-gray-600">기존 데이터와 비교 중...</p>}
-      {message && <p className="mt-3 text-sm font-semibold text-gray-950">{message}</p>}
+      {isLoading && <p className="mt-3 text-sm text-ink-secondary">기존 데이터와 비교 중...</p>}
+      {message && <p className="mt-3 text-sm font-semibold text-ink">{message}</p>}
       {errorMessage && <p className="mt-3 text-sm font-semibold text-red-700">{errorMessage}</p>}
     </section>
   );

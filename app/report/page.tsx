@@ -33,11 +33,11 @@ export default function ReportPage() {
         </p>
         <a
           href={MAIL_URL}
-          className={`${typography.readingButton} inline-flex rounded-xl bg-slate-950 px-5 py-3 text-white hover:bg-slate-800`}
+          className={`${typography.readingButton} inline-flex rounded-xl bg-surface-dark px-5 py-3 text-white hover:bg-surface-dark`}
         >
           이메일로 제보하기
         </a>
-        <p className={`${typography.meta} text-slate-500`}>
+        <p className={`${typography.meta} text-ink-tertiary`}>
           메일 프로그램이 열리지 않으면 {CONTACT_EMAIL}으로 직접 보내주세요.
         </p>
       </section>

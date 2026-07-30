@@ -17,7 +17,7 @@ export default function StageSchedule({
 }: StageScheduleProps) {
   return (
     <div>
-      <h4 className={`${typography.panelSectionTitle} flex items-center gap-2 overflow-hidden rounded-xl border border-slate-200 bg-blue-100 px-3 py-3 text-slate-700`}>
+      <h4 className={`${typography.panelSectionTitle} flex items-center gap-2 overflow-hidden rounded-xl border border-line bg-blue-100 px-3 py-3 text-ink-secondary`}>
         <HandMetal size={14} />
         <span>{stage}</span>
       </h4>

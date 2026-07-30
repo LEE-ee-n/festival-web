@@ -61,13 +61,13 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-start justify-center bg-slate-50 px-4 pt-20">
-      <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+    <main className="flex min-h-screen items-start justify-center bg-surface-subtle px-4 pt-20">
+      <div className="w-full max-w-md rounded-3xl border border-line bg-surface p-8 shadow-sm">
         <p className="text-sm font-semibold text-blue-600">
           관리자
         </p>
 
-        <h1 className="mt-2 text-3xl font-bold text-slate-950">
+        <h1 className="mt-2 text-3xl font-bold text-ink">
           로그인
         </h1>
 
@@ -75,7 +75,7 @@ export default function AdminLoginPage() {
           <div>
             <label
               htmlFor="email"
-              className="text-sm font-semibold text-slate-700"
+              className="text-sm font-semibold text-ink-secondary"
             >
               이메일
             </label>
@@ -86,14 +86,14 @@ export default function AdminLoginPage() {
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               required
-              className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
+              className="mt-2 w-full rounded-xl border border-line-strong px-4 py-3 outline-none focus:border-slate-900"
             />
           </div>
 
           <div>
             <label
               htmlFor="password"
-              className="text-sm font-semibold text-slate-700"
+              className="text-sm font-semibold text-ink-secondary"
             >
               비밀번호
             </label>
@@ -104,7 +104,7 @@ export default function AdminLoginPage() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               required
-              className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
+              className="mt-2 w-full rounded-xl border border-line-strong px-4 py-3 outline-none focus:border-slate-900"
             />
           </div>
 
@@ -117,7 +117,7 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white disabled:opacity-50"
+            className="w-full rounded-xl bg-surface-dark px-5 py-3 font-semibold text-white disabled:opacity-50"
           >
             {isSubmitting ? "로그인 중..." : "로그인"}
           </button>

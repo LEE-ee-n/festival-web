@@ -39,13 +39,13 @@ type Props = {
 };
 
 const inputClass =
-  "w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900";
+  "w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink";
 const reviewInputClass =
-  "h-7 w-full border-0 border-b border-gray-300 bg-transparent px-1 py-0 text-center text-sm leading-7 text-gray-900 outline-none focus:border-gray-600 focus:ring-0";
+  "h-7 w-full border-0 border-b border-line-strong bg-transparent px-1 py-0 text-center text-sm leading-7 text-ink outline-none focus:border-gray-600 focus:ring-0";
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <span className="mb-1 block text-[11px] font-bold text-gray-500 lg:hidden">
+    <span className="mb-1 block text-[11px] font-bold text-ink-tertiary lg:hidden">
       {children}
     </span>
   );
@@ -61,7 +61,7 @@ function ReadonlyValue({
   return (
     <div className="min-w-0 lg:px-1">
       <FieldLabel>{label}</FieldLabel>
-      <p className="min-h-7 break-words text-center text-sm leading-7 text-gray-700">
+      <p className="min-h-7 break-words text-center text-sm leading-7 text-ink-secondary">
         {value || "-"}
       </p>
     </div>
@@ -132,13 +132,13 @@ function ArtistSearchPanel({
   }
 
   return (
-    <div className="rounded-xl border border-gray-300 bg-gray-50 p-3">
+    <div className="rounded-xl border border-line-strong bg-surface-subtle p-3">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs font-bold text-gray-700">기존 아티스트 검색·재선택</p>
+        <p className="text-xs font-bold text-ink-secondary">기존 아티스트 검색·재선택</p>
         <button
           type="button"
           onClick={onClose}
-          className="text-xs font-semibold text-gray-500 underline"
+          className="text-xs font-semibold text-ink-tertiary underline"
         >
           닫기
         </button>
@@ -171,7 +171,7 @@ function ArtistSearchPanel({
           type="button"
           disabled={isSearching}
           onClick={() => void runSearch(keyword)}
-          className="shrink-0 rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-600 disabled:opacity-50"
+          className="shrink-0 rounded-lg border border-line-strong bg-surface px-3 py-2 text-xs font-semibold text-ink-secondary disabled:opacity-50"
         >
           {isSearching ? "검색 중" : "검색"}
         </button>
@@ -183,7 +183,7 @@ function ArtistSearchPanel({
               onSetMatchStatus(index, "new");
               onClose();
             }}
-            className="shrink-0 whitespace-nowrap rounded-lg border border-purple-200 bg-purple-50 px-3 py-2 text-xs font-bold text-purple-700 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-400"
+            className="shrink-0 whitespace-nowrap rounded-lg border border-purple-200 bg-purple-50 px-3 py-2 text-xs font-bold text-purple-700 disabled:border-line disabled:bg-surface-subtle disabled:text-ink-muted"
           >
             신규 아티스트 등록
           </button>
@@ -201,13 +201,13 @@ function ArtistSearchPanel({
               key={result.id}
               type="button"
               onClick={() => selectExisting(result)}
-              className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2 text-left text-sm hover:border-gray-500"
+              className="flex items-center justify-between rounded-lg border border-line bg-surface px-3 py-2 text-left text-sm hover:border-gray-500"
             >
               <span>
-                <span className="block font-semibold text-gray-900">{result.name}</span>
-                <span className="block text-xs text-gray-500">{result.normalized_name}</span>
+                <span className="block font-semibold text-ink">{result.name}</span>
+                <span className="block text-xs text-ink-tertiary">{result.normalized_name}</span>
               </span>
-              <span className="text-xs font-semibold text-gray-600">
+              <span className="text-xs font-semibold text-ink-secondary">
                 유사도 {Math.round(Math.min(1, Math.max(0, result.similarity_score)) * 100)}%
               </span>
             </button>
@@ -245,13 +245,13 @@ function ArtistReviewRow({
     <>
       <tr
         data-approval-artist-index={index}
-        className="mb-3 block rounded-xl border border-gray-300 bg-white p-4 shadow-sm lg:mb-0 lg:table-row lg:rounded-none lg:border-0 lg:p-0 lg:shadow-none"
+        className="mb-3 block rounded-xl border border-line-strong bg-surface p-4 shadow-sm lg:mb-0 lg:table-row lg:rounded-none lg:border-0 lg:p-0 lg:shadow-none"
       >
-        <td className="block min-w-0 border-gray-200 pb-3 text-center lg:table-cell lg:border-0 lg:border-b lg:p-3 lg:align-middle">
+        <td className="block min-w-0 border-line pb-3 text-center lg:table-cell lg:border-0 lg:border-b lg:p-3 lg:align-middle">
           <ReadonlyValue label="포스터 표기" value={artist.input_name} />
         </td>
 
-        <td className="block min-w-0 border-gray-200 pb-3 text-center lg:table-cell lg:border-0 lg:border-b lg:p-3 lg:align-middle">
+        <td className="block min-w-0 border-line pb-3 text-center lg:table-cell lg:border-0 lg:border-b lg:p-3 lg:align-middle">
           <FieldLabel>표시 이름</FieldLabel>
           {displayEditable ? (
             <input
@@ -266,7 +266,7 @@ function ArtistReviewRow({
           )}
         </td>
 
-        <td className="block min-w-0 border-gray-200 pb-3 text-center lg:table-cell lg:border-0 lg:border-b lg:p-3 lg:align-middle">
+        <td className="block min-w-0 border-line pb-3 text-center lg:table-cell lg:border-0 lg:border-b lg:p-3 lg:align-middle">
           <FieldLabel>normalized_name</FieldLabel>
           {normalizedEditable ? (
             <input
@@ -287,7 +287,7 @@ function ArtistReviewRow({
           )}
         </td>
 
-        <td className="block min-w-0 border-gray-200 pb-3 text-center lg:table-cell lg:border-0 lg:border-b lg:p-3 lg:align-middle">
+        <td className="block min-w-0 border-line pb-3 text-center lg:table-cell lg:border-0 lg:border-b lg:p-3 lg:align-middle">
           <FieldLabel>별칭</FieldLabel>
           {aliasesEditable ? (
             <input
@@ -308,20 +308,20 @@ function ArtistReviewRow({
           )}
         </td>
 
-        <td className="block border-gray-200 text-center lg:table-cell lg:w-[116px] lg:border-0 lg:border-b lg:px-2 lg:py-3 lg:align-middle">
+        <td className="block border-line text-center lg:table-cell lg:w-[116px] lg:border-0 lg:border-b lg:px-2 lg:py-3 lg:align-middle">
           <FieldLabel>작업</FieldLabel>
           <div className="flex flex-nowrap justify-center gap-1">
           <button
             type="button"
             onClick={() => setIsSearchOpen((current) => !current)}
-            className="w-14 whitespace-nowrap rounded-lg border border-gray-300 bg-white px-1 py-2 text-xs font-semibold text-gray-600"
+            className="w-14 whitespace-nowrap rounded-lg border border-line-strong bg-surface px-1 py-2 text-xs font-semibold text-ink-secondary"
           >
             {artist.match_status === "matched" ? "재선택" : "검색"}
           </button>
           <button
             type="button"
             onClick={() => onSetMatchStatus(index, "excluded")}
-            className="w-11 whitespace-nowrap rounded-lg border border-red-200 bg-white px-1 py-2 text-xs font-semibold text-red-600"
+            className="w-11 whitespace-nowrap rounded-lg border border-red-200 bg-surface px-1 py-2 text-xs font-semibold text-red-600"
           >
             삭제
           </button>
@@ -331,7 +331,7 @@ function ArtistReviewRow({
 
       {artist.match_status === "pending" && !artist.normalized_name.trim() && (
         <tr className="mb-3 block lg:mb-0 lg:table-row">
-          <td colSpan={5} className="block border-gray-200 lg:table-cell lg:border-0 lg:border-b lg:p-3">
+          <td colSpan={5} className="block border-line lg:table-cell lg:border-0 lg:border-b lg:p-3">
             <p className="rounded-lg bg-amber-100 px-3 py-2 text-xs font-bold text-amber-800">
               normalized_name을 입력하고 중복 확인을 완료해야 다음 단계로 갈 수 있습니다.
             </p>
@@ -341,8 +341,8 @@ function ArtistReviewRow({
 
       {isSearchOpen && (
         <tr className="mb-3 block lg:mb-0 lg:table-row">
-          <td className="hidden border-b border-gray-200 lg:table-cell" />
-          <td colSpan={3} className="block border-gray-200 lg:table-cell lg:border-0 lg:border-b lg:p-3">
+          <td className="hidden border-b border-line lg:table-cell" />
+          <td colSpan={3} className="block border-line lg:table-cell lg:border-0 lg:border-b lg:p-3">
             <ArtistSearchPanel
               artist={artist}
               index={index}
@@ -351,7 +351,7 @@ function ArtistReviewRow({
               onClose={() => setIsSearchOpen(false)}
             />
           </td>
-          <td className="hidden border-b border-gray-200 lg:table-cell" />
+          <td className="hidden border-b border-line lg:table-cell" />
         </tr>
       )}
     </>
@@ -388,31 +388,31 @@ function ArtistReviewGroup({
       ? "border-purple-200 bg-purple-50 text-purple-900"
       : emphasis === "green"
         ? "border-lime-200 bg-lime-50 text-lime-800"
-      : "border-gray-300 bg-white text-gray-700";
+      : "border-line-strong bg-surface text-ink-secondary";
 
   return (
     <tbody className="mb-5 block lg:table-row-group">
       <tr className="hidden lg:table-row" aria-hidden="true">
-        <td colSpan={5} className="h-4 border-0 bg-white p-0" />
+        <td colSpan={5} className="h-4 border-0 bg-surface p-0" />
       </tr>
       <tr className="block lg:table-row">
         <th
           colSpan={5}
           className={`block rounded-t-xl border-0 px-4 py-3 text-center text-sm font-bold lg:table-cell lg:rounded-none ${headingClass}`}
         >
-          {title} <span className="ml-1 text-xs font-semibold text-gray-500">{artists.length}명</span>
+          {title} <span className="ml-1 text-xs font-semibold text-ink-tertiary">{artists.length}명</span>
         </th>
       </tr>
-      <tr className="hidden bg-white text-sm font-bold text-gray-600 lg:table-row">
-        <th className="border-0 border-b border-gray-300 p-2">포스터 표기</th>
-        <th className="border-0 border-b border-gray-300 p-2">표시 이름</th>
-        <th className="border-0 border-b border-gray-300 p-2">normalized_name</th>
-        <th className="border-0 border-b border-gray-300 p-2">별칭</th>
-        <th className="w-[116px] border-0 border-b border-gray-300 px-2 py-2">작업</th>
+      <tr className="hidden bg-surface text-sm font-bold text-ink-secondary lg:table-row">
+        <th className="border-0 border-b border-line-strong p-2">포스터 표기</th>
+        <th className="border-0 border-b border-line-strong p-2">표시 이름</th>
+        <th className="border-0 border-b border-line-strong p-2">normalized_name</th>
+        <th className="border-0 border-b border-line-strong p-2">별칭</th>
+        <th className="w-[116px] border-0 border-b border-line-strong px-2 py-2">작업</th>
       </tr>
       {artists.length === 0 ? (
         <tr className="block lg:table-row">
-          <td colSpan={5} className="block border-0 border-b border-gray-200 bg-white px-4 py-3 text-center text-sm text-gray-400 lg:table-cell">
+          <td colSpan={5} className="block border-0 border-b border-line bg-surface px-4 py-3 text-center text-sm text-ink-muted lg:table-cell">
             없음
           </td>
         </tr>
@@ -440,18 +440,18 @@ function ExcludedArtistList({
   if (artists.length === 0) return null;
 
   return (
-    <div className="mt-5 rounded-xl border border-gray-200 bg-gray-50 p-4">
-      <p className="text-sm font-bold text-gray-600">제외된 항목 {artists.length}명</p>
+    <div className="mt-5 rounded-xl border border-line bg-surface-subtle p-4">
+      <p className="text-sm font-bold text-ink-secondary">제외된 항목 {artists.length}명</p>
       <div className="mt-3 space-y-2">
         {artists.map(({ artist, index }) => (
-          <div key={`${index}-${artist.input_name}`} className="flex items-center justify-between gap-3 border-t border-gray-200 pt-2 first:border-0 first:pt-0">
-            <span className="text-sm text-gray-400 line-through">
+          <div key={`${index}-${artist.input_name}`} className="flex items-center justify-between gap-3 border-t border-line pt-2 first:border-0 first:pt-0">
+            <span className="text-sm text-ink-muted line-through">
               {artist.input_name || artist.display_name || "이름 없는 항목"}
             </span>
             <button
               type="button"
               onClick={() => onSetMatchStatus(index, "pending")}
-              className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700"
+              className="rounded-lg border border-line-strong bg-surface px-3 py-1.5 text-xs font-semibold text-ink-secondary"
             >
               다시 검토
             </button>
@@ -472,32 +472,32 @@ function TimetableArtistCard({
   onChange: Props["onChange"];
 }) {
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="mb-4 flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
+    <article className="rounded-2xl border border-line bg-surface p-4 shadow-sm">
+      <div className="mb-4 flex items-center justify-between rounded-xl bg-surface-subtle px-4 py-3">
         <div>
-          <p className="font-bold text-slate-900">{artist.display_name}</p>
-          <p className="text-xs text-slate-500">{artist.normalized_name}</p>
+          <p className="font-bold text-ink">{artist.display_name}</p>
+          <p className="text-xs text-ink-tertiary">{artist.normalized_name}</p>
         </div>
         <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700">확정 아티스트</span>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="text-xs font-semibold text-slate-600">
+        <label className="text-xs font-semibold text-ink-secondary">
           공연 날짜
           <input type="date" value={artist.performance_date ?? ""} onChange={(event) => onChange(index, "performance_date", event.target.value)} className={`mt-1 ${inputClass}`} />
         </label>
-        <label className="text-xs font-semibold text-slate-600">
+        <label className="text-xs font-semibold text-ink-secondary">
           무대
           <input value={artist.stage_name ?? ""} onChange={(event) => onChange(index, "stage_name", event.target.value)} className={`mt-1 ${inputClass}`} />
         </label>
-        <label className="text-xs font-semibold text-slate-600">
+        <label className="text-xs font-semibold text-ink-secondary">
           시작 시간
           <input type="time" value={artist.performance_time?.slice(0, 5) ?? ""} onChange={(event) => onChange(index, "performance_time", event.target.value)} className={`mt-1 ${inputClass}`} />
         </label>
-        <label className="text-xs font-semibold text-slate-600">
+        <label className="text-xs font-semibold text-ink-secondary">
           종료 시간
           <input type="time" value={artist.performance_end_time?.slice(0, 5) ?? ""} onChange={(event) => onChange(index, "performance_end_time", event.target.value)} className={`mt-1 ${inputClass}`} />
         </label>
-        <label className="text-xs font-semibold text-slate-600">
+        <label className="text-xs font-semibold text-ink-secondary">
           상태
           <select value={artist.status ?? "confirmed"} onChange={(event) => onChange(index, "status", event.target.value)} className={`mt-1 ${inputClass}`}>
             <option value="confirmed">확정</option>
@@ -554,10 +554,10 @@ export default function CandidateLineupTab({
     <section className="mt-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h3 className="text-lg font-bold text-slate-900">
+          <h3 className="text-lg font-bold text-ink">
             {mode === "review" ? "아티스트 판별·등록" : "타임테이블 검토"}
           </h3>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-ink-tertiary">
             {mode === "review"
               ? "모든 추출 항목을 기존 연결·신규 등록·제외 중 하나로 처리합니다."
               : "확정된 아티스트의 날짜·시간·무대만 검토합니다."}
@@ -569,14 +569,14 @@ export default function CandidateLineupTab({
               type="button"
               disabled={isMatching || artists.length === 0}
               onClick={onMatchAll}
-              className="rounded-xl border border-gray-200 bg-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-700 disabled:opacity-40"
+              className="rounded-xl border border-line bg-surface-muted px-4 py-2.5 text-sm font-semibold text-ink-secondary disabled:opacity-40"
             >
               {isMatching ? "중복 확인 중..." : "normalized_name 전체 중복 확인"}
             </button>
             <button
               type="button"
               onClick={onAdd}
-              className="rounded-xl border border-gray-200 bg-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-700"
+              className="rounded-xl border border-line bg-surface-muted px-4 py-2.5 text-sm font-semibold text-ink-secondary"
             >
               아티스트 추가
             </button>
@@ -585,13 +585,13 @@ export default function CandidateLineupTab({
       </div>
 
       {mode === "review" && (
-        <p className="mt-3 text-sm font-semibold text-gray-600">
+        <p className="mt-3 text-sm font-semibold text-ink-secondary">
           요약 · 신규 아티스트 {newArtistCount}명 · 추가 라인업 {addedLineupCount}명
         </p>
       )}
 
       {visibleArtists.length === 0 ? (
-        <p className="mt-6 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-500">
+        <p className="mt-6 rounded-xl border border-line bg-surface p-4 text-sm text-ink-tertiary">
           {mode === "review"
             ? "추출된 아티스트가 없습니다."
             : "확정된 아티스트가 없어 입력할 타임테이블이 없습니다."}

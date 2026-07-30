@@ -362,17 +362,17 @@ export default function FestivalCandidatesPage() {
   }
 
   return (
-    <main className="min-h-screen bg-white px-4 py-10">
+    <main className="min-h-screen bg-surface px-4 py-10">
       <div className="mx-auto max-w-7xl">
         <AdminBackLink />
 
         <div className="mt-6 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold text-slate-600">관리자</p>
-            <h1 className="mt-2 text-3xl font-bold text-slate-950">
+            <p className="text-sm font-semibold text-ink-secondary">관리자</p>
+            <h1 className="mt-2 text-3xl font-bold text-ink">
               신규 페스티벌 등록
             </h1>
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-sm text-ink-tertiary">
               직접 작성하거나 수집한 자료를 단계별로 검토해 새 페스티벌을 등록합니다.
             </p>
           </div>
@@ -382,7 +382,7 @@ export default function FestivalCandidatesPage() {
               type="button"
               disabled={isMutating}
               onClick={() => void handleCreateManualCandidate()}
-              className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+              className="rounded-xl bg-surface-dark px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
             >
               직접 신규 작성
             </button>
@@ -429,8 +429,8 @@ export default function FestivalCandidatesPage() {
               className={[
                 "rounded-full px-4 py-2 text-sm font-semibold",
                 statusFilter === option.value
-                  ? "bg-slate-900 text-white"
-                  : "border border-slate-300 bg-white text-slate-600",
+                  ? "bg-surface-dark text-white"
+                  : "border border-line-strong bg-surface text-ink-secondary",
               ].join(" ")}
             >
               {option.label}
@@ -444,15 +444,15 @@ export default function FestivalCandidatesPage() {
           </div>
         )}
         {notice && (
-          <p className="mt-5 text-sm font-semibold text-gray-950">{notice}</p>
+          <p className="mt-5 text-sm font-semibold text-ink">{notice}</p>
         )}
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(280px,0.7fr)_minmax(0,1.5fr)]">
           <section>
             {isLoading ? (
-              <p className="text-sm text-slate-500">불러오는 중...</p>
+              <p className="text-sm text-ink-tertiary">불러오는 중...</p>
             ) : candidates.length === 0 ? (
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-ink-tertiary">
                 해당 상태의 수집 후보가 없습니다.
               </p>
             ) : (
@@ -463,24 +463,24 @@ export default function FestivalCandidatesPage() {
                     type="button"
                     onClick={() => void selectCandidate(candidate)}
                     className={[
-                      "w-full rounded-2xl border bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md",
+                      "w-full rounded-2xl border bg-surface p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md",
                       selectedId === candidate.id
                         ? "border-slate-900 ring-2 ring-slate-200"
-                        : "border-gray-200",
+                        : "border-line",
                     ].join(" ")}
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <h2 className="font-bold text-slate-900">
+                      <h2 className="font-bold text-ink">
                         {candidate.title}
                       </h2>
-                      <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                      <span className="shrink-0 rounded-full bg-surface-muted px-2.5 py-1 text-xs font-semibold text-ink-secondary">
                         {STATUS_LABELS[candidate.status]}
                       </span>
                     </div>
-                    <p className="mt-2 text-sm text-slate-600">
+                    <p className="mt-2 text-sm text-ink-secondary">
                       {candidate.festival_name || "축제명 추출 전"}
                     </p>
-                    <p className="mt-1 text-xs text-slate-400">
+                    <p className="mt-1 text-xs text-ink-muted">
                       {candidate.start_date || "날짜 미정"}
                       {candidate.end_date ? ` ~ ${candidate.end_date}` : ""}
                     </p>
@@ -491,7 +491,7 @@ export default function FestivalCandidatesPage() {
                         </span>
                       )}
                       {candidate.announcement_round !== "unspecified" && (
-                        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                        <span className="rounded-full bg-surface-muted px-2.5 py-1 text-xs font-semibold text-ink-secondary">
                           {candidate.announcement_round === "final"
                             ? "최종"
                             : candidate.announcement_round.replace("round_", "") + "차"}
@@ -504,9 +504,9 @@ export default function FestivalCandidatesPage() {
             )}
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+          <section className="rounded-2xl border border-line bg-surface p-5 shadow-sm sm:p-7">
             {!selectedCandidate ? (
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-ink-tertiary">
                 왼쪽 목록에서 검토할 후보를 선택하세요.
               </p>
             ) : selectedCandidate.status === "approved" ? (
@@ -551,14 +551,14 @@ export default function FestivalCandidatesPage() {
               <div className="space-y-6">
                 <div>
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <h2 className="text-xl font-bold text-slate-950">
+                    <h2 className="text-xl font-bold text-ink">
                       {selectedCandidate.title}
                     </h2>
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs text-ink-muted">
                       수집 {formatDateTime(selectedCandidate.created_at)}
                     </span>
                   </div>
-                  <p className="mt-2 text-sm text-slate-500">
+                  <p className="mt-2 text-sm text-ink-tertiary">
                     출처: {selectedCandidate.source_type || "미지정"}
                     {selectedCandidate.score !== null
                       ? ` · 점수 ${selectedCandidate.score}`
@@ -581,10 +581,10 @@ export default function FestivalCandidatesPage() {
                         className={[
                           "rounded-xl border px-3 py-3 text-xs font-bold",
                           step === currentStep
-                            ? "border-slate-900 bg-slate-900 text-white"
+                            ? "border-slate-900 bg-surface-dark text-white"
                             : index < currentStepIndex
                               ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                              : "border-slate-200 bg-slate-50 text-slate-400",
+                              : "border-line bg-surface-subtle text-ink-muted",
                         ].join(" ")}
                       >
                         <span className="block opacity-70">{index + 1}단계</span>
@@ -620,19 +620,19 @@ export default function FestivalCandidatesPage() {
                     <section className="mt-6">
                       <div className="flex items-end justify-between gap-3">
                         <div>
-                          <h3 className="text-lg font-bold text-slate-900">아티스트 최종 확정</h3>
-                          <p className="mt-1 text-sm text-slate-500">수정 기능 없이 전체 명단만 빠르게 확인합니다.</p>
+                          <h3 className="text-lg font-bold text-ink">아티스트 최종 확정</h3>
+                          <p className="mt-1 text-sm text-ink-tertiary">수정 기능 없이 전체 명단만 빠르게 확인합니다.</p>
                         </div>
-                        <strong className="text-sm text-slate-700">총 {getActiveDraftArtists(draft).length}명</strong>
+                        <strong className="text-sm text-ink-secondary">총 {getActiveDraftArtists(draft).length}명</strong>
                       </div>
                       <div className="mt-5 grid gap-2 sm:grid-cols-2">
                         {getActiveDraftArtists(draft).map((artist) => (
-                          <div key={`${artist.normalized_name}-${artist.matched_artist_id ?? "new"}`} className="flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3">
+                          <div key={`${artist.normalized_name}-${artist.matched_artist_id ?? "new"}`} className="flex items-center justify-between rounded-xl border border-line px-4 py-3">
                             <div>
-                              <p className="font-bold text-slate-900">{artist.display_name}</p>
-                              <p className="text-xs text-slate-500">{artist.normalized_name}</p>
+                              <p className="font-bold text-ink">{artist.display_name}</p>
+                              <p className="text-xs text-ink-tertiary">{artist.normalized_name}</p>
                             </div>
-                            <span className={artist.match_status === "new" ? "rounded-full bg-purple-100 px-2.5 py-1 text-xs font-bold text-purple-700" : "rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600"}>
+                            <span className={artist.match_status === "new" ? "rounded-full bg-purple-100 px-2.5 py-1 text-xs font-bold text-purple-700" : "rounded-full bg-surface-muted px-2.5 py-1 text-xs font-bold text-ink-secondary"}>
                               {artist.match_status === "new" ? "신규" : "기존"}
                             </span>
                           </div>
@@ -662,18 +662,18 @@ export default function FestivalCandidatesPage() {
 
                   {currentStep === "timetable" && (
                     <div>
-                      <div className="mt-6 flex flex-wrap gap-2 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                      <div className="mt-6 flex flex-wrap gap-2 rounded-xl border border-line bg-surface-subtle p-4">
                         <button
                           type="button"
                           onClick={() => updateWorkflow("timetable_visibility", "published")}
-                          className={draft.workflow?.timetable_visibility !== "unpublished" ? "rounded-lg bg-slate-900 px-4 py-2 text-sm font-bold text-white" : "rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700"}
+                          className={draft.workflow?.timetable_visibility !== "unpublished" ? "rounded-lg bg-surface-dark px-4 py-2 text-sm font-bold text-white" : "rounded-lg border border-line-strong bg-surface px-4 py-2 text-sm font-bold text-ink-secondary"}
                         >
                           타임테이블 검토
                         </button>
                         <button
                           type="button"
                           onClick={() => updateWorkflow("timetable_visibility", "unpublished")}
-                          className={draft.workflow?.timetable_visibility === "unpublished" ? "rounded-lg bg-slate-900 px-4 py-2 text-sm font-bold text-white" : "rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700"}
+                          className={draft.workflow?.timetable_visibility === "unpublished" ? "rounded-lg bg-surface-dark px-4 py-2 text-sm font-bold text-white" : "rounded-lg border border-line-strong bg-surface px-4 py-2 text-sm font-bold text-ink-secondary"}
                         >
                           타임테이블 미공개
                         </button>
@@ -715,7 +715,7 @@ export default function FestivalCandidatesPage() {
                 <div>
                   <label
                     htmlFor="review-notes"
-                    className="text-sm font-bold text-slate-700"
+                    className="text-sm font-bold text-ink-secondary"
                   >
                     검토 메모
                   </label>
@@ -726,17 +726,17 @@ export default function FestivalCandidatesPage() {
                       setReviewNotes(event.target.value);
                     }}
                     placeholder="수정 내용 또는 확인할 메모"
-                    className="mt-2 min-h-24 w-full rounded-xl border border-slate-300 p-3 text-sm outline-none focus:border-slate-900"
+                    className="mt-2 min-h-24 w-full rounded-xl border border-line-strong p-3 text-sm outline-none focus:border-slate-900"
                   />
                 </div>
 
-                <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-5">
+                <div className="flex flex-wrap justify-end gap-2 border-t border-line pt-5">
                   {currentStepIndex > 0 && (
                     <button
                       type="button"
                       disabled={isMutating}
                       onClick={() => void handleMoveStep(FESTIVAL_REGISTRATION_STEPS[currentStepIndex - 1])}
-                      className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 disabled:opacity-50"
+                      className="rounded-xl border border-line-strong bg-surface px-4 py-2.5 text-sm font-semibold text-ink-secondary disabled:opacity-50"
                     >
                       이전 단계
                     </button>
@@ -745,7 +745,7 @@ export default function FestivalCandidatesPage() {
                     type="button"
                     disabled={isMutating}
                     onClick={() => void handleSave()}
-                    className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 disabled:opacity-50"
+                    className="rounded-xl border border-line-strong bg-surface px-4 py-2.5 text-sm font-semibold text-ink-secondary disabled:opacity-50"
                   >
                     임시저장
                   </button>
@@ -754,7 +754,7 @@ export default function FestivalCandidatesPage() {
                       type="button"
                       disabled={isMutating}
                       onClick={() => void handleMoveStep(FESTIVAL_REGISTRATION_STEPS[currentStepIndex + 1])}
-                      className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+                      className="rounded-xl bg-surface-dark px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
                     >
                       현재 단계 확정 · 다음
                     </button>

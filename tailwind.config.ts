@@ -26,6 +26,18 @@ const config: Config = {
           tertiary: "#767676",
           muted: "#999999",
         },
+        surface: {
+          DEFAULT: "#FFFFFF",
+          subtle: "#FAFAFA",
+          muted: "#F5F5F5",
+          strong: "#E5E5E5",
+          dark: "#090A1A",
+        },
+        line: {
+          DEFAULT: "#E5E5E5",
+          subtle: "#F0F0F0",
+          strong: "#D4D4D4",
+        },
       },
     },
   },

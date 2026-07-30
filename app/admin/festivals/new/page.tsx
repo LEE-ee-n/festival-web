@@ -89,21 +89,21 @@ export default function NewFestivalPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-10">
+    <main className="min-h-screen bg-surface-subtle px-4 py-10">
       <div className="mx-auto max-w-4xl">
         <Link
           href="/admin/festivals"
-          className="text-sm font-semibold text-slate-500 hover:text-slate-900"
+          className="text-sm font-semibold text-ink-tertiary hover:text-ink"
         >
           ← 페스티벌 목록으로
         </Link>
 
         <div className="mt-5">
           <p className="text-sm font-semibold text-blue-600">관리자</p>
-          <h1 className="mt-2 text-3xl font-bold text-slate-950">
+          <h1 className="mt-2 text-3xl font-bold text-ink">
             새 페스티벌 등록
           </h1>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-ink-tertiary">
             기본정보를 등록한 뒤 썸네일, 라인업, 티켓을 추가할 수 있습니다.
           </p>
         </div>

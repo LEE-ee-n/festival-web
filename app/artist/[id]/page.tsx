@@ -103,10 +103,10 @@ export default function ArtistDetailPage() {
 
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-white px-4 py-10">
-        <div className="mx-auto max-w-3xl animate-pulse rounded-3xl bg-white p-8 shadow-sm">
-          <div className="h-8 w-1/2 rounded bg-slate-200" />
-          <div className="mt-8 h-32 rounded bg-slate-100" />
+      <main className="min-h-screen bg-surface px-4 py-10">
+        <div className="mx-auto max-w-3xl animate-pulse rounded-3xl bg-surface p-8 shadow-sm">
+          <div className="h-8 w-1/2 rounded bg-surface-strong" />
+          <div className="mt-8 h-32 rounded bg-surface-muted" />
         </div>
       </main>
     );
@@ -114,19 +114,19 @@ export default function ArtistDetailPage() {
 
   if (errorMessage || !artist) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-white px-4">
-        <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-          <h1 className={`${typography.articleSectionTitle} text-slate-900`}>
+      <main className="flex min-h-screen items-center justify-center bg-surface px-4">
+        <div className="w-full max-w-md rounded-3xl border border-line bg-surface p-8 text-center shadow-sm">
+          <h1 className={`${typography.articleSectionTitle} text-ink`}>
             아티스트 정보를 표시할 수 없습니다.
           </h1>
 
-          <p className={`${typography.body} mt-3 text-slate-500`}>
+          <p className={`${typography.body} mt-3 text-ink-tertiary`}>
             {errorMessage}
           </p>
 
           <Link
             href="/"
-            className={`${typography.button} mt-6 inline-flex rounded-xl bg-slate-900 px-4 py-2.5 text-white`}
+            className={`${typography.button} mt-6 inline-flex rounded-xl bg-surface-dark px-4 py-2.5 text-white`}
           >
             달력으로 돌아가기
           </Link>
@@ -136,18 +136,18 @@ export default function ArtistDetailPage() {
   }
 
   return (
-    <main className="min-h-screen bg-white px-4 py-8 sm:py-12">
+    <main className="min-h-screen bg-surface px-4 py-8 sm:py-12">
       <article className="mx-auto max-w-3xl">
         <Link
           href="/"
-          className={`${typography.metaStrong} text-slate-500 hover:text-slate-900`}
+          className={`${typography.metaStrong} text-ink-tertiary hover:text-ink`}
         >
           ← 달력으로 돌아가기
         </Link>
 
-        <header className="mt-5 flex min-h-44 items-stretch gap-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:min-h-52 sm:gap-8 sm:p-9">
+        <header className="mt-5 flex min-h-44 items-stretch gap-5 rounded-3xl border border-line bg-surface p-6 shadow-sm sm:min-h-52 sm:gap-8 sm:p-9">
           <div className="flex min-w-0 flex-1 flex-col">
-            <h1 className={`${typography.pageTitle} break-keep text-slate-950`}>
+            <h1 className={`${typography.pageTitle} break-keep text-ink`}>
               {artist.name}
             </h1>
 
@@ -158,7 +158,7 @@ export default function ArtistDetailPage() {
           </div>
 
           {artist.image_url && (
-            <div className="relative aspect-square w-28 shrink-0 overflow-hidden rounded-2xl bg-slate-100 sm:w-36">
+            <div className="relative aspect-square w-28 shrink-0 overflow-hidden rounded-2xl bg-surface-muted sm:w-36">
               <Image
                 src={artist.image_url}
                 alt={`${artist.name} 아티스트 이미지`}
@@ -171,14 +171,14 @@ export default function ArtistDetailPage() {
           )}
         </header>
 
-        <div className="mt-6 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div className="mt-6 overflow-hidden rounded-3xl border border-line bg-surface shadow-sm">
           <div className="p-6 sm:p-9">
-            <h2 className={`${typography.sectionTitle} text-slate-900`}>
+            <h2 className={`${typography.sectionTitle} text-ink`}>
               출연 페스티벌
             </h2>
 
             {festivalRows.length === 0 ? (
-              <p className="mt-4 text-slate-500">
+              <p className="mt-4 text-ink-tertiary">
                 등록된 출연 페스티벌이 없습니다.
               </p>
             ) : (
@@ -198,13 +198,13 @@ export default function ArtistDetailPage() {
                     <Link
                       key={`${festival.id}-${index}`}
                       href={`/festival/${festival.id}`}
-                      className="block rounded-2xl border border-slate-200 bg-white p-5 transition-shadow hover:shadow-md"
+                      className="block rounded-2xl border border-line bg-surface p-5 transition-shadow hover:shadow-md"
                     >
-                      <h3 className={`${typography.cardTitle} text-slate-900`}>
+                      <h3 className={`${typography.cardTitle} text-ink`}>
                         {festival.name}
                       </h3>
 
-                      <p className={`${typography.metaStrong} mt-2 text-slate-600`}>
+                      <p className={`${typography.metaStrong} mt-2 text-ink-secondary`}>
                         {formatFestivalPeriod(
                           festival.start_date,
                           festival.end_date,
@@ -213,7 +213,7 @@ export default function ArtistDetailPage() {
 
                       {(festival.location ||
                         festival.region) && (
-                        <p className={`${typography.meta} mt-1 text-slate-500`}>
+                        <p className={`${typography.meta} mt-1 text-ink-tertiary`}>
                           {[festival.region, festival.location]
                             .filter(Boolean)
                             .join(" · ")}
@@ -223,7 +223,7 @@ export default function ArtistDetailPage() {
                       {(row.performance_date ||
                         row.performance_time ||
                         row.stage_name) && (
-                        <p className={`${typography.meta} mt-3 text-slate-500`}>
+                        <p className={`${typography.meta} mt-3 text-ink-tertiary`}>
                           {row.performance_date}
 
                           {row.performance_time &&

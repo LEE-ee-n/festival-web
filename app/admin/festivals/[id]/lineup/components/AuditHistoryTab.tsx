@@ -90,11 +90,11 @@ const sectionLabels = { basic: "기본정보", lineup: "라인업", ticket: "티
 
 function SummaryBadges({ summary }: { summary: AuditCountSummary }) {
   const badges = [
-    ["유지", summary.maintained, "bg-slate-100 text-slate-700"],
+    ["유지", summary.maintained, "bg-surface-muted text-ink-secondary"],
     ["추가", summary.added, "bg-blue-50 text-blue-700"],
     ["변경", summary.changed, "bg-amber-50 text-amber-800"],
     ["삭제", summary.deleted, "bg-red-50 text-red-700"],
-    ["미반영", summary.skipped, "bg-slate-100 text-slate-500"],
+    ["미반영", summary.skipped, "bg-surface-muted text-ink-tertiary"],
   ] as const;
   return (
     <div className="flex flex-wrap gap-1.5">
@@ -169,46 +169,46 @@ export default function AuditHistoryTab({ festivalId, scope = "festival" }: Audi
   useEffect(() => { queueMicrotask(() => { void loadEvents(); }); }, [loadEvents]);
   const displayEvents = useMemo(() => groupArtistBaselines(events, scope === "all"), [events, scope]);
 
-  if (isLoading) return <p className="py-10 text-sm text-slate-500">변경 기록을 불러오는 중입니다.</p>;
+  if (isLoading) return <p className="py-10 text-sm text-ink-tertiary">변경 기록을 불러오는 중입니다.</p>;
 
   return (
     <section className="py-8">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-950">{scope === "all" ? "전체 변경 기록" : "변경 기록"}</h2>
-          <p className="mt-1 text-sm text-slate-500">요약을 누르면 변경 전·후 전체 값을 확인할 수 있습니다.</p>
+          <h2 className="text-xl font-bold text-ink">{scope === "all" ? "전체 변경 기록" : "변경 기록"}</h2>
+          <p className="mt-1 text-sm text-ink-tertiary">요약을 누르면 변경 전·후 전체 값을 확인할 수 있습니다.</p>
         </div>
-        <button type="button" onClick={() => void loadEvents()} className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700">새로고침</button>
+        <button type="button" onClick={() => void loadEvents()} className="rounded-xl border border-line-strong bg-surface px-4 py-2 text-sm font-semibold text-ink-secondary">새로고침</button>
       </div>
 
       {errorMessage && <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{errorMessage}</div>}
-      {!errorMessage && displayEvents.length === 0 && <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500">아직 변경 기록이 없습니다.</div>}
+      {!errorMessage && displayEvents.length === 0 && <div className="mt-5 rounded-2xl border border-line bg-surface p-6 text-sm text-ink-tertiary">아직 변경 기록이 없습니다.</div>}
 
       <div className="mt-5 space-y-3">
         {displayEvents.map((event) => {
           const summary = event.audit_summary?.total ?? summarizeAuditOperations(event.audit_changes);
           const target = event.target_label ?? event.festival_name ?? `${event.target_type ?? "기록"} #${event.target_id ?? "-"}`;
           return (
-            <details key={event.id} className="group rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <details key={event.id} className="group rounded-2xl border border-line bg-surface shadow-sm">
               <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 p-5 [&::-webkit-details-marker]:hidden">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="font-bold text-slate-950">{actionLabels[event.action_type] ?? event.action_type}</h3>
+                    <h3 className="font-bold text-ink">{actionLabels[event.action_type] ?? event.action_type}</h3>
                     {event.action_type === "baseline.existing_data"
-                      ? <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700">기준 데이터 {event.audit_changes.length}</span>
+                      ? <span className="rounded-full bg-surface-muted px-2.5 py-1 text-xs font-bold text-ink-secondary">기준 데이터 {event.audit_changes.length}</span>
                       : <SummaryBadges summary={summary} />}
                   </div>
-                  <p className="mt-1 truncate text-sm text-slate-600">{target} · {event.actor_name} · {new Date(event.created_at).toLocaleString("ko-KR")}</p>
+                  <p className="mt-1 truncate text-sm text-ink-secondary">{target} · {event.actor_name} · {new Date(event.created_at).toLocaleString("ko-KR")}</p>
                 </div>
-                <span className="text-xl text-slate-500 transition group-open:rotate-180">⌄</span>
+                <span className="text-xl text-ink-tertiary transition group-open:rotate-180">⌄</span>
               </summary>
 
-              <div className="border-t border-slate-200 px-5 pb-5">
+              <div className="border-t border-line px-5 pb-5">
                 {event.audit_summary?.sections && (
                   <div className="mt-4 grid gap-2 sm:grid-cols-3">
                     {(Object.keys(sectionLabels) as Array<keyof typeof sectionLabels>).map((section) => (
-                      <div key={section} className="rounded-xl bg-slate-50 p-3">
-                        <p className="mb-2 text-sm font-bold text-slate-800">{sectionLabels[section]}</p>
+                      <div key={section} className="rounded-xl bg-surface-subtle p-3">
+                        <p className="mb-2 text-sm font-bold text-ink">{sectionLabels[section]}</p>
                         <SummaryBadges summary={event.audit_summary!.sections[section] ?? { maintained: 0, added: 0, changed: 0, deleted: 0, skipped: 0 }} />
                       </div>
                     ))}
@@ -216,7 +216,7 @@ export default function AuditHistoryTab({ festivalId, scope = "festival" }: Audi
                 )}
 
                 {(event.work_type || event.source_file_name || event.source_type || event.source_url || event.reason || event.note) && (
-                  <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                  <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 rounded-xl bg-surface-subtle px-4 py-3 text-sm text-ink-secondary">
                     {event.work_type && <span>차수: <strong>{roundLabels[event.lineup_round ?? ""] ?? event.lineup_round}</strong></span>}
                     {event.work_type && <span>공식 발표일: <strong>{event.announcement_date ?? "없음"}</strong></span>}
                     {event.source_file_name && <span>JSON 파일: <strong>{event.source_file_name}</strong></span>}
@@ -230,17 +230,17 @@ export default function AuditHistoryTab({ festivalId, scope = "festival" }: Audi
                 {event.audit_changes.map((change) => {
                   const fields = getFestivalAuditDiff(change.before_data, change.after_data);
                   return (
-                    <div key={change.id} className="mt-4 overflow-hidden rounded-xl border border-slate-200">
-                      <div className="bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800">
+                    <div key={change.id} className="mt-4 overflow-hidden rounded-xl border border-line">
+                      <div className="bg-surface-subtle px-4 py-3 text-sm font-semibold text-ink">
                         {operationLabels[change.operation]} · {change.entity_label} · {fields.length}개 항목
                       </div>
                       <div className="divide-y divide-slate-200">
                         {fields.map((field) => (
                           <div key={field.field} className="grid gap-2 px-4 py-3 text-sm sm:grid-cols-[150px_1fr_24px_1fr]">
-                            <span className="font-semibold text-slate-700">{field.label}</span>
-                            <span className="break-all text-slate-500">{formatAuditValue(field.before)}</span>
-                            <span className="text-center text-slate-400">→</span>
-                            <span className="break-all font-medium text-slate-900">{formatAuditValue(field.after)}</span>
+                            <span className="font-semibold text-ink-secondary">{field.label}</span>
+                            <span className="break-all text-ink-tertiary">{formatAuditValue(field.before)}</span>
+                            <span className="text-center text-ink-muted">→</span>
+                            <span className="break-all font-medium text-ink">{formatAuditValue(field.after)}</span>
                           </div>
                         ))}
                       </div>

@@ -10,7 +10,7 @@ type Props = {
 };
 
 const inputClass =
-  "w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm";
+  "w-full rounded-xl border border-line-strong bg-surface px-4 py-3 text-sm";
 
 function toLocalDateTime(value: string | undefined) {
   if (!value) return "";
@@ -36,22 +36,22 @@ export default function CandidateTicketTab({
     <section className="mt-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h3 className="text-lg font-bold text-slate-900">티켓 관리</h3>
-          <p className="mt-1 text-sm text-slate-500">
+          <h3 className="text-lg font-bold text-ink">티켓 관리</h3>
+          <p className="mt-1 text-sm text-ink-tertiary">
             티켓 회차와 판매처별 가격·오픈 시간을 확인합니다.
           </p>
         </div>
         <button
           type="button"
           onClick={onAdd}
-          className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white"
+          className="rounded-xl bg-surface-dark px-4 py-2.5 text-sm font-semibold text-white"
         >
           티켓 추가
         </button>
       </div>
 
       {tickets.length === 0 ? (
-        <p className="mt-6 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-500">
+        <p className="mt-6 rounded-xl border border-line bg-surface p-4 text-sm text-ink-tertiary">
           추출된 티켓이 없습니다. 빈 상태로도 축제를 승인할 수 있습니다.
         </p>
       ) : (
@@ -59,7 +59,7 @@ export default function CandidateTicketTab({
           {tickets.map((ticket, index) => (
             <div
               key={index}
-              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+              className="rounded-2xl border border-line bg-surface p-5 shadow-sm"
             >
               <div className="grid gap-3 sm:grid-cols-2">
                 <select
@@ -85,7 +85,7 @@ export default function CandidateTicketTab({
                   placeholder="티켓 이름"
                   className={inputClass}
                 />
-                <label className="text-xs font-semibold text-slate-600">
+                <label className="text-xs font-semibold text-ink-secondary">
                   오픈 시간
                   <input
                     type="datetime-local"
@@ -100,7 +100,7 @@ export default function CandidateTicketTab({
                     className={`mt-1 ${inputClass}`}
                   />
                 </label>
-                <label className="text-xs font-semibold text-slate-600">
+                <label className="text-xs font-semibold text-ink-secondary">
                   종료 시간
                   <input
                     type="datetime-local"
@@ -158,7 +158,7 @@ export default function CandidateTicketTab({
                 <button
                   type="button"
                   onClick={() => onDelete(index)}
-                  className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-600"
+                  className="rounded-lg border border-red-200 bg-surface px-3 py-2 text-xs font-semibold text-red-600"
                 >
                   삭제
                 </button>

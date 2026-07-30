@@ -75,7 +75,7 @@ export default function RecentFestivalTicker() {
   return (
     <aside
       aria-label="최근 등록 축제"
-      className="border-b border-slate-200 bg-white"
+      className="border-b border-line bg-surface"
     >
       <div className="flex h-10 items-center px-4 sm:px-6">
         <span className={`${typography.tickerBadge} mr-2 shrink-0 rounded bg-rose-500 px-1.5 py-0.5 text-white`}>
@@ -87,7 +87,7 @@ export default function RecentFestivalTicker() {
             <Link
               key={`previous-${previousFestival.id}`}
               href={`/festival/${previousFestival.id}`}
-              className={`${typography.metaStrong} recent-festival-ticker-out absolute inset-0 flex min-w-0 items-center text-slate-700`}
+              className={`${typography.metaStrong} recent-festival-ticker-out absolute inset-0 flex min-w-0 items-center text-ink-secondary`}
             >
               <span className="truncate">
                 {previousFestival.name}이 새로 등록되었습니다.
@@ -99,7 +99,7 @@ export default function RecentFestivalTicker() {
             key={`current-${currentFestival.id}`}
             href={`/festival/${currentFestival.id}`}
             className={[
-              `${typography.metaStrong} absolute inset-0 flex min-w-0 items-center text-slate-700 hover:text-slate-950`,
+              `${typography.metaStrong} absolute inset-0 flex min-w-0 items-center text-ink-secondary hover:text-ink`,
               previousFestival ? "recent-festival-ticker-in" : "",
             ].join(" ")}
           >
@@ -114,7 +114,7 @@ export default function RecentFestivalTicker() {
           onClick={() => setIsDismissed(true)}
           aria-label="최근 등록 알림 닫기"
           title="닫기"
-          className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+          className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-ink-muted transition hover:bg-surface-muted hover:text-ink-secondary"
         >
           <X size={17} />
         </button>

@@ -44,13 +44,13 @@ export default function CalendarDayCell({
       type="button"
       onClick={() => onSelectDate(day.dateKey)}
       className={[
-        "relative min-h-0 border-slate-200 text-center transition sm:min-h-40",
+        "relative min-h-0 border-line text-center transition sm:min-h-40",
         day.isCurrentMonth
-          ? "text-slate-800"
-          : "bg-gray-100 text-gray-400",
+          ? "text-ink"
+          : "bg-surface-muted text-ink-muted",
         hasFestivals && day.isCurrentMonth
           ? "hover:bg-blue-50"
-          : "hover:bg-slate-50",
+          : "hover:bg-surface-subtle",
         isSelected
           ? "z-10 ring-2 ring-inset ring-blue-500"
           : "",
@@ -59,12 +59,12 @@ export default function CalendarDayCell({
       <span
         className={[
           `${typography.calendarDate} absolute left-1 top-[2px] inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1 sm:left-2 sm:top-2 sm:h-7 sm:min-w-7`,
-          day.isToday ? "bg-slate-900 text-white" : "",
+          day.isToday ? "bg-surface-dark text-white" : "",
           dayIndex % 7 === 5 && !day.isToday
-            ? "text-blue-600"
+            ? "text-festival-indigo"
             : "",
           dayIndex % 7 === 6 && !day.isToday
-            ? "text-red-600"
+            ? "text-festival-coral"
             : "",
         ].join(" ")}
       >
@@ -72,13 +72,13 @@ export default function CalendarDayCell({
       </span>
 
       {!isLoading && hiddenFestivalCount > 0 && (
-        <span className={`${typography.calendarOverflow} absolute right-2 top-[2px] inline-flex h-6 items-center text-slate-500 sm:top-2 sm:h-7`}>
+        <span className={`${typography.calendarOverflow} absolute right-2 top-[2px] inline-flex h-6 items-center text-ink-tertiary sm:top-2 sm:h-7`}>
           +{hiddenFestivalCount}개
         </span>
       )}
 
       {isLoading ? (
-        <div className="mx-auto mt-4 h-2 w-5 animate-pulse rounded-full bg-slate-200" />
+        <div className="mx-auto mt-4 h-2 w-5 animate-pulse rounded-full bg-surface-strong" />
       ) : (
         hasFestivals && (
           <div className="relative mt-[26px] min-h-[64px] text-left sm:mt-11 sm:min-h-[84px]">
@@ -140,7 +140,7 @@ export default function CalendarDayCell({
                           endsInThisRow ? "rounded-r-full" : "",
                         ].join(" ")}
                       >
-                        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-white/80" />
+                        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-surface/80" />
 
                         <span className={`${typography.calendarEvent} whitespace-nowrap text-white`}>
                           {festival.name.replace(

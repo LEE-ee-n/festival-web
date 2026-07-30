@@ -32,26 +32,26 @@ export default function FestivalTicketSection({
   return (
     <section>
 
-      <h2 className={`${typography.panelSectionTitle} flex items-center justify-center gap-2 pt-6 text-slate-700`}>
+      <h2 className={`${typography.panelSectionTitle} flex items-center justify-center gap-2 pt-6 text-ink-secondary`}>
         <Ticket size={16} />
         <span>티켓 안내</span>
       </h2>
 
       <div className="pt-3">
         <div className="pt-3">
-          <h3 className={`${typography.panelSectionTitle} flex items-center gap-2 overflow-hidden rounded-xl bg-teal-100 px-3 py-3 text-slate-700`}>
+          <h3 className={`${typography.panelSectionTitle} flex items-center gap-2 overflow-hidden rounded-xl bg-teal-100 px-3 py-3 text-ink-secondary`}>
             <Tag size={16} />
             <span>{ticketInfo.round_name}</span>
           </h3>
 
           {openAtText && (
-            <p className={`${typography.label} px-6 pt-2 text-slate-700`}>
+            <p className={`${typography.label} px-6 pt-2 text-ink-secondary`}>
               {openAtText}
             </p>
           )}
 
           {ticketInfo.price_info && (
-            <p className={`${typography.bodyCompact} whitespace-pre-line px-6 pt-2 text-slate-700`}>
+            <p className={`${typography.bodyCompact} whitespace-pre-line px-6 pt-2 text-ink-secondary`}>
               {ticketInfo.price_info}
             </p>
           )}
@@ -73,7 +73,7 @@ export default function FestivalTicketSection({
                   href={round.ticket_url || "#"}
                   target="_blank"
                   rel="noreferrer"
-                  className={`${typography.button} flex w-full items-center justify-center rounded-xl bg-slate-800 py-3 text-center text-white hover:bg-slate-700`}
+                  className={`${typography.button} flex w-full items-center justify-center rounded-xl bg-surface-dark py-3 text-center text-white hover:bg-surface-dark/90`}
                 >
                   {round.ticket_platform || "예매하기"}
                 </a>

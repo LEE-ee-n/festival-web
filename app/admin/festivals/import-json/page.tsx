@@ -367,20 +367,20 @@ function LegacyFestivalJsonUpdateContent() {
   }
 
   return (
-    <main className="min-h-screen bg-white px-4 py-8">
+    <main className="min-h-screen bg-surface px-4 py-8">
       <div className="mx-auto max-w-5xl">
         <Link
           href={expectedFestivalId
             ? `/admin/festivals/${expectedFestivalId}/lineup`
             : "/admin/festivals"}
-          className="inline-flex rounded-lg bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700"
+          className="inline-flex rounded-lg bg-surface-muted px-4 py-2 text-sm font-semibold text-ink-secondary"
         >
           {expectedFestivalId ? "현재 축제 관리로 돌아가기" : "페스티벌 관리로 돌아가기"}
         </Link>
 
-        <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-          <h1 className="text-lg font-bold text-slate-950">정식 축제 JSON 업데이트</h1>
-          <p className="mt-1 text-sm text-slate-600">
+        <section className="mt-6 rounded-2xl border border-line bg-surface p-5 shadow-sm sm:p-6">
+          <h1 className="text-lg font-bold text-ink">정식 축제 JSON 업데이트</h1>
+          <p className="mt-1 text-sm text-ink-secondary">
             현재 축제와 기본정보·라인업·티켓의 차이를 비교하고 안전한 추가사항만 기본 선택합니다.
           </p>
 
@@ -397,28 +397,28 @@ function LegacyFestivalJsonUpdateContent() {
                 setFileName(file.name);
                 void loadPreview(file);
               }}
-              className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-white p-3 text-sm"
+              className="min-w-0 flex-1 rounded-xl border border-line-strong bg-surface p-3 text-sm"
             />
           </div>
 
           {isLoading && (
-            <p className="mt-3 text-sm text-slate-500">현재 축제와 비교 중...</p>
+            <p className="mt-3 text-sm text-ink-tertiary">현재 축제와 비교 중...</p>
           )}
 
           {draft && festival && (
-            <div className="mt-3 rounded-xl border border-slate-300 bg-white p-3 text-sm text-slate-700">
+            <div className="mt-3 rounded-xl border border-line-strong bg-surface p-3 text-sm text-ink-secondary">
               <div>
                 <strong>{festival.name}</strong>
-                <span className="ml-2 text-slate-500">
+                <span className="ml-2 text-ink-tertiary">
                   {festival.start_date} ~ {festival.end_date}
                   {` · 출연진 ${draft.artists.length}명`}
                   {` · 티켓 ${draft.tickets?.length ?? 0}건`}
                 </span>
               </div>
-              <p className="mt-1 font-mono text-xs text-slate-500">
+              <p className="mt-1 font-mono text-xs text-ink-tertiary">
                 normalized_name: {festival.normalized_name}
               </p>
-              <p className="mt-1 text-xs text-slate-400">{fileName}</p>
+              <p className="mt-1 text-xs text-ink-muted">{fileName}</p>
             </div>
           )}
 
@@ -433,15 +433,15 @@ function LegacyFestivalJsonUpdateContent() {
           )}
 
           {festival && (
-            <div className="mt-4 rounded-2xl border border-slate-300 p-4">
-              <p className="font-bold text-slate-900">매칭된 정식 축제: {festival.name}</p>
+            <div className="mt-4 rounded-2xl border border-line-strong p-4">
+              <p className="font-bold text-ink">매칭된 정식 축제: {festival.name}</p>
 
               <div className="mt-4 grid gap-3 sm:grid-cols-3">
                 {(["basic", "lineup", "ticket"] as const).map((section) => {
                   const sectionItems = items.filter((item) => item.section === section);
                   return (
-                    <div key={section} className="rounded-xl border border-slate-200 p-3">
-                      <p className="font-bold text-slate-800">{SECTION_LABEL[section]}</p>
+                    <div key={section} className="rounded-xl border border-line p-3">
+                      <p className="font-bold text-ink">{SECTION_LABEL[section]}</p>
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         {(["same", "add", "conflict"] as const).map((status) => {
                           const count = sectionItems.filter((item) => item.status === status).length;
@@ -469,14 +469,14 @@ function LegacyFestivalJsonUpdateContent() {
                 if (additions.length === 0) return null;
                 return (
                   <section key={section} className="mt-4 rounded-xl border border-blue-200 bg-blue-50/40 p-4">
-                    <h3 className="font-bold text-slate-900">
+                    <h3 className="font-bold text-ink">
                       {SECTION_LABEL[section]} 추가 검토 · {additions.length}건
                     </h3>
                     <div className="mt-3 space-y-2">
                       {additions.map((item) => {
                         const selected = selectedIds.has(item.id);
                         return (
-                          <label key={item.id} className="flex cursor-pointer gap-3 rounded-lg border border-blue-100 bg-white p-3">
+                          <label key={item.id} className="flex cursor-pointer gap-3 rounded-lg border border-blue-100 bg-surface p-3">
                             <input
                               type="checkbox"
                               checked={selected}
@@ -484,8 +484,8 @@ function LegacyFestivalJsonUpdateContent() {
                               className="mt-1 h-4 w-4"
                             />
                             <span className="min-w-0">
-                              <span className="block font-bold text-slate-800">➕ {item.label}</span>
-                              <span className="mt-1 block whitespace-pre-wrap break-words text-sm text-slate-600">
+                              <span className="block font-bold text-ink">➕ {item.label}</span>
+                              <span className="mt-1 block whitespace-pre-wrap break-words text-sm text-ink-secondary">
                                 {item.incoming || "추가 정보 없음"}
                               </span>
                             </span>
@@ -498,8 +498,8 @@ function LegacyFestivalJsonUpdateContent() {
               })}
 
               {items.some((item) => item.status !== "add") && (
-                <details className="mt-4 rounded-xl border border-slate-200 p-3">
-                  <summary className="cursor-pointer text-sm font-bold text-slate-700">
+                <details className="mt-4 rounded-xl border border-line p-3">
+                  <summary className="cursor-pointer text-sm font-bold text-ink-secondary">
                     동일·변경 확인 항목 보기
                   </summary>
                   <div className="mt-3 space-y-3">
@@ -509,14 +509,14 @@ function LegacyFestivalJsonUpdateContent() {
                         const meta = STATUS_META[item.status];
                         const useIncoming = selectedIds.has(item.id);
                         return (
-                          <div key={item.id} className="rounded-lg bg-slate-50 p-3 text-sm">
-                            <p className="font-bold text-slate-800">
+                          <div key={item.id} className="rounded-lg bg-surface-subtle p-3 text-sm">
+                            <p className="font-bold text-ink">
                               {meta.icon} {SECTION_LABEL[item.section]} · {item.label}
                             </p>
-                            <p className="mt-1 text-slate-600">
+                            <p className="mt-1 text-ink-secondary">
                               현재 DB 값: {item.current || "-"}
                             </p>
-                            <p className="mt-1 text-slate-600">
+                            <p className="mt-1 text-ink-secondary">
                               가져온 JSON 값: {item.incoming || "-"}
                             </p>
                             {item.status === "conflict" && (
@@ -528,8 +528,8 @@ function LegacyFestivalJsonUpdateContent() {
                                   }}
                                   className={`rounded-lg border px-3 py-2 text-xs font-bold ${
                                     !useIncoming
-                                      ? "border-slate-900 bg-slate-900 text-white"
-                                      : "border-slate-300 bg-white text-slate-700"
+                                      ? "border-slate-900 bg-surface-dark text-white"
+                                      : "border-line-strong bg-surface text-ink-secondary"
                                   }`}
                                 >
                                   현재 값 유지
@@ -541,13 +541,13 @@ function LegacyFestivalJsonUpdateContent() {
                                   }}
                                   className={`rounded-lg border px-3 py-2 text-xs font-bold ${
                                     useIncoming
-                                      ? "border-slate-900 bg-slate-900 text-white"
-                                      : "border-slate-300 bg-white text-slate-700"
+                                      ? "border-slate-900 bg-surface-dark text-white"
+                                      : "border-line-strong bg-surface text-ink-secondary"
                                   }`}
                                 >
                                   JSON 값으로 변경
                                 </button>
-                                <span className="self-center text-xs font-semibold text-slate-600">
+                                <span className="self-center text-xs font-semibold text-ink-secondary">
                                   선택 결과: {useIncoming ? "JSON 값으로 변경" : "현재 값 유지"}
                                 </span>
                               </div>
@@ -559,20 +559,20 @@ function LegacyFestivalJsonUpdateContent() {
                 </details>
               )}
 
-              <details className="mt-4 rounded-xl border border-slate-200 p-3">
-                <summary className="cursor-pointer text-sm font-bold text-slate-700">
+              <details className="mt-4 rounded-xl border border-line p-3">
+                <summary className="cursor-pointer text-sm font-bold text-ink-secondary">
                   최근 업데이트 기록 {logs.length}건
                 </summary>
                 {logs.length === 0 ? (
-                  <p className="mt-3 text-sm text-slate-500">아직 JSON 업데이트 기록이 없습니다.</p>
+                  <p className="mt-3 text-sm text-ink-tertiary">아직 JSON 업데이트 기록이 없습니다.</p>
                 ) : (
                   <div className="mt-3 space-y-2">
                     {logs.map((log) => (
-                      <div key={log.id} className="rounded-lg bg-slate-50 p-3 text-sm">
-                        <p className="font-semibold text-slate-800">
+                      <div key={log.id} className="rounded-lg bg-surface-subtle p-3 text-sm">
+                        <p className="font-semibold text-ink">
                           {new Date(log.created_at).toLocaleString("ko-KR")} · 변경 {log.audit_changes.length}건
                         </p>
-                        <p className="mt-1 text-xs text-slate-500">
+                        <p className="mt-1 text-xs text-ink-tertiary">
                           {log.source_file_name || log.source_type || "출처 미입력"}
                         </p>
                       </div>
@@ -584,15 +584,15 @@ function LegacyFestivalJsonUpdateContent() {
           )}
 
           {festival && (
-            <div className="mt-6 border-t border-slate-200 pt-5">
-              <p className="mb-3 text-sm font-semibold text-slate-700">
+            <div className="mt-6 border-t border-line pt-5">
+              <p className="mb-3 text-sm font-semibold text-ink-secondary">
                 저장 선택 {selectedIds.size}건
               </p>
               <button
                 type="button"
                 disabled={isApplying || selectedIds.size === 0}
                 onClick={() => void applySelectedChanges()}
-                className="w-full rounded-xl bg-slate-950 px-5 py-4 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
+                className="w-full rounded-xl bg-surface-dark px-5 py-4 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {isApplying
                   ? "저장 중..."
@@ -629,7 +629,7 @@ function FestivalJsonUpdateContent() {
 
 export default function FestivalJsonUpdatePage() {
   return (
-    <Suspense fallback={<main className="min-h-screen bg-white p-8">불러오는 중...</main>}>
+    <Suspense fallback={<main className="min-h-screen bg-surface p-8">불러오는 중...</main>}>
       <FestivalJsonUpdateContent />
     </Suspense>
   );

@@ -16,7 +16,7 @@ type Props = {
 };
 
 const inputClass =
-  "mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm";
+  "mt-2 w-full rounded-xl border border-line-strong bg-surface px-4 py-3 text-sm";
 
 export default function CandidateBasicInfoTab({
   festival,
@@ -39,10 +39,10 @@ export default function CandidateBasicInfoTab({
 
   return (
     <section className="mt-6">
-      <h3 className="text-lg font-bold text-slate-900">기본정보 관리</h3>
+      <h3 className="text-lg font-bold text-ink">기본정보 관리</h3>
 
       <div className="mt-5">
-        <label className="text-sm font-semibold text-slate-700">축제명</label>
+        <label className="text-sm font-semibold text-ink-secondary">축제명</label>
         <input
           value={festival.name}
           onChange={(event) => onChange("name", event.target.value)}
@@ -51,7 +51,7 @@ export default function CandidateBasicInfoTab({
       </div>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
-        <label className="text-sm font-semibold text-slate-700">
+        <label className="text-sm font-semibold text-ink-secondary">
           시작일
           <input
             type="date"
@@ -60,7 +60,7 @@ export default function CandidateBasicInfoTab({
             className={inputClass}
           />
         </label>
-        <label className="text-sm font-semibold text-slate-700">
+        <label className="text-sm font-semibold text-ink-secondary">
           종료일
           <input
             type="date"
@@ -69,7 +69,7 @@ export default function CandidateBasicInfoTab({
             className={inputClass}
           />
         </label>
-        <label className="text-sm font-semibold text-slate-700">
+        <label className="text-sm font-semibold text-ink-secondary">
           행사장명
           <input
             value={festival.location ?? ""}
@@ -77,7 +77,7 @@ export default function CandidateBasicInfoTab({
             className={inputClass}
           />
         </label>
-        <label className="text-sm font-semibold text-slate-700">
+        <label className="text-sm font-semibold text-ink-secondary">
           상세 주소
           <input
             value={festival.address ?? ""}
@@ -85,7 +85,7 @@ export default function CandidateBasicInfoTab({
             className={inputClass}
           />
         </label>
-        <label className="text-sm font-semibold text-slate-700">
+        <label className="text-sm font-semibold text-ink-secondary">
           지역
           <input
             value={festival.region ?? ""}
@@ -93,7 +93,7 @@ export default function CandidateBasicInfoTab({
             className={inputClass}
           />
         </label>
-        <label className="text-sm font-semibold text-slate-700">
+        <label className="text-sm font-semibold text-ink-secondary">
           축제 분류
           <select
             value={festival.category ?? ""}
@@ -108,7 +108,7 @@ export default function CandidateBasicInfoTab({
             <option value="other">기타</option>
           </select>
         </label>
-        <label className="text-sm font-semibold text-slate-700">
+        <label className="text-sm font-semibold text-ink-secondary">
           중복 판별값 (festivals.normalized_name)
           <input
             data-approval-field="festival-normalized-name"
@@ -135,7 +135,7 @@ export default function CandidateBasicInfoTab({
             </span>
           )}
           {duplicateCheck.status === "checking" && (
-            <span className="mt-2 block text-xs font-semibold text-gray-500">
+            <span className="mt-2 block text-xs font-semibold text-ink-tertiary">
               중복 확인 중...
             </span>
           )}
@@ -155,7 +155,7 @@ export default function CandidateBasicInfoTab({
             </span>
           )}
         </label>
-        <label className="text-sm font-semibold text-slate-700">
+        <label className="text-sm font-semibold text-ink-secondary">
           검색 별칭
           <input
             value={festival.search_aliases ?? ""}
@@ -165,7 +165,7 @@ export default function CandidateBasicInfoTab({
         </label>
       </div>
 
-      <label className="mt-5 block text-sm font-semibold text-slate-700">
+      <label className="mt-5 block text-sm font-semibold text-ink-secondary">
         축제 소개
         <textarea
           rows={4}
@@ -176,7 +176,7 @@ export default function CandidateBasicInfoTab({
       </label>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
-        <label className="text-sm font-semibold text-slate-700">
+        <label className="text-sm font-semibold text-ink-secondary">
           무료·유료 구분
           <select
             value={festival.price_type ?? "unknown"}
@@ -189,7 +189,7 @@ export default function CandidateBasicInfoTab({
             <option value="partial_free">무료·유료 혼합</option>
           </select>
         </label>
-        <label className="text-sm font-semibold text-slate-700">
+        <label className="text-sm font-semibold text-ink-secondary">
           진행 상태
           <select
             value={festival.status ?? "scheduled"}
@@ -210,7 +210,7 @@ export default function CandidateBasicInfoTab({
       ].map(([field, label]) => (
         <label
           key={field}
-          className="mt-5 block text-sm font-semibold text-slate-700"
+          className="mt-5 block text-sm font-semibold text-ink-secondary"
         >
           {label}
           <textarea
@@ -233,7 +233,7 @@ export default function CandidateBasicInfoTab({
       ].map(([field, label]) => (
         <label
           key={field}
-          className="mt-5 block text-sm font-semibold text-slate-700"
+          className="mt-5 block text-sm font-semibold text-ink-secondary"
         >
           {label}
           <input

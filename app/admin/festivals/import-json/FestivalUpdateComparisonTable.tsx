@@ -29,15 +29,15 @@ const SECTION_LABEL: Record<FestivalUpdateSection, string> = {
 function ComparisonValue({ value }: { value: string }) {
   const text = value || "없음";
   if (text.length <= 120) {
-    return <p className="break-words text-sm leading-6 text-gray-700">{text}</p>;
+    return <p className="break-words text-sm leading-6 text-ink-secondary">{text}</p>;
   }
 
   return (
     <details>
-      <summary className="cursor-pointer break-words text-sm leading-6 text-gray-700">
+      <summary className="cursor-pointer break-words text-sm leading-6 text-ink-secondary">
         {text.slice(0, 110)}…
       </summary>
-      <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-gray-700">
+      <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-ink-secondary">
         {text}
       </p>
     </details>
@@ -46,7 +46,7 @@ function ComparisonValue({ value }: { value: string }) {
 
 function MobileLabel({ children }: { children: React.ReactNode }) {
   return (
-    <span className="mb-1 block text-[11px] font-bold text-gray-400 lg:hidden">
+    <span className="mb-1 block text-[11px] font-bold text-ink-muted lg:hidden">
       {children}
     </span>
   );
@@ -81,8 +81,8 @@ function DecisionButton({
       className={[
         "whitespace-nowrap rounded-lg px-3 py-2 text-xs font-bold",
         selected
-          ? "bg-slate-950 text-white"
-          : "border border-gray-300 bg-white text-gray-700",
+          ? "bg-surface-dark text-white"
+          : "border border-line-strong bg-surface text-ink-secondary",
       ].join(" ")}
     >
       {label}
@@ -103,7 +103,7 @@ export default function FestivalUpdateComparisonTable({
 
   if (items.length === 0) {
     return (
-      <p className="mt-5 border-y border-gray-200 py-5 text-sm text-gray-500">
+      <p className="mt-5 border-y border-line py-5 text-sm text-ink-tertiary">
         추가하거나 변경할 항목이 없습니다.
         {sameCount > 0 ? ` 동일 ${sameCount}건은 숨겼습니다.` : ""}
       </p>
@@ -113,7 +113,7 @@ export default function FestivalUpdateComparisonTable({
   return (
     <div className="mt-5">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-ink-secondary">
           변경 {items.length}건 · 반영 선택 {selectedCount}건 · 현재 유지{" "}
           {maintainedCount}건
           {sameCount > 0 ? ` · 동일 ${sameCount}건 숨김` : ""}
@@ -123,14 +123,14 @@ export default function FestivalUpdateComparisonTable({
             <button
               type="button"
               onClick={() => onSetAll(items, true)}
-              className="rounded-lg bg-slate-950 px-3 py-2 text-xs font-bold text-white"
+              className="rounded-lg bg-surface-dark px-3 py-2 text-xs font-bold text-white"
             >
               표시된 변경 전체 반영
             </button>
             <button
               type="button"
               onClick={() => onSetAll(items, false)}
-              className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-bold text-gray-700"
+              className="rounded-lg border border-line-strong bg-surface px-3 py-2 text-xs font-bold text-ink-secondary"
             >
               전체 현재값 유지
             </button>
@@ -138,7 +138,7 @@ export default function FestivalUpdateComparisonTable({
         )}
       </div>
 
-      <div className="border-y border-gray-300">
+      <div className="border-y border-line-strong">
         <table className="block w-full border-collapse lg:table lg:table-fixed">
           <colgroup className="hidden lg:table-column-group">
             <col className="w-[130px]" />
@@ -148,18 +148,18 @@ export default function FestivalUpdateComparisonTable({
             <col className="w-[125px]" />
           </colgroup>
           <thead className="hidden lg:table-header-group">
-            <tr className="bg-gray-50 text-left text-xs font-bold text-gray-600">
-              <th className="border-b border-gray-300 px-3 py-3">상태</th>
-              <th className="border-b border-gray-300 px-3 py-3">
+            <tr className="bg-surface-subtle text-left text-xs font-bold text-ink-secondary">
+              <th className="border-b border-line-strong px-3 py-3">상태</th>
+              <th className="border-b border-line-strong px-3 py-3">
                 {variant === "lineup" ? "아티스트" : "항목"}
               </th>
-              <th className="border-b border-gray-300 px-3 py-3">
+              <th className="border-b border-line-strong px-3 py-3">
                 {variant === "lineup" ? "새 일정" : "새 값"}
               </th>
-              <th className="border-b border-gray-300 px-3 py-3">
+              <th className="border-b border-line-strong px-3 py-3">
                 {variant === "lineup" ? "현재 일정" : "현재 값"}
               </th>
-              <th className="border-b border-gray-300 px-3 py-3 text-center">
+              <th className="border-b border-line-strong px-3 py-3 text-center">
                 선택
               </th>
             </tr>
@@ -171,34 +171,34 @@ export default function FestivalUpdateComparisonTable({
               return (
                 <tr
                   key={item.id}
-                  className="block border-b border-gray-200 px-3 py-4 align-top last:border-b-0 lg:table-row lg:border-0 lg:px-0 lg:py-0"
+                  className="block border-b border-line px-3 py-4 align-top last:border-b-0 lg:table-row lg:border-0 lg:px-0 lg:py-0"
                 >
-                  <td className="block pb-2 text-sm font-semibold text-gray-700 lg:table-cell lg:border-b lg:border-gray-200 lg:px-3 lg:py-3">
+                  <td className="block pb-2 text-sm font-semibold text-ink-secondary lg:table-cell lg:border-b lg:border-line lg:px-3 lg:py-3">
                     {STATUS_LABEL[status]}
                   </td>
-                  <td className="block pb-3 lg:table-cell lg:border-b lg:border-gray-200 lg:px-3 lg:py-3">
-                    <p className="break-words text-sm font-bold text-gray-950">
+                  <td className="block pb-3 lg:table-cell lg:border-b lg:border-line lg:px-3 lg:py-3">
+                    <p className="break-words text-sm font-bold text-ink">
                       {item.label}
                     </p>
                     {variant === "information" && (
-                      <p className="mt-1 text-xs text-gray-400">
+                      <p className="mt-1 text-xs text-ink-muted">
                         {SECTION_LABEL[item.section]}
                       </p>
                     )}
                   </td>
-                  <td className="block pb-3 lg:table-cell lg:border-b lg:border-gray-200 lg:px-3 lg:py-3">
+                  <td className="block pb-3 lg:table-cell lg:border-b lg:border-line lg:px-3 lg:py-3">
                     <MobileLabel>
                       {variant === "lineup" ? "새 일정" : "새 값"}
                     </MobileLabel>
                     <ComparisonValue value={item.incoming} />
                   </td>
-                  <td className="block pb-3 lg:table-cell lg:border-b lg:border-gray-200 lg:px-3 lg:py-3">
+                  <td className="block pb-3 lg:table-cell lg:border-b lg:border-line lg:px-3 lg:py-3">
                     <MobileLabel>
                       {variant === "lineup" ? "현재 일정" : "현재 값"}
                     </MobileLabel>
                     <ComparisonValue value={item.current} />
                   </td>
-                  <td className="block lg:table-cell lg:border-b lg:border-gray-200 lg:px-3 lg:py-3 lg:text-center">
+                  <td className="block lg:table-cell lg:border-b lg:border-line lg:px-3 lg:py-3 lg:text-center">
                     <MobileLabel>선택</MobileLabel>
                     <DecisionButton
                       item={item}

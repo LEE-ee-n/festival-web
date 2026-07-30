@@ -476,16 +476,16 @@ export default function StagedFestivalUpdate({ festivalId, updateDraftId }: Prop
     } finally { setIsSaving(false); }
   }
 
-  if (isLoading) return <main className="min-h-screen bg-white p-8">기존 페스티벌 수정 작업을 불러오는 중...</main>;
-  if (!draft || !festival) return <main className="min-h-screen bg-white p-8"><p>{notice ?? errorMessage ?? "완료된 작업입니다."}</p><Link className="mt-4 inline-block underline" href={`/admin/festivals/${festivalId}/lineup`}>페스티벌 관리로 돌아가기</Link></main>;
+  if (isLoading) return <main className="min-h-screen bg-surface p-8">기존 페스티벌 수정 작업을 불러오는 중...</main>;
+  if (!draft || !festival) return <main className="min-h-screen bg-surface p-8"><p>{notice ?? errorMessage ?? "완료된 작업입니다."}</p><Link className="mt-4 inline-block underline" href={`/admin/festivals/${festivalId}/lineup`}>페스티벌 관리로 돌아가기</Link></main>;
 
   return (
-    <main className="min-h-screen bg-white px-4 py-8">
+    <main className="min-h-screen bg-surface px-4 py-8">
       <div className="mx-auto max-w-6xl">
-        <Link href={`/admin/festivals/${festivalId}/lineup`} className="text-sm font-semibold text-slate-600 underline">페스티벌 관리로 돌아가기</Link>
+        <Link href={`/admin/festivals/${festivalId}/lineup`} className="text-sm font-semibold text-ink-secondary underline">페스티벌 관리로 돌아가기</Link>
         <div className="mt-5 flex flex-wrap items-end justify-between gap-4">
-          <div><p className="text-sm font-semibold text-slate-500">기존 페스티벌 수정</p><h1 className="mt-1 text-2xl font-bold text-slate-950">{festival.name}</h1><p className="mt-1 text-sm text-slate-500">기존 자료를 유지하고 선택한 추가·변경만 마지막에 한 번 반영합니다.</p></div>
-          <div className="flex gap-2"><button type="button" onClick={() => void saveOnly()} disabled={isSaving} className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold">임시저장</button><button type="button" onClick={() => void deleteDraft()} disabled={isSaving} className="rounded-xl border border-red-200 px-4 py-2 text-sm font-bold text-red-600">임시저장 삭제</button></div>
+          <div><p className="text-sm font-semibold text-ink-tertiary">기존 페스티벌 수정</p><h1 className="mt-1 text-2xl font-bold text-ink">{festival.name}</h1><p className="mt-1 text-sm text-ink-tertiary">기존 자료를 유지하고 선택한 추가·변경만 마지막에 한 번 반영합니다.</p></div>
+          <div className="flex gap-2"><button type="button" onClick={() => void saveOnly()} disabled={isSaving} className="rounded-xl border border-line-strong px-4 py-2 text-sm font-bold">임시저장</button><button type="button" onClick={() => void deleteDraft()} disabled={isSaving} className="rounded-xl border border-red-200 px-4 py-2 text-sm font-bold text-red-600">임시저장 삭제</button></div>
         </div>
 
         <CandidateSourcePreview
@@ -497,24 +497,24 @@ export default function StagedFestivalUpdate({ festivalId, updateDraftId }: Prop
         />
 
         <div className="mt-6 grid gap-2 sm:grid-cols-5">
-          {FESTIVAL_REGISTRATION_STEPS.map((item, index) => <div key={item} className={`rounded-xl border p-3 text-xs font-bold ${step === item ? "border-gray-400 bg-gray-200 text-gray-800" : "border-gray-300 bg-white text-gray-400"}`}><span className="block">{index + 1}단계</span>{FESTIVAL_REGISTRATION_STEP_LABELS[item]}</div>)}
+          {FESTIVAL_REGISTRATION_STEPS.map((item, index) => <div key={item} className={`rounded-xl border p-3 text-xs font-bold ${step === item ? "border-line-strong bg-surface-strong text-ink" : "border-line-strong bg-surface text-ink-muted"}`}><span className="block">{index + 1}단계</span>{FESTIVAL_REGISTRATION_STEP_LABELS[item]}</div>)}
         </div>
 
         {step === "artist_review" && <CandidateLineupTab artists={draft.artists} designVariant="existing-update" onAdd={addArtist} onMatchAll={() => void matchAll()} isMatching={isMatching} onChange={changeArtist} onReviewFieldChange={changeArtistReviewField} onSelectExisting={selectExistingArtist} onSetMatchStatus={setArtistMatchStatus} />}
 
-        {step === "artist_confirmation" && <section className="mt-6 rounded-2xl border border-slate-200 p-5"><h2 className="text-lg font-bold">아티스트 최종 확정</h2><p className="mt-1 text-sm text-slate-500">기존 연결과 이번에 추가할 명단을 한눈에 확인합니다. 이 단계에서는 수정할 수 없습니다.</p><div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {currentArtists.map((item) => <div key={`old-${item.id}`} className="rounded-xl border border-gray-200 bg-white p-3"><p className="font-bold">{item.artist.name}</p><p className="text-xs text-gray-500">{item.artist.normalized_name} · 기존</p></div>)}
+        {step === "artist_confirmation" && <section className="mt-6 rounded-2xl border border-line p-5"><h2 className="text-lg font-bold">아티스트 최종 확정</h2><p className="mt-1 text-sm text-ink-tertiary">기존 연결과 이번에 추가할 명단을 한눈에 확인합니다. 이 단계에서는 수정할 수 없습니다.</p><div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {currentArtists.map((item) => <div key={`old-${item.id}`} className="rounded-xl border border-line bg-surface p-3"><p className="font-bold">{item.artist.name}</p><p className="text-xs text-ink-tertiary">{item.artist.normalized_name} · 기존</p></div>)}
           {activeArtists.filter((artist) => {
             const matchedId = Number(artist.matched_artist_id);
             return !Number.isInteger(matchedId)
               || !currentArtists.some((item) => item.artist_id === matchedId);
-          }).map((artist, index) => <div key={`new-${index}`} className="rounded-xl border border-gray-200 bg-white p-3"><p className="font-bold">{artist.display_name}</p><p className="text-xs text-gray-500">{artist.normalized_name} · {artist.match_status === "new" ? "신규 아티스트" : "기존 아티스트 · 추가 라인업"}</p></div>)}
+          }).map((artist, index) => <div key={`new-${index}`} className="rounded-xl border border-line bg-surface p-3"><p className="font-bold">{artist.display_name}</p><p className="text-xs text-ink-tertiary">{artist.normalized_name} · {artist.match_status === "new" ? "신규 아티스트" : "기존 아티스트 · 추가 라인업"}</p></div>)}
         </div></section>}
 
         {step === "festival_info" && (
           <section className="mt-6">
             <h2 className="text-lg font-bold">페스티벌 정보·티켓 검토</h2>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-ink-tertiary">
               빈 값은 기존 값을 지우지 않습니다. 반영할 값만 선택하세요.
             </p>
             <FestivalUpdateComparisonTable
@@ -528,7 +528,7 @@ export default function StagedFestivalUpdate({ festivalId, updateDraftId }: Prop
           </section>
         )}
 
-        {step === "timetable" && <section className="mt-6"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-lg font-bold">타임테이블 검토</h2><p className="mt-1 text-sm text-slate-500">확정된 아티스트의 일정만 추가·수정할 수 있습니다.</p></div><div className="flex gap-2"><button type="button" onClick={() => setDraft({ ...draft, workflow: { ...draft.workflow, timetable_visibility: "published" } })} className={`rounded-lg px-3 py-2 text-sm font-bold ${draft.workflow?.timetable_visibility !== "unpublished" ? "bg-slate-950 text-white" : "border"}`}>타임테이블 검토</button><button type="button" onClick={() => setDraft({ ...draft, workflow: { ...draft.workflow, timetable_visibility: "unpublished" } })} className={`rounded-lg px-3 py-2 text-sm font-bold ${draft.workflow?.timetable_visibility === "unpublished" ? "bg-slate-950 text-white" : "border"}`}>전체 미공개</button></div></div>
+        {step === "timetable" && <section className="mt-6"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-lg font-bold">타임테이블 검토</h2><p className="mt-1 text-sm text-ink-tertiary">확정된 아티스트의 일정만 추가·수정할 수 있습니다.</p></div><div className="flex gap-2"><button type="button" onClick={() => setDraft({ ...draft, workflow: { ...draft.workflow, timetable_visibility: "published" } })} className={`rounded-lg px-3 py-2 text-sm font-bold ${draft.workflow?.timetable_visibility !== "unpublished" ? "bg-surface-dark text-white" : "border"}`}>타임테이블 검토</button><button type="button" onClick={() => setDraft({ ...draft, workflow: { ...draft.workflow, timetable_visibility: "unpublished" } })} className={`rounded-lg px-3 py-2 text-sm font-bold ${draft.workflow?.timetable_visibility === "unpublished" ? "bg-surface-dark text-white" : "border"}`}>전체 미공개</button></div></div>
           {draft.workflow?.timetable_visibility === "unpublished" ? (
             <p className="mt-5 rounded-xl bg-amber-50 p-4 text-sm font-bold text-amber-800">
               타임테이블 미공개로 반영합니다. 아티스트 연결만 추가하고
@@ -548,16 +548,16 @@ export default function StagedFestivalUpdate({ festivalId, updateDraftId }: Prop
         </section>}
 
         {step === "final_confirmation" && (
-          <section className="mt-6 rounded-2xl border border-gray-300 bg-white p-5">
-            <h2 className="text-lg font-bold text-gray-900">최종 반영 검토</h2>
-            <p className="mt-1 text-sm text-gray-600">
+          <section className="mt-6 rounded-2xl border border-line-strong bg-surface p-5">
+            <h2 className="text-lg font-bold text-ink">최종 반영 검토</h2>
+            <p className="mt-1 text-sm text-ink-secondary">
               선택한 변경 {selectedIds.size}건을 한 번에 반영합니다. 기존 자료는 삭제하지 않습니다.
             </p>
             <div className="mt-4 grid gap-2 sm:grid-cols-3">
               {(["basic", "lineup", "ticket"] as const).map((section) => (
-                <div key={section} className="rounded-xl border border-gray-200 bg-white p-3">
-                  <p className="text-xs text-gray-500">{SECTION_LABEL[section]}</p>
-                  <p className="text-xl font-bold text-gray-900">
+                <div key={section} className="rounded-xl border border-line bg-surface p-3">
+                  <p className="text-xs text-ink-tertiary">{SECTION_LABEL[section]}</p>
+                  <p className="text-xl font-bold text-ink">
                     {items.filter((item) => item.section === section && selectedIds.has(item.id)).length}건
                   </p>
                 </div>
@@ -568,7 +568,7 @@ export default function StagedFestivalUpdate({ festivalId, updateDraftId }: Prop
 
         {errorMessage && <p className="mt-4 rounded-xl bg-red-50 p-3 text-sm font-bold text-red-700">{errorMessage}</p>}
         {notice && <p className="mt-4 rounded-xl bg-blue-50 p-3 text-sm font-bold text-blue-700">{notice}</p>}
-        <div className="mt-6 flex justify-between border-t border-slate-200 pt-5"><button type="button" disabled={isSaving || step === "artist_review"} onClick={() => void move("previous")} className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-bold disabled:opacity-30">이전</button>{step !== "final_confirmation" ? <button type="button" disabled={isSaving} onClick={() => void move("next")} className="rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white disabled:opacity-40">이 단계 확정 후 다음</button> : <button type="button" onClick={() => void finalize()} disabled={isSaving || selectedIds.size === 0} className="rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40">{isSaving ? "반영 중..." : "페스티벌 수정 최종 확정"}</button>}</div>
+        <div className="mt-6 flex justify-between border-t border-line pt-5"><button type="button" disabled={isSaving || step === "artist_review"} onClick={() => void move("previous")} className="rounded-xl border border-line-strong px-5 py-3 text-sm font-bold disabled:opacity-30">이전</button>{step !== "final_confirmation" ? <button type="button" disabled={isSaving} onClick={() => void move("next")} className="rounded-xl bg-surface-dark px-5 py-3 text-sm font-bold text-white disabled:opacity-40">이 단계 확정 후 다음</button> : <button type="button" onClick={() => void finalize()} disabled={isSaving || selectedIds.size === 0} className="rounded-xl bg-surface-dark px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40">{isSaving ? "반영 중..." : "페스티벌 수정 최종 확정"}</button>}</div>
       </div>
     </main>
   );

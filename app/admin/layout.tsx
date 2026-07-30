@@ -97,25 +97,25 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   if (accessState === "error") {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
-        <div className="w-full max-w-md rounded-2xl border border-red-200 bg-white p-6 text-center shadow-sm">
-          <h1 className="font-bold text-slate-900">
+      <main className="flex min-h-screen items-center justify-center bg-surface-subtle px-4">
+        <div className="w-full max-w-md rounded-2xl border border-red-200 bg-surface p-6 text-center shadow-sm">
+          <h1 className="font-bold text-ink">
             관리자 권한을 확인하지 못했습니다.
           </h1>
-          <p className="mt-2 text-sm text-slate-600">
+          <p className="mt-2 text-sm text-ink-secondary">
             네트워크 상태를 확인한 뒤 다시 시도해 주세요.
           </p>
           <div className="mt-5 flex justify-center gap-3">
             <button
               type="button"
               onClick={() => setRetryCount((value) => value + 1)}
-              className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+              className="rounded-xl bg-surface-dark px-4 py-2 text-sm font-semibold text-white"
             >
               다시 시도
             </button>
             <Link
               href="/"
-              className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700"
+              className="rounded-xl border border-line-strong px-4 py-2 text-sm font-semibold text-ink-secondary"
             >
               홈으로
             </Link>
@@ -126,8 +126,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50">
-      <p className="text-sm text-slate-500">관리자 권한 확인 중...</p>
+    <main className="flex min-h-screen items-center justify-center bg-surface-subtle">
+      <p className="text-sm text-ink-tertiary">관리자 권한 확인 중...</p>
     </main>
   );
 }

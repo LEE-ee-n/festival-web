@@ -15,27 +15,27 @@ export default function PublicInfoPage({
   children,
 }: PublicInfoPageProps) {
   return (
-    <main className="min-h-screen bg-white px-4 py-10 sm:px-6 sm:py-14">
+    <main className="min-h-screen bg-surface px-4 py-10 sm:px-6 sm:py-14">
       <article className="mx-auto w-full max-w-3xl">
         <Link
           href="/"
-          className={`${typography.meta} text-slate-500 hover:text-slate-950`}
+          className={`${typography.meta} text-ink-tertiary hover:text-ink`}
         >
           ← 달력으로 돌아가기
         </Link>
 
-        <header className="mt-5 border-b border-slate-200 pb-7">
-          <h1 className={`${typography.pageTitle} text-slate-950`}>
+        <header className="mt-5 border-b border-line pb-7">
+          <h1 className={`${typography.pageTitle} text-ink`}>
             {title}
           </h1>
           {dateLabel && (
-            <p className={`${typography.meta} mt-3 text-slate-500`}>
+            <p className={`${typography.meta} mt-3 text-ink-tertiary`}>
               {dateLabel}
             </p>
           )}
         </header>
 
-        <div className={`${typography.bodyReading} space-y-10 py-8 text-slate-700 sm:py-10`}>
+        <div className={`${typography.bodyReading} space-y-10 py-8 text-ink-secondary sm:py-10`}>
           {children}
         </div>
       </article>
@@ -54,7 +54,7 @@ export function PublicInfoSection({
 }: PublicInfoSectionProps) {
   return (
     <section>
-      <h2 className={`${typography.articleSectionTitle} text-slate-950`}>
+      <h2 className={`${typography.articleSectionTitle} text-ink`}>
         {title}
       </h2>
       <div className="mt-4 space-y-4">{children}</div>

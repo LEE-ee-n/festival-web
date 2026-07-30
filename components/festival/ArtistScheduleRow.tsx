@@ -27,12 +27,12 @@ export default function ArtistScheduleRow({
         {artist ? (
           <Link
             href={`/artist/${artist.id}`}
-            className={`${typography.label} text-slate-700 hover:underline`}
+            className={`${typography.label} text-ink-secondary hover:underline`}
           >
             {artist.name}
           </Link>
         ) : (
-          <p className={`${typography.label} text-slate-700`}>
+          <p className={`${typography.label} text-ink-secondary`}>
             아티스트 정보 없음
           </p>
         )}

@@ -13,7 +13,7 @@ export const categoryBadgeClasses: Record<FestivalCategory, string> = {
   local_festival: "bg-blue-50 text-blue-700 border-blue-200",
   food_festival: "bg-orange-50 text-orange-700 border-orange-200",
   culture_festival: "bg-purple-50 text-purple-700 border-purple-200",
-  other: "bg-slate-100 text-slate-700 border-slate-200",
+  other: "bg-festival-night/10 text-festival-night border-festival-night/20",
 };
 
 export const categoryDotClasses: Record<FestivalCategory, string> = {
@@ -21,5 +21,5 @@ export const categoryDotClasses: Record<FestivalCategory, string> = {
   local_festival: "bg-blue-500",
   food_festival: "bg-orange-500",
   culture_festival: "bg-purple-500",
-  other: "bg-slate-500",
+  other: "bg-festival-night",
 };

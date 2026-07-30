@@ -32,7 +32,7 @@ export default function CalendarHeader({
           type="button"
           onClick={onPreviousMonth}
           aria-label="이전 달"
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-2xl leading-none text-slate-600 shadow-sm transition hover:bg-slate-50"
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-surface text-2xl leading-none text-ink-secondary shadow-sm transition hover:bg-surface-subtle"
         >
           ‹
         </button>
@@ -41,7 +41,7 @@ export default function CalendarHeader({
           type="button"
           onClick={onNextMonth}
           aria-label="다음 달"
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-2xl leading-none text-slate-600 shadow-sm transition hover:bg-slate-50"
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-surface text-2xl leading-none text-ink-secondary shadow-sm transition hover:bg-surface-subtle"
         >
           ›
         </button>
@@ -54,7 +54,7 @@ export default function CalendarHeader({
         />
       </div>
 
-      <h1 className={`${typography.calendarTitle} text-slate-950`}>
+      <h1 className={`${typography.calendarTitle} text-ink`}>
         {currentYear}년 {currentMonthIndex + 1}월
       </h1>
 
@@ -69,7 +69,7 @@ export default function CalendarHeader({
           href="/festivals"
           aria-label="전체 페스티벌 보기"
           title="전체 페스티벌 보기"
-          className="flex h-11 w-11 items-center justify-center rounded-xl text-slate-700 transition hover:bg-slate-100 hover:ring-1 hover:ring-slate-300"
+          className="flex h-11 w-11 items-center justify-center rounded-xl text-ink-secondary transition hover:bg-surface-muted hover:ring-1 hover:ring-slate-300"
         >
           <LayoutGrid size={22} strokeWidth={2} />
         </Link>
@@ -78,7 +78,7 @@ export default function CalendarHeader({
           onClick={onMoveToToday}
           aria-label="오늘로 이동"
           title="오늘로 이동"
-          className="flex h-11 w-11 items-center justify-center rounded-xl text-slate-700 transition hover:bg-slate-100 hover:ring-1 hover:ring-slate-300"
+          className="flex h-11 w-11 items-center justify-center rounded-xl text-ink-secondary transition hover:bg-surface-muted hover:ring-1 hover:ring-slate-300"
         >
           <CalendarDays size={22} strokeWidth={2} />
         </button>

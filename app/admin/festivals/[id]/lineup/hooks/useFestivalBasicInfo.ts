@@ -2,8 +2,10 @@ import { useCallback, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
 import { deleteFestivalThumbnail } from "@/lib/festivals/deleteFestivalThumbnail";
+import { getFestivalThumbnailFileName } from "@/lib/festivals/festivalThumbnailSync";
 import { updateFestivalBasicInfo } from "@/lib/festivals/updateFestivalBasicInfo";
 import { uploadFestivalThumbnail } from "@/lib/festivals/uploadFestivalThumbnail";
+import { supabase } from "@/lib/supabase/client";
 
 type SetErrorMessage = Dispatch<SetStateAction<string | null>>;
 
@@ -54,6 +56,8 @@ export function useFestivalBasicInfo(
   const [thumbnailPreview, setThumbnailPreview] = useState("");
   const [isSavingBasic, setIsSavingBasic] = useState(false);
   const [isUploadingThumbnail, setIsUploadingThumbnail] =
+    useState(false);
+  const [isLoadingRuleThumbnail, setIsLoadingRuleThumbnail] =
     useState(false);
   const [thumbnailSourceUrl, setThumbnailSourceUrl] = useState("");
   const [thumbnailNote, setThumbnailNote] = useState("");
@@ -143,6 +147,79 @@ export function useFestivalBasicInfo(
     }
   }
 
+  async function loadRuleThumbnail() {
+    const expectedFileName = getFestivalThumbnailFileName({
+      normalized_name: normalizedName,
+      start_date: startDate,
+      end_date: endDate,
+    });
+
+    if (!expectedFileName) {
+      setErrorMessage(
+        "normalized_name과 시작일·종료일을 먼저 확인하세요.",
+      );
+      return;
+    }
+
+    try {
+      setIsLoadingRuleThumbnail(true);
+      setErrorMessage(null);
+
+      const { data: files, error: storageError } =
+        await supabase.storage
+          .from("festival-thumbnails")
+          .list("", {
+            limit: 100,
+            search: expectedFileName,
+          });
+
+      if (storageError) {
+        throw storageError;
+      }
+
+      const hasExactFile = (files ?? []).some(
+        (file) => file.name === expectedFileName,
+      );
+
+      if (!hasExactFile) {
+        throw new Error(
+          `Storage에서 ${expectedFileName} 파일을 찾지 못했습니다.`,
+        );
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from("festival-thumbnails")
+        .getPublicUrl(expectedFileName);
+      const publicUrl = publicUrlData.publicUrl;
+
+      const { error: updateError } = await supabase.rpc(
+        "change_festival_thumbnail_with_audit",
+        {
+          p_festival_id: festivalId,
+          p_new_url: publicUrl,
+          p_note: "대표 이미지 파일명 규칙으로 수동 연결",
+        },
+      );
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      setThumbnailUrl(publicUrl);
+      setThumbnailFile(null);
+      setThumbnailPreview("");
+      window.alert(`${expectedFileName} 이미지를 연결했습니다.`);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "규칙 이미지를 불러오지 못했습니다.",
+      );
+    } finally {
+      setIsLoadingRuleThumbnail(false);
+    }
+  }
+
   async function saveBasicInfo() {
     if (!festivalName.trim()) {
       setErrorMessage("축제명을 입력하세요.");
@@ -220,7 +297,9 @@ export function useFestivalBasicInfo(
       setThumbnailPreview,
       uploadThumbnail,
       deleteThumbnail,
+      loadRuleThumbnail,
       isUploadingThumbnail,
+      isLoadingRuleThumbnail,
       thumbnailSourceUrl,
       setThumbnailSourceUrl,
       thumbnailNote,

@@ -5,11 +5,21 @@ export function buildInstagramFirstImageBookmarklet(): string {
       return;
     }
 
+    const postPathMatch = location.pathname.match(
+      /\\/(?:p|reel)\\/([^/]+)/i,
+    );
+    if (!postPathMatch) {
+      alert("Instagram 게시물 상세 화면에서 실행해주세요.");
+      return;
+    }
+
     const dialog = [...document.querySelectorAll('[role="dialog"]')]
-      .find((element) => element.querySelector("img"));
-    const scope = dialog;
+      .find((element) => element.querySelectorAll("img").length > 0);
+    const article = [...document.querySelectorAll("article")]
+      .find((element) => element.querySelectorAll("img").length > 0);
+    const scope = dialog || article || document.querySelector("main");
     if (!scope) {
-      alert("게시물 상세 팝업을 찾지 못했습니다. 게시물을 상세 화면으로 연 뒤 다시 실행해주세요.");
+      alert("게시물 상세 영역을 찾지 못했습니다. 게시물을 상세 화면으로 연 뒤 다시 실행해주세요.");
       return;
     }
 
@@ -55,7 +65,7 @@ export function buildInstagramFirstImageBookmarklet(): string {
       .map((anchor) => new URL(anchor.href, location.href).pathname)
       .find((pathname) => /^\\/(?:p|reel)\\/[^/]+\\/?$/i.test(pathname));
     const postId = (linkedPostPath || location.pathname)
-      .match(/^\\/(?:p|reel)\\/([^/]+)/i)?.[1]
+      .match(/\\/(?:p|reel)\\/([^/]+)/i)?.[1]
       ?.replace(/[^a-zA-Z0-9_-]/g, "") || "post";
     const now = new Date();
     const pad = (value) => String(value).padStart(2, "0");
@@ -146,7 +156,7 @@ export function buildInstagramFirstImageInstallerHtml(): string {
     <p>아래 버튼을 브라우저의 즐겨찾기 표시줄로 끌어놓으세요.</p>
     <a class="bookmarklet" href="${bookmarklet}">Instagram 첫 사진 저장</a>
     <ol>
-      <li>Instagram 게시물을 상세 팝업으로 엽니다.</li>
+      <li>Instagram 게시물을 독립 상세 페이지 또는 상세 팝업으로 엽니다.</li>
       <li>캐러셀 첫 번째 사진이 보이는 상태인지 확인합니다.</li>
       <li>즐겨찾기 표시줄의 북마클릿을 클릭합니다.</li>
     </ol>

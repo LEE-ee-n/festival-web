@@ -81,7 +81,7 @@ export default function NoticesPage() {
           잘못된 정보나 수정이 필요한 내용을 발견한 경우{" "}
           <Link
             href="/report"
-            className={`${typography.readingEmphasis} text-slate-950 underline underline-offset-4`}
+            className={`${typography.readingEmphasis} text-ink underline underline-offset-4`}
           >
             의견 및 정보 수정 제보
           </Link>
@@ -93,7 +93,7 @@ export default function NoticesPage() {
         문의:{" "}
         <a
           href="mailto:festibom.official@gmail.com"
-          className="text-slate-950 underline underline-offset-4"
+          className="text-ink underline underline-offset-4"
         >
           festibom.official@gmail.com
         </a>

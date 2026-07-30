@@ -46,10 +46,10 @@ export default function HomePage() {
         }}
       />
 
-      <main className="bg-white px-3 pt-0 pb-6 sm:px-6 sm:pt-1 sm:pb-10">
+      <main className="bg-surface px-3 pt-0 pb-6 sm:px-6 sm:pt-1 sm:pb-10">
         <Suspense
           fallback={
-            <div className="mx-auto min-h-[640px] w-full max-w-[1500px] animate-pulse bg-slate-50" />
+            <div className="mx-auto min-h-[640px] w-full max-w-[1500px] animate-pulse bg-surface-subtle" />
           }
         >
           <Calendar />

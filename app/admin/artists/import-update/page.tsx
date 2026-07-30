@@ -286,20 +286,20 @@ export default function ArtistUpdateImportPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-10">
+    <main className="min-h-screen bg-surface-subtle px-4 py-10">
       <div className="mx-auto max-w-6xl">
         <p className="text-sm font-semibold text-blue-600">
           관리자
         </p>
 
-        <h1 className="mt-2 text-3xl font-bold text-slate-950">
+        <h1 className="mt-2 text-3xl font-bold text-ink">
           아티스트 일괄 수정
         </h1>
 
-        <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="mt-8 rounded-3xl border border-line bg-surface p-6 shadow-sm">
           <label
             htmlFor="artistUpdateFile"
-            className="block text-sm font-semibold text-slate-700"
+            className="block text-sm font-semibold text-ink-secondary"
           >
             엑셀 파일 선택
           </label>
@@ -310,11 +310,11 @@ export default function ArtistUpdateImportPage() {
             type="file"
             accept=".xlsx,.xls"
             onChange={handleFileChange}
-            className="mt-3 block w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+            className="mt-3 block w-full rounded-xl border border-line-strong px-4 py-3 text-sm"
           />
 
           {fileName && (
-            <p className="mt-3 text-sm text-slate-600">
+            <p className="mt-3 text-sm text-ink-secondary">
               선택한 파일:{" "}
               <strong>{fileName}</strong>
             </p>
@@ -341,7 +341,7 @@ export default function ArtistUpdateImportPage() {
         <button
             type="button"
             onClick={resetPage}
-            className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700"
+            className="rounded-xl border border-line-strong px-5 py-3 text-sm font-semibold text-ink-secondary"
         >
             초기화
         </button>
@@ -349,20 +349,20 @@ export default function ArtistUpdateImportPage() {
         </section>
 
         {rows.length > 0 && (
-          <section className="mt-6 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-            <div className="border-b border-slate-200 px-6 py-5">
-              <h2 className="text-xl font-bold text-slate-900">
+          <section className="mt-6 overflow-hidden rounded-3xl border border-line bg-surface shadow-sm">
+            <div className="border-b border-line px-6 py-5">
+              <h2 className="text-xl font-bold text-ink">
                 엑셀 미리보기
               </h2>
 
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-ink-tertiary">
                 {rows.length}명
               </p>
             </div>
 
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-slate-200 text-sm">
-                <thead className="bg-slate-50">
+                <thead className="bg-surface-subtle">
                   <tr>
                     <th className="px-4 py-3 text-left">
                       ID
@@ -392,14 +392,14 @@ export default function ArtistUpdateImportPage() {
                             <span className="ml-2">✅</span>
                         )}
                         </td>
-                      <td className="px-4 py-3 font-mono text-slate-600">
+                      <td className="px-4 py-3 font-mono text-ink-secondary">
                         {row.normalized_name}
                         {changeFlags[row.id]?.normalized_name && (
                             <span className="ml-2">✅</span>
                         )}
                         </td>
 
-                      <td className="px-4 py-3 text-slate-600">
+                      <td className="px-4 py-3 text-ink-secondary">
                         {row.aliases || "-"}
                         {changeFlags[row.id]?.aliases && (
                             <span className="ml-2">✅</span>

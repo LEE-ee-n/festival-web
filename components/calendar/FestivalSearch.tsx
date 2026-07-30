@@ -86,22 +86,22 @@ export default function FestivalSearch({
         onClick={() => setIsOpen(true)}
         aria-label="축제 및 아티스트 검색"
         title="축제 및 아티스트 검색"
-        className="flex h-11 w-11 items-center justify-center rounded-xl text-slate-700 transition hover:bg-slate-100 hover:ring-1 hover:ring-slate-300"
+        className="flex h-11 w-11 items-center justify-center rounded-xl text-ink-secondary transition hover:bg-surface-muted hover:ring-1 hover:ring-slate-300"
       >
         <Search size={22} strokeWidth={2} />
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-[60] bg-slate-950/45 p-4">
+        <div className="fixed inset-0 z-[60] bg-surface-dark/45 p-4">
           <section
             role="dialog"
             aria-modal="true"
             aria-label="축제 및 아티스트 검색"
-            className="mx-auto mt-16 max-h-[75dvh] max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl sm:mt-24"
+            className="mx-auto mt-16 max-h-[75dvh] max-w-md overflow-hidden rounded-2xl bg-surface shadow-2xl sm:mt-24"
           >
-            <div className="flex items-center gap-2 border-b border-slate-200 p-4">
+            <div className="flex items-center gap-2 border-b border-line p-4">
               <Search
-                className="shrink-0 text-slate-500"
+                className="shrink-0 text-ink-tertiary"
                 size={19}
               />
               <input
@@ -118,7 +118,7 @@ export default function FestivalSearch({
                 type="button"
                 onClick={closeSearch}
                 aria-label="검색 닫기"
-                className="rounded-lg p-2 text-slate-500"
+                className="rounded-lg p-2 text-ink-tertiary"
               >
                 <X size={20} />
               </button>
@@ -126,7 +126,7 @@ export default function FestivalSearch({
 
             <div className="max-h-[calc(75dvh-77px)] overflow-y-auto p-3">
               {isSearching && (
-                <p className={`${typography.body} p-4 text-center text-slate-500`}>
+                <p className={`${typography.body} p-4 text-center text-ink-tertiary`}>
                   검색 중...
                 </p>
               )}
@@ -139,7 +139,7 @@ export default function FestivalSearch({
                 keyword.trim() &&
                 !hasResults &&
                 !errorMessage && (
-                  <p className={`${typography.body} p-4 text-center text-slate-500`}>
+                  <p className={`${typography.body} p-4 text-center text-ink-tertiary`}>
                     검색 결과가 없습니다.
                   </p>
                 )}
@@ -153,12 +153,12 @@ export default function FestivalSearch({
                       onSelectFestival(festival);
                       closeSearch();
                     }}
-                    className="w-full rounded-xl border border-slate-200 p-3 text-left transition hover:border-slate-400 hover:bg-slate-50"
+                    className="w-full rounded-xl border border-line p-3 text-left transition hover:border-line-strong hover:bg-surface-subtle"
                   >
-                    <p className={`${typography.subsectionTitle} text-slate-900`}>
+                    <p className={`${typography.subsectionTitle} text-ink`}>
                       {festival.name}
                     </p>
-                    <p className={`${typography.caption} mt-1 text-slate-500`}>
+                    <p className={`${typography.caption} mt-1 text-ink-tertiary`}>
                       {festival.start_date === festival.end_date
                         ? festival.start_date
                         : `${festival.start_date} ~ ${festival.end_date}`}
@@ -174,12 +174,12 @@ export default function FestivalSearch({
                       onSelectArtist(artist);
                       closeSearch();
                     }}
-                    className="w-full rounded-xl border border-slate-200 p-3 text-left transition hover:border-slate-400 hover:bg-slate-50"
+                    className="w-full rounded-xl border border-line p-3 text-left transition hover:border-line-strong hover:bg-surface-subtle"
                   >
-                    <p className={`${typography.subsectionTitle} text-slate-900`}>
+                    <p className={`${typography.subsectionTitle} text-ink`}>
                       {artist.name}
                     </p>
-                    <p className={`${typography.caption} mt-1 truncate text-slate-500`}>
+                    <p className={`${typography.caption} mt-1 truncate text-ink-tertiary`}>
                       {artist.aliases.length > 0
                         ? artist.aliases.join(", ")
                         : artist.normalized_name}

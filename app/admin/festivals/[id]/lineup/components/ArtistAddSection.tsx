@@ -25,7 +25,7 @@ type Props = {
 };
 
 const inputClass =
-  "mt-1 w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 outline-none focus:border-gray-500";
+  "mt-1 w-full rounded-xl border border-line-strong bg-surface px-3 py-3 text-sm text-ink outline-none focus:border-gray-500";
 
 export default function ArtistAddSection(props: Props) {
   const showNoResults =
@@ -36,11 +36,11 @@ export default function ArtistAddSection(props: Props) {
     !props.selectedArtist;
 
   return (
-    <section className="mt-8 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-      <h2 className="text-lg font-bold text-gray-950">
+    <section className="mt-8 rounded-3xl border border-line bg-surface p-6 shadow-sm">
+      <h2 className="text-lg font-bold text-ink">
         라인업 아티스트 추가
       </h2>
-      <p className="mt-1 text-sm text-gray-500">
+      <p className="mt-1 text-sm text-ink-tertiary">
         기존 아티스트를 검색한 뒤 공연 정보를 입력하세요. 추가한 내용은
         하단의 전체 저장을 눌러야 반영됩니다.
       </p>
@@ -58,40 +58,40 @@ export default function ArtistAddSection(props: Props) {
             props.updateArtistSearchQuery(event.target.value)
           }
           placeholder="아티스트 이름, normalized_name, 별칭 검색"
-          className="min-w-0 flex-1 rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm outline-none focus:border-gray-500"
+          className="min-w-0 flex-1 rounded-xl border border-line-strong bg-surface px-4 py-3 text-sm outline-none focus:border-gray-500"
         />
         <button
           type="submit"
           disabled={props.isSearchingArtists}
-          className="shrink-0 rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white disabled:opacity-50"
+          className="shrink-0 rounded-xl bg-surface-dark px-5 py-3 text-sm font-bold text-white disabled:opacity-50"
         >
           {props.isSearchingArtists ? "검색 중..." : "검색"}
         </button>
       </form>
 
       {props.artistSearchResults.length > 0 && (
-        <div className="mt-3 overflow-hidden rounded-xl border border-gray-200">
+        <div className="mt-3 overflow-hidden rounded-xl border border-line">
           {props.artistSearchResults.map((artist) => (
             <button
               key={artist.id}
               type="button"
               onClick={() => props.chooseArtist(artist)}
-              className="flex w-full items-start justify-between gap-4 border-b border-gray-200 px-4 py-3 text-left last:border-b-0 hover:bg-gray-50"
+              className="flex w-full items-start justify-between gap-4 border-b border-line px-4 py-3 text-left last:border-b-0 hover:bg-surface-subtle"
             >
               <span>
-                <span className="block text-sm font-bold text-gray-900">
+                <span className="block text-sm font-bold text-ink">
                   {artist.name}
                 </span>
-                <span className="mt-0.5 block text-xs text-gray-500">
+                <span className="mt-0.5 block text-xs text-ink-tertiary">
                   {artist.normalized_name}
                 </span>
                 {(artist.aliases?.length ?? 0) > 0 && (
-                  <span className="mt-1 block text-xs text-gray-500">
+                  <span className="mt-1 block text-xs text-ink-tertiary">
                     별칭: {artist.aliases?.join(", ")}
                   </span>
                 )}
               </span>
-              <span className="shrink-0 text-xs font-semibold text-gray-500">
+              <span className="shrink-0 text-xs font-semibold text-ink-tertiary">
                 선택
               </span>
             </button>
@@ -100,7 +100,7 @@ export default function ArtistAddSection(props: Props) {
       )}
 
       {showNoResults && (
-        <div className="mt-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+        <div className="mt-3 rounded-xl border border-line bg-surface-subtle px-4 py-3 text-sm text-ink-secondary">
           검색 결과가 없다면{" "}
           <Link
             href="/admin/artists"
@@ -115,17 +115,17 @@ export default function ArtistAddSection(props: Props) {
       {props.selectedArtist && (
         <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
           <p className="text-xs font-bold text-emerald-700">선택한 아티스트</p>
-          <p className="mt-1 text-sm font-bold text-gray-950">
+          <p className="mt-1 text-sm font-bold text-ink">
             {props.selectedArtist.name}
           </p>
-          <p className="text-xs text-gray-600">
+          <p className="text-xs text-ink-secondary">
             {props.selectedArtist.normalized_name}
           </p>
         </div>
       )}
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <label className="text-xs font-semibold text-gray-700">
+        <label className="text-xs font-semibold text-ink-secondary">
           공연 날짜
           <input
             type="date"
@@ -136,7 +136,7 @@ export default function ArtistAddSection(props: Props) {
             className={inputClass}
           />
         </label>
-        <label className="text-xs font-semibold text-gray-700">
+        <label className="text-xs font-semibold text-ink-secondary">
           시작 시간
           <input
             type="time"
@@ -147,7 +147,7 @@ export default function ArtistAddSection(props: Props) {
             className={inputClass}
           />
         </label>
-        <label className="text-xs font-semibold text-gray-700">
+        <label className="text-xs font-semibold text-ink-secondary">
           종료 시간
           <input
             type="time"
@@ -158,7 +158,7 @@ export default function ArtistAddSection(props: Props) {
             className={inputClass}
           />
         </label>
-        <label className="text-xs font-semibold text-gray-700">
+        <label className="text-xs font-semibold text-ink-secondary">
           무대
           <input
             value={props.newStageName}
@@ -167,7 +167,7 @@ export default function ArtistAddSection(props: Props) {
             className={inputClass}
           />
         </label>
-        <label className="text-xs font-semibold text-gray-700">
+        <label className="text-xs font-semibold text-ink-secondary">
           상태
           <select
             value={props.newStatus}
@@ -184,7 +184,7 @@ export default function ArtistAddSection(props: Props) {
       <button
         type="button"
         onClick={props.addSelectedArtist}
-        className="mt-5 w-full rounded-xl bg-slate-950 px-4 py-3.5 text-sm font-bold text-white"
+        className="mt-5 w-full rounded-xl bg-surface-dark px-4 py-3.5 text-sm font-bold text-white"
       >
         작업 목록에 아티스트 추가
       </button>

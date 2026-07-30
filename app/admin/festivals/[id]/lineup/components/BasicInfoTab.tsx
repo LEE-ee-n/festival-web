@@ -55,7 +55,9 @@ type BasicInfoTabProps = {
 
   uploadThumbnail: () => void;
   deleteThumbnail: () => void;
+  loadRuleThumbnail?: () => void;
   isUploadingThumbnail: boolean;
+  isLoadingRuleThumbnail?: boolean;
   thumbnailSourceUrl?: string;
   setThumbnailSourceUrl?: (value: string) => void;
   thumbnailNote?: string;
@@ -116,7 +118,9 @@ export default function BasicInfoTab({
   setThumbnailPreview,
   uploadThumbnail,
   deleteThumbnail,
+  loadRuleThumbnail,
   isUploadingThumbnail,
+  isLoadingRuleThumbnail = false,
   thumbnailSourceUrl = "",
   setThumbnailSourceUrl,
   thumbnailNote = "",
@@ -146,13 +150,13 @@ export default function BasicInfoTab({
 
   return (
 
-          <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-slate-900">
+          <section className="mt-8 rounded-3xl border border-line bg-surface p-6 shadow-sm">
+            <h2 className="text-lg font-bold text-ink">
               {title}
             </h2>
 
             <div className="mt-5">
-              <label className="text-sm font-semibold text-slate-700">
+              <label className="text-sm font-semibold text-ink-secondary">
                 축제명
               </label>
 
@@ -164,83 +168,83 @@ export default function BasicInfoTab({
                 onChange={(event) =>
                   setFestivalName(event.target.value)
                 }
-                className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                className="mt-2 w-full rounded-xl border border-line-strong px-4 py-3 text-sm"
               />
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="text-sm font-semibold text-slate-700">
+                  <label className="text-sm font-semibold text-ink-secondary">
                     시작일
                   </label>
                   <input
                     type="date"
                     value={startDate}
                     onChange={(event) => setStartDate(event.target.value)}
-                    className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                    className="mt-2 w-full rounded-xl border border-line-strong px-4 py-3 text-sm"
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-slate-700">
+                  <label className="text-sm font-semibold text-ink-secondary">
                     종료일
                   </label>
                   <input
                     type="date"
                     value={endDate}
                     onChange={(event) => setEndDate(event.target.value)}
-                    className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                    className="mt-2 w-full rounded-xl border border-line-strong px-4 py-3 text-sm"
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-slate-700">
+                  <label className="text-sm font-semibold text-ink-secondary">
                     행사장명
                   </label>
                   <input
                     type="text"
                     value={location}
                     onChange={(event) => setLocation(event.target.value)}
-                    className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                    className="mt-2 w-full rounded-xl border border-line-strong px-4 py-3 text-sm"
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-slate-700">
+                  <label className="text-sm font-semibold text-ink-secondary">
                     상세 주소
                   </label>
                   <input
                     type="text"
                     value={address}
                     onChange={(event) => setAddress(event.target.value)}
-                    className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                    className="mt-2 w-full rounded-xl border border-line-strong px-4 py-3 text-sm"
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-slate-700">
+                  <label className="text-sm font-semibold text-ink-secondary">
                     지역
                   </label>
                   <input
                     type="text"
                     value={region}
                     onChange={(event) => setRegion(event.target.value)}
-                    className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                    className="mt-2 w-full rounded-xl border border-line-strong px-4 py-3 text-sm"
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-slate-700">
+                  <label className="text-sm font-semibold text-ink-secondary">
                     축제 분류
                   </label>
                   <input
                     type="text"
                     value={category}
                     onChange={(event) => setCategory(event.target.value)}
-                    className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                    className="mt-2 w-full rounded-xl border border-line-strong px-4 py-3 text-sm"
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-slate-700">
+                  <label className="text-sm font-semibold text-ink-secondary">
                     중복 판별값 (festivals.normalized_name)
                   </label>
                   <input
@@ -252,7 +256,7 @@ export default function BasicInfoTab({
                       )
                     }
                     placeholder="예: gratefulcamp"
-                    className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                    className="mt-2 w-full rounded-xl border border-line-strong px-4 py-3 text-sm"
                   />
                   {normalizedNameYear && (
                     <p className="mt-2 text-xs font-semibold text-amber-700">
@@ -261,7 +265,7 @@ export default function BasicInfoTab({
                     </p>
                   )}
                   {duplicateCheck.status === "checking" && (
-                    <p className="mt-2 text-xs font-semibold text-gray-500">
+                    <p className="mt-2 text-xs font-semibold text-ink-tertiary">
                       중복 확인 중...
                     </p>
                   )}
@@ -283,7 +287,7 @@ export default function BasicInfoTab({
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-slate-700">
+                  <label className="text-sm font-semibold text-ink-secondary">
                     검색 별칭
                   </label>
                   <input
@@ -291,40 +295,40 @@ export default function BasicInfoTab({
                     value={searchAliases}
                     onChange={(event) => setSearchAliases(event.target.value)}
                     placeholder="쉼표로 구분"
-                    className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                    className="mt-2 w-full rounded-xl border border-line-strong px-4 py-3 text-sm"
                   />
                 </div>
               </div>
               
               <div className="mt-5">
-              <label className="text-sm font-semibold text-slate-700">
+              <label className="text-sm font-semibold text-ink-secondary">
                 축제 소개
               </label>
               <textarea
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
                 rows={5}
-                className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                className="mt-2 w-full rounded-xl border border-line-strong px-4 py-3 text-sm"
               />
             </div>
 
             <div className="mt-5">
-              <label className="text-sm font-semibold text-slate-700">
+              <label className="text-sm font-semibold text-ink-secondary">
                 대표 썸네일 URL
               </label>
               <input
                 type="url"
                 value={thumbnailUrl}
                 onChange={(event) => setThumbnailUrl(event.target.value)}
-                className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                className="mt-2 w-full rounded-xl border border-line-strong px-4 py-3 text-sm"
               />
             </div>
 
             {canManageThumbnail ? (
               <>
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <input type="url" value={thumbnailSourceUrl} onChange={(event) => setThumbnailSourceUrl?.(event.target.value)} placeholder="썸네일 출처 URL (선택)" className="rounded-xl border border-slate-300 px-4 py-3 text-sm" />
-                <input value={thumbnailNote} onChange={(event) => setThumbnailNote?.(event.target.value)} placeholder="썸네일 변경 메모 (선택)" className="rounded-xl border border-slate-300 px-4 py-3 text-sm" />
+                <input type="url" value={thumbnailSourceUrl} onChange={(event) => setThumbnailSourceUrl?.(event.target.value)} placeholder="썸네일 출처 URL (선택)" className="rounded-xl border border-line-strong px-4 py-3 text-sm" />
+                <input value={thumbnailNote} onChange={(event) => setThumbnailNote?.(event.target.value)} placeholder="썸네일 변경 메모 (선택)" className="rounded-xl border border-line-strong px-4 py-3 text-sm" />
               </div>
               <div className="mt-3 flex flex-wrap items-center gap-3">
                 <input
@@ -355,10 +359,10 @@ export default function BasicInfoTab({
                       setThumbnailPreview("");
                     }
                   }}
-                  className="block text-sm text-slate-600"
+                  className="block text-sm text-ink-secondary"
                 />
 
-                <p className="w-full text-xs text-slate-500">
+                <p className="w-full text-xs text-ink-tertiary">
                   JPG, PNG, WebP · 최대 5MB
                 </p>
 
@@ -366,7 +370,7 @@ export default function BasicInfoTab({
                   type="button"
                   onClick={uploadThumbnail}
                   disabled={isUploadingThumbnail || !thumbnailFile}
-                  className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+                  className="rounded-xl bg-surface-dark px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
                 >
                   {isUploadingThumbnail
                     ? "업로드 중..."
@@ -377,21 +381,37 @@ export default function BasicInfoTab({
                   <button
                     type="button"
                     onClick={deleteThumbnail}
+                    disabled={isLoadingRuleThumbnail}
                     className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white"
                   >
                     썸네일 삭제
                   </button>
                 )}
+
+                <button
+                  type="button"
+                  onClick={loadRuleThumbnail}
+                  disabled={
+                    !loadRuleThumbnail ||
+                    isLoadingRuleThumbnail ||
+                    isUploadingThumbnail
+                  }
+                  className="rounded-xl border border-line-strong bg-surface px-4 py-2.5 text-sm font-semibold text-ink disabled:opacity-50"
+                >
+                  {isLoadingRuleThumbnail
+                    ? "불러오는 중..."
+                    : "규칙 이미지 불러오기"}
+                </button>
               </div>
               </>
             ) : (
-              <p className="mt-2 text-sm text-slate-500">
+              <p className="mt-2 text-sm text-ink-tertiary">
                 파일 업로드는 축제를 등록한 뒤 관리 페이지에서 할 수 있습니다.
               </p>
             )}
             
             {(thumbnailPreview || thumbnailUrl) && (
-              <div className="mt-4 flex aspect-[4/5] w-full max-w-sm items-center justify-center overflow-hidden rounded-xl bg-slate-100">
+              <div className="mt-4 flex aspect-[4/5] w-full max-w-sm items-center justify-center overflow-hidden rounded-xl bg-surface-muted">
                 {/* Local blob previews are intentionally rendered without Next.js image optimization. */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -404,26 +424,26 @@ export default function BasicInfoTab({
 
 
             <div className="mt-5">
-              <label className="text-sm font-semibold text-slate-700">
+              <label className="text-sm font-semibold text-ink-secondary">
                 공식 홈페이지
               </label>
               <input
                 type="url"
                 value={officialUrl}
                 onChange={(event) => setOfficialUrl(event.target.value)}
-                className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                className="mt-2 w-full rounded-xl border border-line-strong px-4 py-3 text-sm"
               />
             </div>
 
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="text-sm font-semibold text-slate-700">
+                <label className="text-sm font-semibold text-ink-secondary">
                   무료·유료 구분
                 </label>
                 <select
                   value={priceType}
                   onChange={(event) => setPriceType(event.target.value)}
-                  className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm"
+                  className="mt-2 w-full rounded-xl border border-line-strong bg-surface px-4 py-3 text-sm"
                 >
                   <option value="">선택</option>
                   <option value="free">무료</option>
@@ -434,7 +454,7 @@ export default function BasicInfoTab({
               </div>
 
               <div>
-                <label className="text-sm font-semibold text-slate-700">
+                <label className="text-sm font-semibold text-ink-secondary">
                   진행 상태
                 </label>
                 <select
@@ -442,7 +462,7 @@ export default function BasicInfoTab({
                   onChange={(event) =>
                     setFestivalStatus(event.target.value)
                   }
-                  className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm"
+                  className="mt-2 w-full rounded-xl border border-line-strong bg-surface px-4 py-3 text-sm"
                 >
                   <option value="">선택</option>
                   <option value="scheduled">예정</option>
@@ -453,7 +473,7 @@ export default function BasicInfoTab({
               </div>
 
               <div>
-                <label className="text-sm font-semibold text-slate-700">
+                <label className="text-sm font-semibold text-ink-secondary">
                   공개 승인 상태
                 </label>
                 <select
@@ -461,7 +481,7 @@ export default function BasicInfoTab({
                   onChange={(event) =>
                     setVerificationStatus(event.target.value)
                   }
-                  className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm"
+                  className="mt-2 w-full rounded-xl border border-line-strong bg-surface px-4 py-3 text-sm"
                 >
                   <option value="pending">비공개·검토 중</option>
                   <option value="approved">공개 승인</option>
@@ -471,19 +491,19 @@ export default function BasicInfoTab({
             </div>
 
             <div className="mt-5">
-              <label className="text-sm font-semibold text-slate-700">
+              <label className="text-sm font-semibold text-ink-secondary">
                 기본 가격 안내
               </label>
               <textarea
                 value={priceInfo}
                 onChange={(event) => setPriceInfo(event.target.value)}
                 rows={3}
-                className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                className="mt-2 w-full rounded-xl border border-line-strong px-4 py-3 text-sm"
               />
             </div>
 
             <div className="mt-5">
-              <label className="text-sm font-semibold text-slate-700">
+              <label className="text-sm font-semibold text-ink-secondary">
                 프로그램 정보
               </label>
               <textarea
@@ -491,7 +511,7 @@ export default function BasicInfoTab({
                 onChange={(event) => setProgramInfo(event.target.value)}
                 rows={5}
                 placeholder="굿즈, 체험, 포토존, 불꽃놀이, 부대행사 등"
-                className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                className="mt-2 w-full rounded-xl border border-line-strong px-4 py-3 text-sm"
               />
             </div>
               <button

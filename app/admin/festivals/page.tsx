@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import AdminBackLink from "@/components/admin/AdminBackLink";
 import { supabase } from "@/lib/supabase/client";
 import { deleteFestival } from "@/lib/festivals/deleteFestival";
-import { findFestivalThumbnailMatches } from "@/lib/festivals/festivalThumbnailSync";
 import { getSupabaseErrorMessage } from "@/lib/supabase/errorMessage";
 
 type Festival = {
@@ -23,8 +22,6 @@ type Festival = {
 export default function AdminFestivalsPage() {
   const [festivals, setFestivals] = useState<Festival[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [thumbnailSyncMessage, setThumbnailSyncMessage] = useState<string | null>(null);
-  const hasLoadedRef = useRef(false);
 
   const [deletingId, setDeletingId] = useState<number | null>(
     null,
@@ -62,74 +59,6 @@ export default function AdminFestivalsPage() {
 
       const loadedFestivals = data ?? [];
       setFestivals(loadedFestivals);
-
-      try {
-        const { data: storageFiles, error: storageError } = await supabase.storage
-          .from("festival-thumbnails")
-          .list("", {
-            limit: 1000,
-            sortBy: { column: "name", order: "asc" },
-          });
-
-        if (storageError) throw storageError;
-
-        const matches = findFestivalThumbnailMatches(
-          loadedFestivals,
-          (storageFiles ?? []).map((file) => file.name),
-        );
-        let connectedCount = 0;
-        let failedCount = 0;
-        const thumbnailUrls = new Map<number, string>();
-
-        for (const match of matches.matched) {
-          const { data: publicUrlData } = supabase.storage
-            .from("festival-thumbnails")
-            .getPublicUrl(match.fileName);
-          const publicUrl = publicUrlData.publicUrl;
-          const { error: updateError } = await supabase.rpc(
-            "change_festival_thumbnail_with_audit",
-            {
-              p_festival_id: match.festival.id,
-              p_new_url: publicUrl,
-              p_note: "대표 이미지 파일명 규칙으로 자동 연결",
-            },
-          );
-
-          if (updateError) {
-            failedCount += 1;
-            continue;
-          }
-
-          connectedCount += 1;
-          thumbnailUrls.set(match.festival.id, publicUrl);
-        }
-
-        if (thumbnailUrls.size > 0) {
-          setFestivals((current) =>
-            current.map((festival) => ({
-              ...festival,
-              thumbnail_url:
-                thumbnailUrls.get(festival.id) ?? festival.thumbnail_url,
-            })),
-          );
-        }
-
-        const messages = [
-          connectedCount > 0 ? `대표 이미지 ${connectedCount}개 자동 연결` : "",
-          matches.duplicateFileNames.length > 0
-            ? `중복 매칭 ${matches.duplicateFileNames.length}개 제외`
-            : "",
-          failedCount > 0 ? `연결 실패 ${failedCount}개` : "",
-        ].filter(Boolean);
-        setThumbnailSyncMessage(messages.length > 0 ? messages.join(" · ") : null);
-      } catch (syncError) {
-        setThumbnailSyncMessage(
-          `대표 이미지 자동 연결 실패: ${getSupabaseErrorMessage(
-            syncError,
-            "Storage 파일을 확인하지 못했습니다.",
-          )}`,
-        );
-      }
     } catch (error) {
       setErrorMessage(getSupabaseErrorMessage(
         error,
@@ -141,8 +70,6 @@ export default function AdminFestivalsPage() {
   }
 
   useEffect(() => {
-    if (hasLoadedRef.current) return;
-    hasLoadedRef.current = true;
     queueMicrotask(() => {
       void loadFestivals();
     });
@@ -179,7 +106,7 @@ export default function AdminFestivalsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-white px-4 py-10">
+    <main className="min-h-screen bg-surface px-4 py-10">
       <div className="mx-auto max-w-6xl">
         <AdminBackLink />
 
@@ -189,7 +116,7 @@ export default function AdminFestivalsPage() {
               관리자
             </p>
 
-            <h1 className="mt-2 text-3xl font-bold text-slate-950">
+            <h1 className="mt-2 text-3xl font-bold text-ink">
               페스티벌 관리
             </h1>
           </div>
@@ -197,13 +124,13 @@ export default function AdminFestivalsPage() {
           <div className="flex flex-wrap gap-3">
             <Link
               href="/admin/festival-updates"
-              className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-800"
+              className="rounded-xl border border-line-strong bg-surface px-5 py-3 text-sm font-semibold text-ink"
             >
               기존 페스티벌 수정
             </Link>
             <Link
               href="/admin/festival-candidates"
-              className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white"
+              className="rounded-xl bg-surface-dark px-5 py-3 text-sm font-semibold text-white"
             >
               신규 페스티벌 등록
             </Link>
@@ -216,43 +143,37 @@ export default function AdminFestivalsPage() {
           </div>
         )}
 
-        {thumbnailSyncMessage && (
-          <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm font-semibold text-blue-700">
-            {thumbnailSyncMessage}
-          </div>
-        )}
-
-        <section className="mt-8 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <section className="mt-8 overflow-hidden rounded-3xl border border-line bg-surface shadow-sm">
           {isLoading ? (
-            <p className="p-8 text-sm text-slate-500">
+            <p className="p-8 text-sm text-ink-tertiary">
               불러오는 중...
             </p>
           ) : festivals.length === 0 ? (
-            <p className="p-8 text-sm text-slate-500">
+            <p className="p-8 text-sm text-ink-tertiary">
               등록된 페스티벌이 없습니다.
             </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-slate-200 text-sm">
-                <thead className="bg-white">
+                <thead className="bg-surface">
                   <tr>
-                    <th className="px-5 py-4 text-left font-semibold text-slate-700">
+                    <th className="px-5 py-4 text-left font-semibold text-ink-secondary">
                       페스티벌명
                     </th>
 
-                    <th className="px-5 py-4 text-left font-semibold text-slate-700">
+                    <th className="px-5 py-4 text-left font-semibold text-ink-secondary">
                       기간
                     </th>
 
-                    <th className="px-5 py-4 text-left font-semibold text-slate-700">
+                    <th className="px-5 py-4 text-left font-semibold text-ink-secondary">
                       장소
                     </th>
 
-                    <th className="px-5 py-4 text-left font-semibold text-slate-700">
+                    <th className="px-5 py-4 text-left font-semibold text-ink-secondary">
                       상태
                     </th>
 
-                    <th className="px-5 py-4 text-right font-semibold text-slate-700">
+                    <th className="px-5 py-4 text-right font-semibold text-ink-secondary">
                       관리
                     </th>
                   </tr>
@@ -261,22 +182,22 @@ export default function AdminFestivalsPage() {
                 <tbody className="divide-y divide-slate-100">
                   {festivals.map((festival) => (
                     <tr key={festival.id}>
-                      <td className="px-5 py-4 font-semibold text-slate-900">
+                      <td className="px-5 py-4 font-semibold text-ink">
                         {festival.name}
                       </td>
 
-                      <td className="whitespace-nowrap px-5 py-4 text-slate-600">
+                      <td className="whitespace-nowrap px-5 py-4 text-ink-secondary">
                         {festival.start_date ===
                         festival.end_date
                           ? festival.start_date
                           : `${festival.start_date} ~ ${festival.end_date}`}
                       </td>
 
-                      <td className="px-5 py-4 text-slate-600">
+                      <td className="px-5 py-4 text-ink-secondary">
                         {festival.location || "-"}
                       </td>
 
-                      <td className="px-5 py-4 text-slate-600">
+                      <td className="px-5 py-4 text-ink-secondary">
                         {festival.status || "-"}
                       </td>
 
@@ -284,7 +205,7 @@ export default function AdminFestivalsPage() {
                         <div className="flex justify-end gap-2">
                           <Link
                             href={`/admin/festivals/${festival.id}/lineup`}
-                            className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700"
+                            className="rounded-lg border border-line-strong px-3 py-2 text-xs font-semibold text-ink-secondary"
                           >
                             관리
                           </Link>

@@ -69,17 +69,17 @@ export default function TicketTab({
   savingTicketId,
 }: TicketTabProps) {
 
-  return <><section className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-slate-900">
+  return <><section className="mt-8 rounded-3xl border border-line bg-surface p-6 shadow-sm">
+            <h2 className="text-lg font-bold text-ink">
               티켓 관리
             </h2>
 
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-sm text-ink-tertiary">
               티켓 회차와 예매처 링크를 등록하고 수정합니다.
             </p>
 
-            <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
-              <h3 className="font-bold text-slate-900">
+            <div className="mt-6 rounded-2xl border border-line bg-surface-subtle p-5">
+              <h3 className="font-bold text-ink">
                 티켓 추가
               </h3>
 
@@ -89,7 +89,7 @@ export default function TicketTab({
                   onChange={(event) =>
                     setNewRoundType(event.target.value)
                   }
-                  className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm"
+                  className="rounded-xl border border-line-strong bg-surface px-4 py-3 text-sm"
                 >
                   <option value="blind">블라인드</option>
                   <option value="early_bird">얼리버드</option>
@@ -106,7 +106,7 @@ export default function TicketTab({
                     setNewRoundName(event.target.value)
                   }
                   placeholder="표시 이름 예: 레귤러 티켓"
-                  className="rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                  className="rounded-xl border border-line-strong px-4 py-3 text-sm"
                 />
 
                 <input
@@ -115,7 +115,7 @@ export default function TicketTab({
                   onChange={(event) =>
                     setNewOpenAt(event.target.value)
                   }
-                  className="rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                  className="rounded-xl border border-line-strong px-4 py-3 text-sm"
                 />
 
                 <input
@@ -125,7 +125,7 @@ export default function TicketTab({
                     setNewTicketPlatform(event.target.value)
                   }
                   placeholder="예매처 예: NOL 티켓"
-                  className="rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                  className="rounded-xl border border-line-strong px-4 py-3 text-sm"
                 />
 
                 <textarea
@@ -135,7 +135,7 @@ export default function TicketTab({
                   }
                   placeholder="가격 정보"
                   rows={3}
-                  className="rounded-xl border border-slate-300 px-4 py-3 text-sm sm:col-span-2"
+                  className="rounded-xl border border-line-strong px-4 py-3 text-sm sm:col-span-2"
                 />
 
                 <input
@@ -145,7 +145,7 @@ export default function TicketTab({
                     setNewTicketUrl(event.target.value)
                   }
                   placeholder="예매 링크"
-                  className="rounded-xl border border-slate-300 px-4 py-3 text-sm sm:col-span-2"
+                  className="rounded-xl border border-line-strong px-4 py-3 text-sm sm:col-span-2"
                 />
               </div>
 
@@ -160,7 +160,7 @@ export default function TicketTab({
             </div>
 
             {ticketRounds.length === 0 ? (
-              <p className="mt-6 rounded-xl bg-slate-50 p-4 text-sm text-slate-500">
+              <p className="mt-6 rounded-xl bg-surface-subtle p-4 text-sm text-ink-tertiary">
                 등록된 티켓 정보가 없습니다.
               </p>
             ) : (
@@ -168,7 +168,7 @@ export default function TicketTab({
                 {ticketRounds.map((round) => (
                   <div
                     key={round.id}
-                    className="rounded-2xl border border-slate-200 bg-slate-50 p-5"
+                    className="rounded-2xl border border-line bg-surface-subtle p-5"
                   >
                     <div className="grid gap-3 sm:grid-cols-2">
                       <select
@@ -180,7 +180,7 @@ export default function TicketTab({
                             event.target.value,
                           )
                         }
-                        className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm"
+                        className="rounded-xl border border-line-strong bg-surface px-4 py-3 text-sm"
                       >
                         <option value="blind">블라인드</option>
                         <option value="early_bird">얼리버드</option>
@@ -201,7 +201,7 @@ export default function TicketTab({
                           )
                         }
                         placeholder="표시 이름"
-                        className="rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                        className="rounded-xl border border-line-strong px-4 py-3 text-sm"
                       />
 
                       <input
@@ -225,7 +225,7 @@ export default function TicketTab({
                               : "",
                           )
                         }
-                        className="rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                        className="rounded-xl border border-line-strong px-4 py-3 text-sm"
                       />
 
                       <input
@@ -239,7 +239,7 @@ export default function TicketTab({
                           )
                         }
                         placeholder="예매처"
-                        className="rounded-xl border border-slate-300 px-4 py-3 text-sm"
+                        className="rounded-xl border border-line-strong px-4 py-3 text-sm"
                       />
 
                       <textarea
@@ -253,7 +253,7 @@ export default function TicketTab({
                         }
                         placeholder="가격 정보"
                         rows={3}
-                        className="rounded-xl border border-slate-300 px-4 py-3 text-sm sm:col-span-2"
+                        className="rounded-xl border border-line-strong px-4 py-3 text-sm sm:col-span-2"
                       />
 
                       <input
@@ -267,7 +267,7 @@ export default function TicketTab({
                           )
                         }
                         placeholder="예매 링크"
-                        className="rounded-xl border border-slate-300 px-4 py-3 text-sm sm:col-span-2"
+                        className="rounded-xl border border-line-strong px-4 py-3 text-sm sm:col-span-2"
                       />
                     </div>
 

@@ -134,7 +134,7 @@ export default function FestivalOverview() {
               onClick={() => setActiveFilter(filter.value)}
               aria-pressed={isActive}
               className={[
-                `${typography.button} rounded-full border bg-white px-4 py-2 text-festival-night transition`,
+                `${typography.button} rounded-full border bg-surface px-4 py-2 text-festival-night transition`,
                 isActive
                   ? "border-festival-night"
                   : "border-festival-night/20 hover:border-festival-night/50",
@@ -156,14 +156,14 @@ export default function FestivalOverview() {
         <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
           {Array.from({ length: 8 }, (_, index) => (
             <div key={index} className="animate-pulse">
-              <div className="aspect-[4/5] rounded-2xl bg-slate-100" />
-              <div className="mt-3 h-5 rounded bg-slate-100" />
-              <div className="mt-2 h-4 w-2/3 rounded bg-slate-100" />
+              <div className="aspect-[4/5] rounded-2xl bg-surface-muted" />
+              <div className="mt-3 h-5 rounded bg-surface-muted" />
+              <div className="mt-2 h-4 w-2/3 rounded bg-surface-muted" />
             </div>
           ))}
         </div>
       ) : visibleFestivals.length === 0 ? (
-        <p className={`${typography.body} mt-8 rounded-2xl border border-slate-200 bg-white py-16 text-center text-slate-500`}>
+        <p className={`${typography.body} mt-8 rounded-2xl border border-line bg-surface py-16 text-center text-ink-tertiary`}>
           해당 상태의 페스티벌이 없습니다.
         </p>
       ) : (
@@ -180,7 +180,7 @@ export default function FestivalOverview() {
                 href={`/festival/${festival.id}`}
                 className="group min-w-0"
               >
-                <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-slate-100">
+                <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-surface-muted">
                   {festival.thumbnail_url ? (
                     <>
                       {/* External thumbnail hosts are configured by administrators. */}
@@ -192,28 +192,28 @@ export default function FestivalOverview() {
                       />
                     </>
                   ) : (
-                    <div className="flex h-full items-center justify-center px-4 text-center text-sm text-slate-400">
+                    <div className="flex h-full items-center justify-center px-4 text-center text-sm text-ink-muted">
                       대표 이미지 준비 중
                     </div>
                   )}
 
                   <span
-                    className={`${typography.badge} absolute right-3 top-3 rounded-full border border-festival-night/20 bg-white px-2.5 py-1 text-festival-night shadow-sm`}
+                    className={`${typography.badge} absolute right-3 top-3 rounded-full border border-festival-night/20 bg-surface px-2.5 py-1 text-festival-night shadow-sm`}
                   >
                     {STATE_LABELS[state]}
                   </span>
                 </div>
 
-                <h2 className={`${typography.subsectionTitle} mt-3 line-clamp-2 leading-snug text-slate-950 group-hover:underline`}>
+                <h2 className={`${typography.subsectionTitle} mt-3 line-clamp-2 leading-snug text-ink group-hover:underline`}>
                   {festival.name}
                 </h2>
-                <p className={`${typography.meta} mt-1 text-slate-500`}>
+                <p className={`${typography.meta} mt-1 text-ink-tertiary`}>
                   {formatFestivalPeriod(
                     festival.start_date,
                     festival.end_date,
                   )}
                 </p>
-                <p className={`${typography.meta} mt-1 truncate text-slate-500`}>
+                <p className={`${typography.meta} mt-1 truncate text-ink-tertiary`}>
                   {festival.location ||
                     festival.region ||
                     "장소 확인 중"}
