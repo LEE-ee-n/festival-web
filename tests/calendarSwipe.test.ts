@@ -4,7 +4,6 @@ import test from "node:test";
 import {
   getCalendarGestureAxis,
   getCalendarSwipeDirection,
-  shouldCaptureCalendarGesture,
 } from "../lib/calendarSwipe.ts";
 
 test("10px보다 짧은 움직임은 방향을 확정하지 않는다", () => {
@@ -39,10 +38,4 @@ test("오른쪽 45px 스와이프는 이전 달로 이동한다", () => {
 
 test("가로 방향이어도 45px 미만이면 월을 이동하지 않는다", () => {
   assert.equal(getCalendarSwipeDirection(44, "horizontal"), null);
-});
-
-test("포인터 캡처는 가로 방향이 확정된 경우에만 사용한다", () => {
-  assert.equal(shouldCaptureCalendarGesture("horizontal"), true);
-  assert.equal(shouldCaptureCalendarGesture("vertical"), false);
-  assert.equal(shouldCaptureCalendarGesture(null), false);
 });

@@ -4,7 +4,6 @@ import type { PointerEvent } from "react";
 import {
   getCalendarGestureAxis,
   getCalendarSwipeDirection,
-  shouldCaptureCalendarGesture,
   type CalendarGestureAxis,
   type CalendarSwipeDirection,
 } from "@/lib/calendarSwipe";
@@ -26,28 +25,12 @@ export function useCalendarSwipe(
   const pointerStartXRef = useRef<number | null>(null);
   const pointerStartYRef = useRef<number | null>(null);
   const gestureAxisRef = useRef<CalendarGestureAxis | null>(null);
-  const pointerTargetRef = useRef<HTMLDivElement | null>(null);
 
   const resetGesture = useCallback(() => {
-    const pointerId = pointerIdRef.current;
-    const pointerTarget = pointerTargetRef.current;
-
     pointerIdRef.current = null;
     pointerStartXRef.current = null;
     pointerStartYRef.current = null;
     gestureAxisRef.current = null;
-    pointerTargetRef.current = null;
-
-    if (
-      pointerId !== null
-      && pointerTarget?.hasPointerCapture(pointerId)
-    ) {
-      try {
-        pointerTarget.releasePointerCapture(pointerId);
-      } catch {
-        // 브라우저가 이미 포인터 소유권을 회수한 경우에는 상태 초기화만 유지한다.
-      }
-    }
   }, []);
 
   const onPointerDown = useCallback((event: CalendarPointerEvent) => {
@@ -58,7 +41,6 @@ export function useCalendarSwipe(
     pointerStartXRef.current = event.clientX;
     pointerStartYRef.current = event.clientY;
     gestureAxisRef.current = null;
-    pointerTargetRef.current = event.currentTarget;
   }, [resetGesture]);
 
   const onPointerMove = useCallback((event: CalendarPointerEvent) => {
@@ -71,24 +53,11 @@ export function useCalendarSwipe(
       return;
     }
 
-    const axis = getCalendarGestureAxis(
+    gestureAxisRef.current = getCalendarGestureAxis(
       event.clientX - pointerStartXRef.current,
       event.clientY - pointerStartYRef.current,
     );
-
-    gestureAxisRef.current = axis;
-
-    if (
-      shouldCaptureCalendarGesture(axis)
-      && !event.currentTarget.hasPointerCapture(event.pointerId)
-    ) {
-      try {
-        event.currentTarget.setPointerCapture(event.pointerId);
-      } catch {
-        resetGesture();
-      }
-    }
-  }, [resetGesture]);
+  }, []);
 
   const onPointerUp = useCallback(
     (event: CalendarPointerEvent) => {
