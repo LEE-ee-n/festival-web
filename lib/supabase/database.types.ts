@@ -487,6 +487,7 @@ export type Database = {
           name: string
           normalized_name: string
           official_url: string | null
+          instagram_url: string | null
           price_info: string | null
           price_type: string | null
           program_info: string | null
@@ -513,6 +514,7 @@ export type Database = {
           name: string
           normalized_name: string
           official_url?: string | null
+          instagram_url?: string | null
           price_info?: string | null
           price_type?: string | null
           program_info?: string | null
@@ -539,6 +541,7 @@ export type Database = {
           name?: string
           normalized_name?: string
           official_url?: string | null
+          instagram_url?: string | null
           price_info?: string | null
           price_type?: string | null
           program_info?: string | null

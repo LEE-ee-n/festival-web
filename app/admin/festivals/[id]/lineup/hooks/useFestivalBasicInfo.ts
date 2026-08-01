@@ -22,6 +22,7 @@ export type FestivalBasicInfoRecord = {
   description: string | null;
   thumbnail_url: string | null;
   official_url: string | null;
+  instagram_url: string | null;
   price_type: string | null;
   price_info: string | null;
   program_info: string | null;
@@ -45,6 +46,7 @@ export function useFestivalBasicInfo(
   const [description, setDescription] = useState("");
   const [thumbnailUrl, setThumbnailUrl] = useState("");
   const [officialUrl, setOfficialUrl] = useState("");
+  const [instagramUrl, setInstagramUrl] = useState("");
   const [priceType, setPriceType] = useState("");
   const [priceInfo, setPriceInfo] = useState("");
   const [programInfo, setProgramInfo] = useState("");
@@ -76,6 +78,7 @@ export function useFestivalBasicInfo(
       setDescription(festival.description ?? "");
       setThumbnailUrl(festival.thumbnail_url ?? "");
       setOfficialUrl(festival.official_url ?? "");
+      setInstagramUrl(festival.instagram_url ?? "");
       setPriceType(festival.price_type ?? "");
       setPriceInfo(festival.price_info ?? "");
       setProgramInfo(festival.program_info ?? "");
@@ -97,7 +100,12 @@ export function useFestivalBasicInfo(
       setIsUploadingThumbnail(true);
       setErrorMessage(null);
       const publicUrl = await uploadFestivalThumbnail(
-        festivalId,
+        {
+          id: festivalId,
+          normalized_name: normalizedName,
+          start_date: startDate,
+          end_date: endDate,
+        },
         thumbnailFile,
         thumbnailUrl,
         { sourceUrl: thumbnailSourceUrl, note: thumbnailNote },
@@ -246,6 +254,7 @@ export function useFestivalBasicInfo(
         description,
         thumbnailUrl,
         officialUrl,
+        instagramUrl,
         priceType,
         priceInfo,
         programInfo,
@@ -306,6 +315,8 @@ export function useFestivalBasicInfo(
       setThumbnailNote,
       officialUrl,
       setOfficialUrl,
+      instagramUrl,
+      setInstagramUrl,
       priceType,
       setPriceType,
       festivalStatus,

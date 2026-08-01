@@ -66,6 +66,9 @@ type BasicInfoTabProps = {
   officialUrl: string;
   setOfficialUrl: (value: string) => void;
 
+  instagramUrl: string;
+  setInstagramUrl: (value: string) => void;
+
   priceType: string;
   setPriceType: (value: string) => void;
 
@@ -127,6 +130,8 @@ export default function BasicInfoTab({
   setThumbnailNote,
   officialUrl,
   setOfficialUrl,
+  instagramUrl,
+  setInstagramUrl,
   priceType,
   setPriceType,
   festivalStatus,
@@ -363,7 +368,7 @@ export default function BasicInfoTab({
                 />
 
                 <p className="w-full text-xs text-ink-tertiary">
-                  JPG, PNG, WebP · 최대 5MB
+                  JPG, PNG, WebP · 최대 5MB · 업로드 시 최대 1600px WebP로 자동 변환 및 파일명 생성
                 </p>
 
                 <button
@@ -422,6 +427,19 @@ export default function BasicInfoTab({
               </div>
             )}
 
+
+            <div className="mt-5">
+              <label className="text-sm font-semibold text-ink-secondary">
+                공식 Instagram
+              </label>
+              <input
+                type="url"
+                value={instagramUrl}
+                onChange={(event) => setInstagramUrl(event.target.value)}
+                placeholder="https://www.instagram.com/account/"
+                className="mt-2 w-full rounded-xl border border-line-strong px-4 py-3 text-sm"
+              />
+            </div>
 
             <div className="mt-5">
               <label className="text-sm font-semibold text-ink-secondary">

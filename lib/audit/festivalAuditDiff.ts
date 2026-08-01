@@ -22,6 +22,7 @@ const fieldLabels: Record<string, string> = {
   description: "설명",
   thumbnail_url: "썸네일",
   official_url: "공식 URL",
+  instagram_url: "공식 Instagram URL",
   price_type: "가격 유형",
   price_info: "가격 정보",
   program_info: "프로그램 정보",

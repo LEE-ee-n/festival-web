@@ -23,6 +23,7 @@ export async function getFestivalLineupData(
         description,
         thumbnail_url,
         official_url,
+        instagram_url,
         price_type,
         price_info,
         program_info,

@@ -87,22 +87,31 @@ test("비어 있는 기본정보와 신규 라인업·티켓은 자동 병합한
   );
 });
 
-test("추가 수집 JSON은 출처·공식 URL·썸네일을 자동 병합하지 않는다", () => {
+test("추가 수집 JSON은 Instagram 계정만 병합하고 다른 자동 URL은 제외한다", () => {
   const current = createDraft();
   const incoming = createDraft();
   incoming.festival.source_url = "https://www.instagram.com/p/source/";
   incoming.festival.official_url = "https://example.com/generated";
+  incoming.festival.instagram_url = "https://www.instagram.com/festival/";
   incoming.festival.thumbnail_url = "https://example.com/lineup.webp";
 
   const result = mergeFestivalDrafts(current, incoming);
 
   assert.equal(result.mergedDraft.festival.source_url, undefined);
   assert.equal(result.mergedDraft.festival.official_url, undefined);
+  assert.equal(
+    result.mergedDraft.festival.instagram_url,
+    "https://www.instagram.com/festival/",
+  );
   assert.equal(result.mergedDraft.festival.thumbnail_url, undefined);
   assert.equal(
     result.diffs.some((diff) =>
       ["source_url", "official_url", "thumbnail_url"].includes(diff.key)),
     false,
+  );
+  assert.equal(
+    result.diffs.find((diff) => diff.key === "instagram_url")?.status,
+    "add",
   );
 });
 

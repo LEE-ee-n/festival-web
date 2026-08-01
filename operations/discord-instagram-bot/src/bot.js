@@ -29,6 +29,12 @@ import {
   excludeTicketCandidates,
   formatTicketExclusionResult,
 } from "./ticketExclusion.js";
+import { findInstagramProfileUrl } from "./instagramProfile.js";
+import {
+  formatDiscordError,
+  getErrorMessage,
+  truncateDiscordContent,
+} from "./discordMessage.js";
 
 const required = [
   "DISCORD_BOT_TOKEN", "DISCORD_ALLOWED_USER_ID", "SUPABASE_URL",
@@ -396,12 +402,42 @@ async function extractInstagramPost(url, jobId, update) {
         })
         .map((element) => element.innerText || "").join("\n");
       const login_required = /가입하기|로그인|sign up|log in/i.test(visibleDialogText);
-      return { post_url: location.href, caption, images, candidate_count: candidates.length, login_required };
+      const profileLinks = [...scope.querySelectorAll('a[role="link"][href]')]
+        .map((anchor) => {
+          const rect = anchor.getBoundingClientRect();
+          const text = anchor.textContent?.trim() || "";
+          const username = text.replace(/^@/, "");
+          let nearby = anchor.parentElement;
+          let hasMatchingProfileImage = false;
+          for (let depth = 0; nearby && depth < 12; depth += 1) {
+            hasMatchingProfileImage = [...nearby.querySelectorAll("img[alt]")]
+              .some((image) => (image.getAttribute("alt") || "").toLowerCase()
+                .includes(username.toLowerCase()));
+            if (hasMatchingProfileImage) break;
+            nearby = nearby.parentElement;
+          }
+          return {
+            href: anchor.getAttribute("href") || "",
+            text,
+            visible: rect.width > 0 && rect.height > 0,
+            top: rect.top,
+            hasMatchingProfileImage,
+          };
+        });
+      return {
+        post_url: location.href,
+        caption,
+        images,
+        profile_links: profileLinks,
+        candidate_count: candidates.length,
+        login_required,
+      };
     });
     source.images = [...new Set([...carouselImages, ...source.images])].slice(0, 5);
+    const instagramProfileUrl = findInstagramProfileUrl(source.profile_links);
     logInfo(
       "instagram carousel collection completed",
-      `job_id=${jobId} images=${source.images.length}`,
+      `job_id=${jobId} images=${source.images.length} instagram_profile_url=${instagramProfileUrl || "not_found"}`,
     );
     if (source.login_required) {
       throw new Error("Instagram 로그인이 필요합니다. Bot이 연 Chrome에서 로그인한 뒤 다시 보내주세요.");
@@ -444,6 +480,7 @@ async function extractInstagramPost(url, jobId, update) {
     draft.candidate.source_url = source.post_url;
     draft.festival.source_url = "";
     draft.festival.official_url = "";
+    draft.festival.instagram_url = instagramProfileUrl;
     draft.festival.thumbnail_url = "";
     await update("DB 아티스트와 축제를 비교하는 중");
     await matchArtists(draft);
@@ -565,7 +602,7 @@ client.on("messageCreate", async (message) => {
     }
   } catch (error) {
     if (message.content.trim().toLowerCase().startsWith("!티켓제외")) {
-      await message.reply(`티켓 제외 실패: ${error.message}`);
+      await message.reply(formatDiscordError("티켓 제외 실패", error));
       return;
     }
   }
@@ -603,11 +640,14 @@ client.on("messageCreate", async (message) => {
     } catch (error) {
       logError("instagram job database save failed", error, `message_id=${message.id} url=${url}`);
       await keepRetry(jobId, result, regenerate);
-      await status.edit({ content: `${resultMessage(result, null)}\n${error.message}`, components: [retryButton(jobId)] });
+      await status.edit({
+        content: truncateDiscordContent(`${resultMessage(result, null)}\n${getErrorMessage(error)}`),
+        components: [retryButton(jobId)],
+      });
     }
   } catch (error) {
     logError("instagram job failed", error, `message_id=${message.id} url=${url}`);
-    await status.edit(`처리 실패: ${error.message}`);
+    await status.edit(formatDiscordError("처리 실패", error));
   }
 });
 
@@ -628,7 +668,7 @@ client.on("interactionCreate", async (interaction) => {
     logInfo("database retry completed", `job_id=${jobId}`);
   } catch (error) {
     logError("database retry failed", error, `job_id=${jobId}`);
-    await interaction.editReply(`DB 저장 실패: ${error.message}`);
+    await interaction.editReply(formatDiscordError("DB 저장 실패", error));
   }
 });
 

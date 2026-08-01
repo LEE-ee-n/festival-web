@@ -179,6 +179,7 @@ festivals.normalized_name
 - 게시물 이미지는 `festival-candidate-posters`의 승인 전 검토 자료이며 대표 이미지로 자동 승격하지 않는다.
 - 신규 승인 또는 기존 수정 성공 후 임시 수집 이미지를 삭제하고 원본 게시물 URL은 후보·수정 작업·감사 로그에 남긴다.
 - 수집 JSON의 `source_url`, `official_url`, `thumbnail_url`은 운영 축제 기본정보에 자동 반영하지 않는다.
+- 일반 Instagram 게시글의 작성자 프로필 URL은 `festival.instagram_url` 검토값으로 저장하고 관리자가 최종 확인한 뒤 반영한다.
 - 공식 홈페이지와 대표 이미지는 관리자가 직접 관리한다.
 - 대표 이미지는 `festival-thumbnails` 버킷 루트에 `{normalized_name}{시작일 YYYYMMDD}{종료일 YYYYMMDD}.webp` 형식으로 올린다.
 - 예: `zandarifesta2024100320241005.webp`

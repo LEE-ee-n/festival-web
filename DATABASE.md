@@ -101,6 +101,7 @@
 | `address` | text | YES | 없음 | 상세 주소 |
 | `region` | text | YES | 없음 | 지역 |
 | `official_url` | text | YES | 없음 | 공식 사이트 |
+| `instagram_url` | text | YES | 없음 | 관리자가 최종 확인한 공식 Instagram 계정 URL (Migration 047) |
 | `status` | text | YES | `scheduled` | 예정·진행·종료·취소 |
 | `thumbnail_url` | text | YES | 없음 | 대표 이미지 경로 |
 | `timetable_status` | text | NO | `published` | 타임테이블 전체 공개·미공개 상태 (Migration 037 적용) |
@@ -267,6 +268,8 @@ Migration 037~039는 2026-07-22 운영 DB에 적용했다. 최종 승인 시 후
 Migration 042는 관리자 검토가 끝난 `needs_review` 후보를 최종 등록 트랜잭션 안에서 `new`로 전환하고 기존 신규 승인 RPC를 호출하는 `approve_reviewed_festival_candidate`를 추가한다. 기존 축제 식별값 중복 차단과 필수정보 검증은 유지한다. 운영 DB 적용 전이다.
 
 Migration 046은 신규 승인 시 후보의 수집 게시물 URL이 `festivals.source_url`로 복사되지 않게 분리한다. 후보와 감사 로그의 `source_url`은 유지하고 `festivals.official_url`은 관리자 수동 입력으로만 관리한다. 2026-07-27 운영 DB 적용 완료.
+
+Migration 047은 `festivals.instagram_url`을 추가하고 신규 후보 승인, 기존 축제 수정, 관리자 직접 등록·수정의 감사 저장 흐름을 확장한다. 게시글 URL은 계속 후보·수정 작업의 `source_url`에 두고 작성자 프로필 URL만 `instagram_url` 검토 후보로 사용한다. 2026-07-31 운영 DB 적용 후 칼럼, 형식 제약조건과 관련 함수 5개를 확인했다.
 
 ## 6-1. festival_update_drafts
 

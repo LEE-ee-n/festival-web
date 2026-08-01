@@ -30,6 +30,7 @@ type FestivalRow = {
   price_info?: string;
   program_info?: string;
   official_url?: string;
+  instagram_url?: string;
   source_url?: string;
   thumbnail_url?: string;
   price_type?: string;
@@ -245,6 +246,7 @@ export default function AdminImportPage() {
         price_info: String(festivalData.price_info ?? "").trim(),
         program_info: String(festivalData.program_info ?? "").trim(),
         official_url: String(festivalData.official_url ?? "").trim(),
+        instagram_url: String(festivalData.instagram_url ?? "").trim(),
         source_url: String(festivalData.source_url ?? "").trim(),
         thumbnail_url: String(
           festivalData.thumbnail_url ?? ""

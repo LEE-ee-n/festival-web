@@ -413,6 +413,7 @@ export function formatFestivalDraftJson(draft: FestivalDraftJson) {
       program_info: festival.program_info,
       source_url: festival.source_url,
       official_url: festival.official_url,
+      instagram_url: festival.instagram_url,
       thumbnail_url: festival.thumbnail_url,
       price_type: festival.price_type,
       status: festival.status,

@@ -6,11 +6,15 @@ import {
   isValidNormalizedName,
   normalizeNormalizedName,
 } from "@/lib/normalizedName";
+import { normalizeInstagramProfileUrl } from "../../operations/discord-instagram-bot/src/instagramProfile.js";
 
 export async function createFestival(
   input: FestivalBasicInfoInput,
 ) {
   validateFestivalThumbnailUrl(input.thumbnailUrl);
+  if (input.instagramUrl.trim() && !normalizeInstagramProfileUrl(input.instagramUrl)) {
+    throw new Error("Instagram 계정 URL을 확인해 주세요.");
+  }
   const normalizedName = normalizeNormalizedName(input.normalizedName);
 
   if (!isValidNormalizedName(normalizedName)) {

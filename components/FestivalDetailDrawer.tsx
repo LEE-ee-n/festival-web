@@ -125,7 +125,10 @@ export default function FestivalDetailDrawer({
             />
           )}
 
-          <FestivalOfficialLink officialUrl={festival.official_url} />
+          <FestivalOfficialLink
+            officialUrl={festival.official_url}
+            instagramUrl={festival.instagram_url}
+          />
         </article>
       )}
     </div>

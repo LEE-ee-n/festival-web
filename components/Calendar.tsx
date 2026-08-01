@@ -29,20 +29,7 @@ import CalendarHeader from "@/components/calendar/CalendarHeader";
 import CalendarWeekdays from "@/components/calendar/CalendarWeekdays";
 import CalendarGrid from "@/components/calendar/CalendarGrid";
 import RecentFestivalTicker from "@/components/calendar/RecentFestivalTicker";
-
-const FESTIVAL_BAR_COLORS = [
-  "bg-festival-orange",
-  "bg-festival-coral",
-  "bg-festival-purple",
-  "bg-festival-indigo",
-  "bg-festival-night",
-];
-
-function getFestivalColorClass(festivalId: number) {
-  return FESTIVAL_BAR_COLORS[
-    festivalId % FESTIVAL_BAR_COLORS.length
-  ];
-}
+import { getFestivalColorClass } from "@/lib/festivalColor";
 
 function getCalendarMonth(
   searchParams: URLSearchParams,
@@ -186,6 +173,7 @@ export default function Calendar() {
             category,
             description,
             official_url,
+            instagram_url,
             thumbnail_url,
             price_info,
             price_type,

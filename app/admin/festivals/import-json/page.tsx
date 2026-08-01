@@ -113,7 +113,7 @@ function LegacyFestivalJsonUpdateContent() {
         .select(`
           id, name, normalized_name, search_aliases, start_date, end_date,
           location, address, region, category, description, price_info,
-          program_info, source_url, official_url, thumbnail_url, price_type,
+          program_info, source_url, official_url, instagram_url, thumbnail_url, price_type,
           status, verification_status
         `)
         .eq("normalized_name", identity.normalized_name)

@@ -36,6 +36,7 @@ export interface Festival {
   description: string | null;
 
   official_url: string | null;
+  instagram_url: string | null;
   thumbnail_url: string | null;
   timetable_status: "published" | "unpublished";
 
@@ -171,6 +172,7 @@ export type FestivalDraftJson = {
     program_info?: string;
     source_url?: string;
     official_url?: string;
+    instagram_url?: string;
     thumbnail_url?: string;
     price_type?: string;
     status?: string;

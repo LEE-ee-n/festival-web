@@ -9,6 +9,11 @@
 - 전체 완성도 추정: **약 75%**
 - 제한적 공개 준비도 추정: **약 85%**
 - 현재 핵심 작업: 신규·기존 페스티벌의 5단계 등록 흐름 완성 및 실사용 검증
+- 구현 완료·화면 확인 대기 계획: [2026-08-01 캘린더 축제 막대 파스텔 팔레트 전환](plans/2026-08-01-calendar-pastel-palette.md)
+- 헤더 아이콘 삭제 완료·화면 확인 대기 계획: [2026-08-01 로고·파비콘 교체](plans/2026-08-01-logo-favicon-replacement.md)
+- 완료 계획: [2026-08-01 관리자 썸네일 WebP 자동 변환·규칙 파일명 업로드](plans/2026-08-01-admin-thumbnail-webp-upload.md)
+- 추가 수정 완료·화면 확인 대기 계획: [2026-08-01 Instagram URL 관리자·공개 화면 최종 연결](plans/2026-08-01-instagram-url-admin-public-ui.md)
+- 완료 계획: [2026-07-31 축제 Instagram 계정 URL 분리](plans/2026-07-31-festival-instagram-url.md)
 - 적용 완료·최종 검증 대기 계획: [2026-07-27 수집 출처·대표 이미지·공식 URL 분리](plans/2026-07-27-separate-source-thumbnail-official-url.md)
 - 완료 계획: [2026-07-27 Instagram 상세 캐러셀 첫 이미지 WebP 저장 북마클릿](plans/2026-07-27-instagram-first-image-bookmarklet.md)
 - 배포 확인 대기 계획: [2026-07-27 네이버 사이트 소유 확인 태그 추가](plans/2026-07-27-naver-site-verification.md)
@@ -18,7 +23,7 @@
 - 화면 확인 대기 계획: [2026-07-29 라인업 관리 표 열 너비 조정](plans/2026-07-29-lineup-table-column-widths.md)
 - 실제 화면 확인 대기 계획: [2026-07-29 Instagram 첫 사진 북마클릿 독립 상세 페이지 지원](plans/2026-07-29-instagram-first-image-direct-page.md)
 - 화면 확인 대기 계획: [2026-07-30 월요일 시작 달력 전환](plans/2026-07-30-calendar-monday-start.md)
-- 화면 확인 대기 계획: [2026-07-28 관리자 돌아가기 링크 통일](plans/2026-07-28-admin-back-link-unification.md)
+- 추가 수정 완료·화면 확인 대기 계획: [2026-07-28 관리자 돌아가기 링크 통일](plans/2026-07-28-admin-back-link-unification.md)
 - 화면 확인 대기 계획: [2026-07-25 공개 축제·아티스트 통합 검색](plans/2026-07-25-public-festival-artist-search.md)
 - 승인 대기 계획: [2026-07-24 축제 썸네일 공개 읽기 전환](plans/2026-07-24-public-festival-thumbnails.md)
 - 운영 DB 적용 대기 계획: [2026-07-24 판별 확인 후보의 신규 등록 확정](plans/2026-07-24-needs-review-new-approval.md)
@@ -96,6 +101,39 @@
 이 권한 구분은 신규·기존 페스티벌 등록에 동일하게 적용한다.
 
 ## 5. 최근 주요 업데이트
+
+### 캘린더 축제 막대 파스텔 팔레트 전환
+
+- 축제 식별 색상을 `#FFC8D4`, `#C0E6F4`, `#DEF4C5`, `#DCC2EE`, `#FFCFB5` 파스텔 팔레트로 교체했다.
+- 색상 코드는 Tailwind 설정에 `festival-bar-*` 이름으로만 정의하고 캘린더 막대와 축제 카드에서 공통 선택 함수를 사용한다.
+- 파스텔 배경에 맞춰 캘린더 막대 축제명과 표시점을 진한 색으로 조정했다.
+- 전체 테스트 162개, 타입 검사, 관련 ESLint와 프로덕션 코드 컴파일이 통과했으며 실제 화면 확인이 남아 있다.
+
+### 로고·파비콘 교체
+
+- 헤더의 왼쪽 음표 아이콘은 삭제하고, 글자 영역은 새 로컬 Festibom 로고로 교체했다.
+- 같은 512×512 아이콘을 Next.js `app/icon.png` 파비콘으로 등록했다.
+- 외부 Supabase 로고 URL 의존성을 제거했다.
+- 이미지 크기·투명 형식·아이콘 해시 일치와 전체 테스트 160개, 타입 검사, 관련 ESLint 통과를 확인했으며 실제 화면 확인이 남아 있다.
+
+### 관리자 썸네일 WebP 자동 변환·규칙 파일명 업로드
+
+- 관리자에서 JPG·PNG·WebP를 선택하면 브라우저가 긴 변 최대 1600px, 품질 85 WebP로 자동 변환한다.
+- Storage 파일명은 `{normalized_name}{시작일 YYYYMMDD}{종료일 YYYYMMDD}.webp` 규칙으로 자동 생성한다.
+- 동일 파일 교체 시 기존 객체 백업·감사 저장 실패 복원을 적용하고, URL 캐시도 갱신한다.
+- 전체 테스트 160개, 타입 검사와 관련 파일 ESLint가 통과했다.
+- 실제 관리자 업로드 결과 `pajufolk2026090420260905.webp?v=...`를 확인해 파일명 규칙과 캐시 갱신 적용을 검증했다.
+
+### 축제 Instagram 계정 URL 분리
+
+- 실제 Instagram 게시물 작성자 HTML을 기준으로 공식 계정 URL 추출 규칙을 구현했다.
+- 게시글 URL은 수집 출처 `source_url`, 작성자 프로필은 `instagram_url`, 홈페이지는 `official_url`로 분리했다.
+- 신규·기존 검토, 페스티벌 관리, 공개 상세 링크와 Migration 047을 연결했다.
+- 실제 Discord 수집 로그에서 `steppingstonefestival` 공식 프로필 URL 추출에 성공했다.
+- 첫 실사용에서 발견한 Codex strict JSON 스키마 필수 선언 누락과 Discord 오류 메시지 길이 초과를 수정했다.
+- Bot 테스트 20개, 전체 테스트 156개, 타입 검사와 변경 파일 ESLint가 통과했다.
+- Migration 047을 운영 DB에 적용하고 칼럼·제약조건·관련 함수 5개를 확인했다.
+- 수정 Bot으로 동일 게시물을 다시 수집해 공식 프로필 URL과 DB 임시 작업 `saved_id=99` 생성을 확인했으며, 관리 화면 최종 확인은 사용자가 진행한다.
 
 ### 월요일 시작 달력
 

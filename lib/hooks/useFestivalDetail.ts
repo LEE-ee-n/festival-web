@@ -65,7 +65,7 @@ export function useFestivalDetail(
           .from("festivals")
           .select(`
             id, name, start_date, end_date, location, address, region,
-            category, description, official_url, thumbnail_url, price_info,
+            category, description, official_url, instagram_url, thumbnail_url, price_info,
             price_type, program_info, source_url, slug, status,
             confidence_score, verification_status, created_at, updated_at
           `)

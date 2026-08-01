@@ -24,6 +24,7 @@ export default function NewFestivalPage() {
     useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState("");
   const [officialUrl, setOfficialUrl] = useState("");
+  const [instagramUrl, setInstagramUrl] = useState("");
   const [priceType, setPriceType] = useState("");
   const [festivalStatus, setFestivalStatus] =
     useState("scheduled");
@@ -69,6 +70,7 @@ export default function NewFestivalPage() {
         description,
         thumbnailUrl,
         officialUrl,
+        instagramUrl,
         priceType,
         priceInfo,
         programInfo,
@@ -149,6 +151,8 @@ export default function NewFestivalPage() {
           isUploadingThumbnail={false}
           officialUrl={officialUrl}
           setOfficialUrl={setOfficialUrl}
+          instagramUrl={instagramUrl}
+          setInstagramUrl={setInstagramUrl}
           priceType={priceType}
           setPriceType={setPriceType}
           festivalStatus={festivalStatus}

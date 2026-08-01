@@ -32,7 +32,7 @@ export default function CalendarHeader({
           type="button"
           onClick={onPreviousMonth}
           aria-label="이전 달"
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-surface text-2xl leading-none text-ink-secondary shadow-sm transition hover:bg-surface-subtle"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-surface text-2xl leading-none text-ink-secondary shadow-sm transition hover:bg-surface-subtle"
         >
           ‹
         </button>
@@ -41,7 +41,7 @@ export default function CalendarHeader({
           type="button"
           onClick={onNextMonth}
           aria-label="다음 달"
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-surface text-2xl leading-none text-ink-secondary shadow-sm transition hover:bg-surface-subtle"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-surface text-2xl leading-none text-ink-secondary shadow-sm transition hover:bg-surface-subtle"
         >
           ›
         </button>

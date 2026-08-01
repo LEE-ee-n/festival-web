@@ -33,6 +33,7 @@ const BASIC_FIELDS: Array<{
   { key: "description", label: "설명" },
   { key: "price_info", label: "가격 정보" },
   { key: "program_info", label: "프로그램 정보" },
+  { key: "instagram_url", label: "공식 Instagram" },
   { key: "price_type", label: "가격 유형" },
   { key: "status", label: "상태" },
 ];

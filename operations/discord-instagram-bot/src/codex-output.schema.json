@@ -17,7 +17,7 @@
     "festival": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["name", "normalized_name", "search_aliases", "start_date", "end_date", "location", "address", "region", "category", "description", "price_info", "program_info", "official_url", "price_type", "status"],
+      "required": ["name", "normalized_name", "search_aliases", "start_date", "end_date", "location", "address", "region", "category", "description", "price_info", "program_info", "official_url", "instagram_url", "price_type", "status"],
       "properties": {
         "name": { "type": "string" },
         "normalized_name": { "type": "string", "pattern": "^[a-z0-9]+$" },
@@ -32,6 +32,7 @@
         "price_info": { "type": "string" },
         "program_info": { "type": "string" },
         "official_url": { "type": "string" },
+        "instagram_url": { "type": "string" },
         "price_type": { "type": "string", "enum": ["free", "paid", "partial_free", "unknown"] },
         "status": { "type": "string", "enum": ["scheduled", "ongoing", "ended", "cancelled"] }
       }

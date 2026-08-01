@@ -1,4 +1,5 @@
 import type { FestivalBasicInfoInput } from "@/lib/festivals/updateFestivalBasicInfo";
+import { normalizeInstagramProfileUrl } from "../../operations/discord-instagram-bot/src/instagramProfile.js";
 
 export function toFestivalBasicInfoPayload(
   input: FestivalBasicInfoInput,
@@ -17,6 +18,7 @@ export function toFestivalBasicInfoPayload(
     description: input.description.trim() || null,
     thumbnail_url: input.thumbnailUrl.trim() || null,
     official_url: input.officialUrl.trim() || null,
+    instagram_url: normalizeInstagramProfileUrl(input.instagramUrl) || null,
     price_type: input.priceType || null,
     price_info: input.priceInfo.trim() || null,
     program_info: input.programInfo.trim() || null,

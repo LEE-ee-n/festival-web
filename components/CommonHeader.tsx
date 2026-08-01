@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -56,19 +57,20 @@ export default function CommonHeader() {
   }
 
   return (
-  <header className="bg-surface text-ink">
-    <div className="mx-auto flex h-14 w-full max-w-[1500px] items-center justify-between border-b border-line px-4 sm:px-6">
+  <header className="bg-surface px-3 text-ink sm:px-6">
+    <div className="mx-auto flex h-14 w-full max-w-[1500px] items-center justify-between border-b border-line px-4 sm:h-[68px] sm:px-6">
       <Link
         href="/"
-        className={`${typography.brand} flex items-center gap-2.5`}
+        className={`${typography.brand} flex items-center`}
       >
-        <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg bg-festival-coral">
-          <span className="inline-block text-xl leading-none text-white animate-[note-bounce_6s_ease-in-out_infinite]">
-            ♪
-          </span>
-        </span>
-
-        <span>Festival Calendar</span>
+        <Image
+          src="/images/brand/festibom-logo.png"
+          alt="Festibom"
+          width={1200}
+          height={240}
+          className="h-5 w-auto max-w-[105px] object-contain sm:max-w-[126px]"
+          priority
+        />
       </Link>
 
       <div className={`${typography.meta} flex items-center gap-3`}>

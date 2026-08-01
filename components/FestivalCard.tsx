@@ -1,26 +1,13 @@
 import { formatFestivalPeriod } from "@/lib/calendar";
 import type { Festival } from "@/lib/types";
 import { typography } from "@/lib/typography";
+import { getFestivalColorClass } from "@/lib/festivalColor";
 
 import {CalendarDays,   MapPin, } from "lucide-react";
 
 interface FestivalCardProps {
   festival: Festival;
   onSelect: (festival: Festival) => void;
-}
-
-const FESTIVAL_BAR_COLORS = [
-  "bg-festival-orange",
-  "bg-festival-coral",
-  "bg-festival-purple",
-  "bg-festival-indigo",
-  "bg-festival-night",
-];
-
-function getFestivalColorClass(festivalId: number) {
-  return FESTIVAL_BAR_COLORS[
-    festivalId % FESTIVAL_BAR_COLORS.length
-  ];
 }
 
 export default function FestivalCard({

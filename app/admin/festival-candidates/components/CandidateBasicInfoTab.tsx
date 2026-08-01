@@ -228,6 +228,7 @@ export default function CandidateBasicInfoTab({
       ))}
 
       {[
+        ["instagram_url", "공식 Instagram"],
         ["official_url", "공식 홈페이지"],
         ["thumbnail_url", "대표 썸네일 URL"],
       ].map(([field, label]) => (
@@ -240,12 +241,12 @@ export default function CandidateBasicInfoTab({
             type="url"
             value={
               festival[
-                field as "official_url" | "thumbnail_url"
+                field as "official_url" | "instagram_url" | "thumbnail_url"
               ] ?? ""
             }
             onChange={(event) =>
               onChange(
-                field as "official_url" | "thumbnail_url",
+                field as "official_url" | "instagram_url" | "thumbnail_url",
                 event.target.value,
               )
             }

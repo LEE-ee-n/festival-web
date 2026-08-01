@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import CandidateLineupTab from "@/app/admin/festival-candidates/components/CandidateLineupTab";
 import CandidateSourcePreview from "@/app/admin/festival-candidates/components/CandidateSourcePreview";
+import AdminBackLink from "@/components/admin/AdminBackLink";
 import JsonLineupAuditFields from "./JsonLineupAuditFields";
 import FestivalUpdateComparisonTable from "./FestivalUpdateComparisonTable";
 import { matchFestivalDraftArtists } from "@/lib/artists/matchFestivalDraftArtists";
@@ -96,7 +96,7 @@ export default function StagedFestivalUpdate({ festivalId, updateDraftId }: Prop
         const [festivalResult, lineupResult, ticketResult, artistResult] = await Promise.all([
           supabase.from("festivals").select(`
             id, name, normalized_name, search_aliases, start_date, end_date, location, address,
-            region, category, description, price_info, program_info, source_url, official_url,
+            region, category, description, price_info, program_info, source_url, official_url, instagram_url,
             thumbnail_url, price_type, status, updated_at
           `).eq("id", festivalId).eq("verification_status", "approved").single(),
           supabase.from("festival_artists").select(`
@@ -160,6 +160,7 @@ export default function StagedFestivalUpdate({ festivalId, updateDraftId }: Prop
           program_info: festivalResult.data.program_info ?? undefined,
           source_url: festivalResult.data.source_url ?? undefined,
           official_url: festivalResult.data.official_url ?? undefined,
+          instagram_url: festivalResult.data.instagram_url ?? undefined,
           thumbnail_url: festivalResult.data.thumbnail_url ?? undefined,
           price_type: festivalResult.data.price_type ?? undefined,
           status: festivalResult.data.status ?? undefined,
@@ -477,12 +478,12 @@ export default function StagedFestivalUpdate({ festivalId, updateDraftId }: Prop
   }
 
   if (isLoading) return <main className="min-h-screen bg-surface p-8">기존 페스티벌 수정 작업을 불러오는 중...</main>;
-  if (!draft || !festival) return <main className="min-h-screen bg-surface p-8"><p>{notice ?? errorMessage ?? "완료된 작업입니다."}</p><Link className="mt-4 inline-block underline" href={`/admin/festivals/${festivalId}/lineup`}>페스티벌 관리로 돌아가기</Link></main>;
+  if (!draft || !festival) return <main className="min-h-screen bg-surface p-8"><AdminBackLink /><p>{notice ?? errorMessage ?? "완료된 작업입니다."}</p></main>;
 
   return (
     <main className="min-h-screen bg-surface px-4 py-8">
       <div className="mx-auto max-w-6xl">
-        <Link href={`/admin/festivals/${festivalId}/lineup`} className="text-sm font-semibold text-ink-secondary underline">페스티벌 관리로 돌아가기</Link>
+        <AdminBackLink />
         <div className="mt-5 flex flex-wrap items-end justify-between gap-4">
           <div><p className="text-sm font-semibold text-ink-tertiary">기존 페스티벌 수정</p><h1 className="mt-1 text-2xl font-bold text-ink">{festival.name}</h1><p className="mt-1 text-sm text-ink-tertiary">기존 자료를 유지하고 선택한 추가·변경만 마지막에 한 번 반영합니다.</p></div>
           <div className="flex gap-2"><button type="button" onClick={() => void saveOnly()} disabled={isSaving} className="rounded-xl border border-line-strong px-4 py-2 text-sm font-bold">임시저장</button><button type="button" onClick={() => void deleteDraft()} disabled={isSaving} className="rounded-xl border border-red-200 px-4 py-2 text-sm font-bold text-red-600">임시저장 삭제</button></div>

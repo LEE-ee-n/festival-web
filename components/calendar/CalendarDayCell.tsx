@@ -140,9 +140,9 @@ export default function CalendarDayCell({
                           endsInThisRow ? "rounded-r-full" : "",
                         ].join(" ")}
                       >
-                        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-surface/80" />
+                        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-ink-secondary/70" />
 
-                        <span className={`${typography.calendarEvent} whitespace-nowrap text-white`}>
+                        <span className={`${typography.calendarEvent} whitespace-nowrap text-ink-secondary`}>
                           {festival.name.replace(
                             /^\d{4}\s*/,
                             "",

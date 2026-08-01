@@ -329,19 +329,28 @@ export default function FestivalDetailPage() {
               </section>
             )}
 
-            <section className="flex flex-wrap gap-3">
+            <section className="flex flex-col gap-3">
+              {festival.instagram_url && (
+                <a
+                  href={festival.instagram_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={`${typography.button} flex w-full items-center justify-center rounded-xl border border-line px-4 py-2.5 text-ink-secondary hover:bg-surface-subtle`}
+                >
+                  인스타그램
+                </a>
+              )}
+
               {festival.official_url && (
                 <a
                   href={festival.official_url}
                   target="_blank"
                   rel="noreferrer"
-                  className={`${typography.button} rounded-xl border border-line px-4 py-2.5 text-ink-secondary hover:bg-surface-subtle`}
+                  className={`${typography.button} flex w-full items-center justify-center rounded-xl border border-line px-4 py-2.5 text-ink-secondary hover:bg-surface-subtle`}
                 >
                   공식 홈페이지
                 </a>
               )}
-
-              
             </section>
           </div>
         </div>
