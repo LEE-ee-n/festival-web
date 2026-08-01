@@ -32,6 +32,19 @@ export function getAdjacentMonthForDate(
   return { year, monthIndex };
 }
 
+export function getShiftedCalendarMonth(
+  year: number,
+  monthIndex: number,
+  amount: number,
+) {
+  const shiftedMonth = new Date(year, monthIndex + amount, 1);
+
+  return {
+    year: shiftedMonth.getFullYear(),
+    monthIndex: shiftedMonth.getMonth(),
+  };
+}
+
 export function getCalendarDays(
   year: number,
   monthIndex: number,

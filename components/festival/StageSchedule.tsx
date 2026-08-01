@@ -15,12 +15,16 @@ export default function StageSchedule({
   artists,
   layout = "panel",
 }: StageScheduleProps) {
+  const shouldShowStageHeading = stage !== "무대 미정";
+
   return (
     <div>
-      <h4 className={`${typography.panelSectionTitle} flex items-center gap-2 overflow-hidden rounded-xl border border-line bg-blue-100 px-3 py-3 text-ink-secondary`}>
-        <HandMetal size={14} />
-        <span>{stage}</span>
-      </h4>
+      {shouldShowStageHeading && (
+        <h4 className={`${typography.panelSectionTitle} flex items-center gap-2 overflow-hidden rounded-xl border border-line bg-blue-100 px-3 py-3 text-ink-secondary`}>
+          <HandMetal size={14} />
+          <span>{stage}</span>
+        </h4>
+      )}
 
       <div className="divide-y divide-slate-300">
         {artists.map((item) => (

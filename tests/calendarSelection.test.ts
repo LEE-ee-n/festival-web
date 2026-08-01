@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   getAdjacentMonthForDate,
   getCalendarDays,
+  getShiftedCalendarMonth,
   toDateKey,
 } from "../lib/calendar.ts";
 
@@ -29,4 +30,25 @@ test("7월 달력의 8월 1일을 선택하면 8월로 이동한다", () => {
 
 test("현재 달의 날짜를 선택하면 달을 이동하지 않는다", () => {
   assert.equal(getAdjacentMonthForDate("2026-07-01", 2026, 6), null);
+});
+
+test("12월 다음 달은 다음 해 1월이다", () => {
+  assert.deepEqual(getShiftedCalendarMonth(2026, 11, 1), {
+    year: 2027,
+    monthIndex: 0,
+  });
+});
+
+test("월 이동 결과를 기준으로 연속 이동할 수 있다", () => {
+  const september = getShiftedCalendarMonth(2026, 7, 1);
+  const october = getShiftedCalendarMonth(
+    september.year,
+    september.monthIndex,
+    1,
+  );
+
+  assert.deepEqual(october, {
+    year: 2026,
+    monthIndex: 9,
+  });
 });

@@ -4,9 +4,13 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import AdminBackLink from "@/components/admin/AdminBackLink";
+import FestivalColorSelector from "@/components/admin/FestivalColorSelector";
 import { supabase } from "@/lib/supabase/client";
 import { deleteFestival } from "@/lib/festivals/deleteFestival";
+import { updateFestivalCalendarColor } from "@/lib/festivals/updateFestivalCalendarColor";
+import { isFestivalCalendarColor } from "@/lib/festivalColor";
 import { getSupabaseErrorMessage } from "@/lib/supabase/errorMessage";
+import type { FestivalCalendarColor } from "@/lib/types";
 
 type Festival = {
   id: number;
@@ -17,6 +21,7 @@ type Festival = {
   location: string | null;
   status: string | null;
   thumbnail_url: string | null;
+  calendar_color: FestivalCalendarColor | null;
 };
 
 export default function AdminFestivalsPage() {
@@ -24,6 +29,9 @@ export default function AdminFestivalsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   const [deletingId, setDeletingId] = useState<number | null>(
+    null,
+  );
+  const [savingColorId, setSavingColorId] = useState<number | null>(
     null,
   );
   const [errorMessage, setErrorMessage] = useState<
@@ -47,7 +55,8 @@ export default function AdminFestivalsPage() {
           end_date,
           location,
           status,
-          thumbnail_url
+          thumbnail_url,
+          calendar_color
         `)
         .order("start_date", {
           ascending: true,
@@ -57,7 +66,14 @@ export default function AdminFestivalsPage() {
         throw error;
       }
 
-      const loadedFestivals = data ?? [];
+      const loadedFestivals: Festival[] = (data ?? []).map(
+        (festival) => ({
+          ...festival,
+          calendar_color: isFestivalCalendarColor(festival.calendar_color)
+            ? festival.calendar_color
+            : null,
+        }),
+      );
       setFestivals(loadedFestivals);
     } catch (error) {
       setErrorMessage(getSupabaseErrorMessage(
@@ -66,6 +82,56 @@ export default function AdminFestivalsPage() {
       ));
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleCalendarColorChange(
+    festival: Festival,
+    calendarColor: FestivalCalendarColor | null,
+  ) {
+    if (festival.calendar_color === calendarColor) {
+      return;
+    }
+
+    const previousColor = festival.calendar_color;
+
+    setSavingColorId(festival.id);
+    setErrorMessage(null);
+    setFestivals((currentFestivals) =>
+      currentFestivals.map((item) =>
+        item.id === festival.id
+          ? { ...item, calendar_color: calendarColor }
+          : item,
+      ),
+    );
+
+    try {
+      const savedColor = await updateFestivalCalendarColor(
+        festival.id,
+        calendarColor,
+      );
+
+      setFestivals((currentFestivals) =>
+        currentFestivals.map((item) =>
+          item.id === festival.id
+            ? { ...item, calendar_color: savedColor }
+            : item,
+        ),
+      );
+    } catch (error) {
+      setFestivals((currentFestivals) =>
+        currentFestivals.map((item) =>
+          item.id === festival.id
+            ? { ...item, calendar_color: previousColor }
+            : item,
+        ),
+      );
+      setErrorMessage(getSupabaseErrorMessage(
+        error,
+        "캘린더 색상 저장에 실패했습니다.",
+      ));
+    } finally {
+      setSavingColorId(null);
     }
   }
 
@@ -173,6 +239,10 @@ export default function AdminFestivalsPage() {
                       상태
                     </th>
 
+                    <th className="px-3 py-4 text-right font-semibold text-ink-secondary">
+                      색상
+                    </th>
+
                     <th className="px-5 py-4 text-right font-semibold text-ink-secondary">
                       관리
                     </th>
@@ -199,6 +269,20 @@ export default function AdminFestivalsPage() {
 
                       <td className="px-5 py-4 text-ink-secondary">
                         {festival.status || "-"}
+                      </td>
+
+                      <td className="whitespace-nowrap px-3 py-4">
+                        <FestivalColorSelector
+                          festivalId={festival.id}
+                          selectedColor={festival.calendar_color}
+                          disabled={savingColorId !== null}
+                          onSelect={(calendarColor) =>
+                            void handleCalendarColorChange(
+                              festival,
+                              calendarColor,
+                            )
+                          }
+                        />
                       </td>
 
                       <td className="px-5 py-4">

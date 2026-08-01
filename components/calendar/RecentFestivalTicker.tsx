@@ -78,7 +78,7 @@ export default function RecentFestivalTicker() {
       className="border-b border-line bg-surface"
     >
       <div className="flex h-10 items-center px-4 sm:px-6">
-        <span className={`${typography.tickerBadge} mr-2 shrink-0 rounded bg-rose-500 px-1.5 py-0.5 text-white`}>
+        <span className={`${typography.tickerBadge} mr-2 shrink-0 rounded border border-festival-night bg-surface px-1.5 py-0.5 text-festival-night`}>
           NEW
         </span>
 
@@ -87,7 +87,7 @@ export default function RecentFestivalTicker() {
             <Link
               key={`previous-${previousFestival.id}`}
               href={`/festival/${previousFestival.id}`}
-              className={`${typography.metaStrong} recent-festival-ticker-out absolute inset-0 flex min-w-0 items-center text-ink-secondary`}
+              className={`${typography.metaStrong} recent-festival-ticker-out absolute inset-0 flex min-w-0 items-center text-festival-night`}
             >
               <span className="truncate">
                 {previousFestival.name}이 새로 등록되었습니다.
@@ -99,7 +99,7 @@ export default function RecentFestivalTicker() {
             key={`current-${currentFestival.id}`}
             href={`/festival/${currentFestival.id}`}
             className={[
-              `${typography.metaStrong} absolute inset-0 flex min-w-0 items-center text-ink-secondary hover:text-ink`,
+              `${typography.metaStrong} absolute inset-0 flex min-w-0 items-center text-festival-night`,
               previousFestival ? "recent-festival-ticker-in" : "",
             ].join(" ")}
           >

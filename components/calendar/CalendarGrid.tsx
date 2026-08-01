@@ -1,5 +1,10 @@
 import CalendarDayCell from "@/components/calendar/CalendarDayCell";
-import type { CalendarDay, Festival } from "@/lib/types";
+import type { CalendarSwipeHandlers } from "@/components/calendar/useCalendarSwipe";
+import type {
+  CalendarDay,
+  Festival,
+  FestivalCalendarColor,
+} from "@/lib/types";
 
 type CalendarGridProps = {
   calendarDays: CalendarDay[];
@@ -7,13 +12,11 @@ type CalendarGridProps = {
   festivalLanes: Map<number, number>;
   selectedDateKey: string;
   isLoading: boolean;
-  getFestivalColorClass: (festivalId: number) => string;
-  onPointerDown: (
-    event: React.PointerEvent<HTMLDivElement>,
-  ) => void;
-  onPointerUp: (
-    event: React.PointerEvent<HTMLDivElement>,
-  ) => void;
+  getFestivalColorClass: (
+    festivalId: number,
+    calendarColor?: FestivalCalendarColor | null,
+  ) => string;
+  swipeHandlers: CalendarSwipeHandlers;
   onSelectDate: (dateKey: string) => void;
   onSelectFestival: (festival: Festival) => void;
 };
@@ -25,17 +28,15 @@ export default function CalendarGrid({
   selectedDateKey,
   isLoading,
   getFestivalColorClass,
-  onPointerDown,
-  onPointerUp,
+  swipeHandlers,
   onSelectDate,
   onSelectFestival,
 }: CalendarGridProps) {
   return (
     // 달력 본체 전체: 스와이프 이벤트와 외곽 영역 관리
     <div
-      onPointerDown={onPointerDown}
-      onPointerUp={onPointerUp}
-      className="touch-none overflow-hidden border border-line"
+      {...swipeHandlers}
+      className="touch-pan-y overflow-hidden border border-line"
     >
       {/* 날짜 셀을 7열로 배치하는 실제 달력 그리드 */}
       <div className="grid grid-cols-7 auto-rows-[92px] [&>*]:border-b [&>*]:border-r [&>*:nth-child(7n)]:border-r-0 [&>*:nth-last-child(-n+7)]:border-b-0 sm:auto-rows-auto">

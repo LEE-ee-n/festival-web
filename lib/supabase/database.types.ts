@@ -477,6 +477,7 @@ export type Database = {
       festivals: {
         Row: {
           address: string | null
+          calendar_color: string | null
           category: string | null
           confidence_score: number | null
           created_at: string | null
@@ -504,6 +505,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          calendar_color?: string | null
           category?: string | null
           confidence_score?: number | null
           created_at?: string | null
@@ -531,6 +533,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          calendar_color?: string | null
           category?: string | null
           confidence_score?: number | null
           created_at?: string | null
@@ -959,6 +962,10 @@ export type Database = {
       update_festival_basic_info_with_audit: {
         Args: { p_festival: Json; p_festival_id: number }
         Returns: number
+      }
+      update_festival_calendar_color_with_audit: {
+        Args: { p_calendar_color: string | null; p_festival_id: number }
+        Returns: string | null
       }
       update_festival_statuses: { Args: never; Returns: undefined }
     }

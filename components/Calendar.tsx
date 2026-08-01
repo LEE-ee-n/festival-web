@@ -17,6 +17,7 @@ import {
   getAdjacentMonthForDate,
   getCalendarDays,
   getFestivalsForDate,
+  getShiftedCalendarMonth,
   toDateKey,
 } from "@/lib/calendar";
 import { typography } from "@/lib/typography";
@@ -29,6 +30,7 @@ import CalendarHeader from "@/components/calendar/CalendarHeader";
 import CalendarWeekdays from "@/components/calendar/CalendarWeekdays";
 import CalendarGrid from "@/components/calendar/CalendarGrid";
 import RecentFestivalTicker from "@/components/calendar/RecentFestivalTicker";
+import { useCalendarSwipe } from "@/components/calendar/useCalendarSwipe";
 import { getFestivalColorClass } from "@/lib/festivalColor";
 
 function getCalendarMonth(
@@ -59,6 +61,28 @@ export default function Calendar() {
       () => getCalendarMonth(searchParams, today),
       [searchParams, today],
     );
+  const monthCursorRef = useRef({
+    year: currentYear,
+    monthIndex: currentMonthIndex,
+  });
+  const pendingMonthKeyRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const currentMonthKey = `${currentYear}-${currentMonthIndex}`;
+
+    if (
+      pendingMonthKeyRef.current !== null &&
+      pendingMonthKeyRef.current !== currentMonthKey
+    ) {
+      return;
+    }
+
+    monthCursorRef.current = {
+      year: currentYear,
+      monthIndex: currentMonthIndex,
+    };
+    pendingMonthKeyRef.current = null;
+  }, [currentMonthIndex, currentYear]);
 
   const [selectedDateKey, setSelectedDateKey] = useState(() => {
     const initialMonth = getCalendarMonth(searchParams, today);
@@ -104,6 +128,8 @@ export default function Calendar() {
 
       nextSearchParams.set("year", String(year));
       nextSearchParams.set("month", String(monthIndex + 1));
+      monthCursorRef.current = { year, monthIndex };
+      pendingMonthKeyRef.current = `${year}-${monthIndex}`;
 
       setSelectedDateKey(toDateKey(new Date(year, monthIndex, 1)));
       setSelectedFestival(null);
@@ -139,6 +165,9 @@ export default function Calendar() {
       "month",
       String(adjacentMonth.monthIndex + 1),
     );
+    monthCursorRef.current = adjacentMonth;
+    pendingMonthKeyRef.current =
+      `${adjacentMonth.year}-${adjacentMonth.monthIndex}`;
 
     router.push(`${pathname}?${nextSearchParams.toString()}`, {
       scroll: false,
@@ -165,6 +194,7 @@ export default function Calendar() {
           .select(`
             id,
             name,
+            calendar_color,
             start_date,
             end_date,
             location,
@@ -249,8 +279,6 @@ export default function Calendar() {
     [activeSelectedDateKey, festivals],
   );
 
-  const pointerStartX = useRef<number | null>(null);
-  const pointerStartY = useRef<number | null>(null);
   const calendarWheelTargetRef = useRef<HTMLDivElement>(null);
   const wheelDeltaY = useRef(0);
   const wheelLastEventAt = useRef(0);
@@ -258,15 +286,25 @@ export default function Calendar() {
 
   const moveMonth = useCallback(
     (amount: number) => {
-      const nextMonth = new Date(
-        currentYear,
-        currentMonthIndex + amount,
-        1,
+      const nextMonth = getShiftedCalendarMonth(
+        monthCursorRef.current.year,
+        monthCursorRef.current.monthIndex,
+        amount,
       );
 
-      navigateToMonth(nextMonth.getFullYear(), nextMonth.getMonth());
+      navigateToMonth(nextMonth.year, nextMonth.monthIndex);
     },
-    [currentMonthIndex, currentYear, navigateToMonth],
+    [navigateToMonth],
+  );
+
+  const handleCalendarSwipe = useCallback(
+    (direction: "previous" | "next") => {
+      moveMonth(direction === "next" ? 1 : -1);
+    },
+    [moveMonth],
+  );
+  const calendarSwipeHandlers = useCalendarSwipe(
+    handleCalendarSwipe,
   );
 
   const handleCalendarWheel = useCallback(
@@ -320,48 +358,15 @@ export default function Calendar() {
     };
   }, [handleCalendarWheel]);
 
-  function handlePointerDown(
-  event: React.PointerEvent<HTMLDivElement>,
-) {
-  pointerStartX.current = event.clientX;
-  pointerStartY.current = event.clientY;
-}
-
-function handlePointerUp(
-  event: React.PointerEvent<HTMLDivElement>,
-) {
-  if (
-    pointerStartX.current === null ||
-    pointerStartY.current === null
-  ) {
-    return;
-  }
-
-  const deltaX = event.clientX - pointerStartX.current;
-  const deltaY = event.clientY - pointerStartY.current;
-
-  pointerStartX.current = null;
-  pointerStartY.current = null;
-
-  const horizontalDistance = Math.abs(deltaX);
-  const verticalDistance = Math.abs(deltaY);
-  const isHorizontalSwipe =
-    horizontalDistance >= verticalDistance * 0.55;
-
-  const passedThreshold = horizontalDistance >= 45;
-
-  if (!isHorizontalSwipe || !passedThreshold) {
-    return;
-  }
-
-  if (deltaX < 0) {
-    moveMonth(1);
-  } else {
-    moveMonth(-1);
-  }
-}
-
   function moveToToday() {
+    const todayMonth = {
+      year: today.getFullYear(),
+      monthIndex: today.getMonth(),
+    };
+
+    monthCursorRef.current = todayMonth;
+    pendingMonthKeyRef.current =
+      `${todayMonth.year}-${todayMonth.monthIndex}`;
     setSelectedDateKey(toDateKey(today));
     setSelectedFestival(null);
     setIsDatePanelOpen(false);
@@ -388,6 +393,8 @@ function handlePointerUp(
 
     nextSearchParams.set("year", String(year));
     nextSearchParams.set("month", String(month));
+    monthCursorRef.current = { year, monthIndex: month - 1 };
+    pendingMonthKeyRef.current = `${year}-${month - 1}`;
     setSelectedDateKey(festival.start_date);
     setSelectedFestival(festival);
     setHasListContext(false);
@@ -445,8 +452,7 @@ function handlePointerUp(
               selectedDateKey={activeSelectedDateKey}
               isLoading={isLoading}
               getFestivalColorClass={getFestivalColorClass}
-              onPointerDown={handlePointerDown}
-              onPointerUp={handlePointerUp}
+              swipeHandlers={calendarSwipeHandlers}
               onSelectDate={selectDate}
               onSelectFestival={(festival) => {
                 setSelectedFestival(festival);

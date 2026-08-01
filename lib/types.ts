@@ -16,6 +16,13 @@ export type VerificationStatus =
   | "approved"
   | "rejected";
 
+export type FestivalCalendarColor =
+  | "pink"
+  | "blue"
+  | "green"
+  | "purple"
+  | "orange";
+
 export type PriceType =
   | "free"
   | "paid"
@@ -27,6 +34,7 @@ export interface Festival {
   name: string;
   start_date: string;
   end_date: string;
+  calendar_color: FestivalCalendarColor | null;
 
   location: string | null;
   address: string | null;

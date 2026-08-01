@@ -1,4 +1,8 @@
-import type { CalendarDay, Festival } from "@/lib/types";
+import type {
+  CalendarDay,
+  Festival,
+  FestivalCalendarColor,
+} from "@/lib/types";
 import { getFestivalBarSegment } from "@/lib/calendarFestivalBar";
 import { MAX_VISIBLE_FESTIVAL_LANES } from "@/lib/calendarFestivalLanes";
 import { typography } from "@/lib/typography";
@@ -10,7 +14,10 @@ type CalendarDayCellProps = {
   festivalLanes: Map<number, number>;
   isSelected: boolean;
   isLoading: boolean;
-  getFestivalColorClass: (festivalId: number) => string;
+  getFestivalColorClass: (
+    festivalId: number,
+    calendarColor?: FestivalCalendarColor | null,
+  ) => string;
   onSelectDate: (dateKey: string) => void;
   onSelectFestival: (festival: Festival) => void;
 };
@@ -58,8 +65,7 @@ export default function CalendarDayCell({
     >
       <span
         className={[
-          `${typography.calendarDate} absolute left-1 top-[2px] inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1 sm:left-2 sm:top-2 sm:h-7 sm:min-w-7`,
-          day.isToday ? "bg-surface-dark text-white" : "",
+          `${typography.calendarDate} absolute left-1 top-[2px] inline-flex h-6 min-w-6 items-center justify-center sm:left-2 sm:top-2 sm:h-7 sm:min-w-7`,
           dayIndex % 7 === 5 && !day.isToday
             ? "text-festival-indigo"
             : "",
@@ -68,7 +74,15 @@ export default function CalendarDayCell({
             : "",
         ].join(" ")}
       >
-        {day.dayNumber}
+        <span
+          className={
+            day.isToday
+              ? "inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-surface-dark px-0.5 text-white sm:h-7 sm:min-w-7 sm:px-1"
+              : undefined
+          }
+        >
+          {day.dayNumber}
+        </span>
       </span>
 
       {!isLoading && hiddenFestivalCount > 0 && (
@@ -134,15 +148,16 @@ export default function CalendarDayCell({
                           }px)`,
                         }}
                         className={[
-                          "absolute left-0 top-0 flex h-5 cursor-pointer items-center gap-1.5 overflow-hidden px-2 text-left hover:opacity-90 sm:h-6",
-                          getFestivalColorClass(festival.id),
-                          startsToday ? "rounded-l-full" : "",
-                          endsInThisRow ? "rounded-r-full" : "",
+                          "absolute left-0 top-0 flex h-5 cursor-pointer items-center overflow-hidden px-2 text-left hover:opacity-90 sm:h-6",
+                          getFestivalColorClass(
+                            festival.id,
+                            festival.calendar_color,
+                          ),
+                          startsToday ? "rounded-l-md" : "",
+                          endsInThisRow ? "rounded-r-md" : "",
                         ].join(" ")}
                       >
-                        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-ink-secondary/70" />
-
-                        <span className={`${typography.calendarEvent} whitespace-nowrap text-ink-secondary`}>
+                        <span className={`${typography.calendarEvent} whitespace-nowrap text-festival-night sm:translate-y-px`}>
                           {festival.name.replace(
                             /^\d{4}\s*/,
                             "",

@@ -66,7 +66,7 @@
 | 공개 달력 `/` | `festivals` | 없음 |
 | 축제 상세 `/festival/[id]` | `festivals`, `festival_artists`, `artists`, `festival_ticket_rounds` | 없음 |
 | 아티스트 상세 `/artist/[id]` | `artists`, `festival_artists`, 연결된 `festivals` | 없음 |
-| 축제 관리 `/admin/festivals` | `festivals` | 삭제 시 `delete_festival_with_audit` |
+| 축제 관리 `/admin/festivals` | `festivals` | 색상 변경 `update_festival_calendar_color_with_audit`, 삭제 `delete_festival_with_audit` |
 | 축제 신규 등록 `/admin/festivals/new` | 중복 확인용 `festivals` | `create_festival_with_audit` |
 | 축제 관리 `/admin/festivals/[id]/lineup` | 정식 축제·라인업·티켓, `audit_events`와 연결된 `audit_changes` | 기본정보·라인업·티켓·썸네일 감사 RPC |
 | 기존 축제 수정 작업함 `/admin/festival-updates` | `festival_update_drafts`, 연결된 `festivals` | 단계 작업 링크 제공 |
@@ -88,6 +88,7 @@
 | `name` | text | NO | 없음 | 표시 축제명 |
 | `start_date` | date | NO | 없음 | 시작일·식별값 |
 | `end_date` | date | NO | 없음 | 종료일·식별값 |
+| `calendar_color` | text | YES | 없음 | 관리자 지정 캘린더 막대 색상. `null`이면 ID 기반 자동 색상 (Migration 048) |
 | `location` | text | YES | 없음 | 행사장명 |
 | `category` | text | YES | 없음 | 축제 분류 |
 | `description` | text | YES | 없음 | 축제 소개 |
@@ -270,6 +271,8 @@ Migration 042는 관리자 검토가 끝난 `needs_review` 후보를 최종 등�
 Migration 046은 신규 승인 시 후보의 수집 게시물 URL이 `festivals.source_url`로 복사되지 않게 분리한다. 후보와 감사 로그의 `source_url`은 유지하고 `festivals.official_url`은 관리자 수동 입력으로만 관리한다. 2026-07-27 운영 DB 적용 완료.
 
 Migration 047은 `festivals.instagram_url`을 추가하고 신규 후보 승인, 기존 축제 수정, 관리자 직접 등록·수정의 감사 저장 흐름을 확장한다. 게시글 URL은 계속 후보·수정 작업의 `source_url`에 두고 작성자 프로필 URL만 `instagram_url` 검토 후보로 사용한다. 2026-07-31 운영 DB 적용 후 칼럼, 형식 제약조건과 관련 함수 5개를 확인했다.
+
+Migration 048은 nullable `festivals.calendar_color`와 5색 허용값 제약조건을 추가한다. 관리자 목록에서 선택한 색상은 `update_festival_calendar_color_with_audit` RPC가 즉시 저장하고 감사 로그를 남긴다. `null`인 기존 행은 ID 기반 자동 색상을 계속 사용한다. 2026-08-01 운영 DB 적용 후 컬럼·CHECK 제약조건과 RPC 권한(`authenticated = true`, `anon = false`)을 확인했다.
 
 ## 6-1. festival_update_drafts
 

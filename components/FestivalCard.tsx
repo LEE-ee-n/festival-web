@@ -23,7 +23,10 @@ export default function FestivalCard({
     <span
       className={[
         "min-h-[128px] w-2.5 shrink-0 rounded-full",
-        getFestivalColorClass(festival.id),
+        getFestivalColorClass(
+          festival.id,
+          festival.calendar_color,
+        ),
       ].join(" ")}
     />
 

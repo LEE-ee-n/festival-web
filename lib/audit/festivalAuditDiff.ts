@@ -15,6 +15,7 @@ const fieldLabels: Record<string, string> = {
   search_aliases: "검색 별칭",
   start_date: "시작일",
   end_date: "종료일",
+  calendar_color: "캘린더 색상",
   location: "행사장명",
   address: "상세 주소",
   region: "지역",
