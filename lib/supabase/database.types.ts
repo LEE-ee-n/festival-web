@@ -920,6 +920,10 @@ export type Database = {
         Returns: string
       }
       refresh_festival_statuses: { Args: never; Returns: number }
+      replace_pending_discord_source_drafts: {
+        Args: { p_source_url: string }
+        Returns: Json
+      }
       search_similar_artists: {
         Args: { input_name: string }
         Returns: {

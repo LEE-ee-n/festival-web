@@ -42,7 +42,7 @@
 
 - `lib/types.ts`: 축제, 출연진, 티켓 등 공통 TypeScript 타입
 - `lib/calendar.ts`: 월요일 시작 월간 날짜 배열, 날짜 변환과 날짜별 축제 분류
-- `lib/calendarSwipe.ts`: 모바일 달력 제스처의 축 방향 잠금과 좌우 스와이프 판정
+- `lib/calendarSwipe.ts`: 모바일 달력 제스처의 축 방향 잠금, 가로 캡처 여부와 좌우 스와이프 판정
 - `lib/calendarFestivalBar.ts`: 여러 날짜에 걸친 축제 막대 길이와 종료 모양 계산
 - `lib/calendarFestivalLanes.ts`: 월간 축제 겹침을 계산해 축제별 고정 줄 배정
 - `lib/publicSearch.ts`, `lib/publicSearchLogic.ts`: 공개 축제·아티스트 검색 쿼리와 정규화·정렬
@@ -115,6 +115,8 @@
 
 - 상세 규칙과 코드 연결은 `FESTIVAL_INGESTION_FLOW.md`에 기록한다.
 - Instagram URL → 임시 OCR·JSON → 신규 또는 기존 작업함 → 관리자 5단계 확정 → 최종 트랜잭션 반영
+- Discord `신규등록` + 이미지 첨부 → `operations/discord-instagram-bot/src/discordAttachment.js` 명령·형식 판정 → 첨부 WebP 변환·OCR → 신규 작업함
+- Discord 중복 출처 → `operations/discord-instagram-bot/src/discordReplacement.js` pending 보호 판정 → 사용자 위험 버튼 → pending 임시 작업만 삭제 후 기존 수집 흐름 재실행
 - 라인업은 영문 이름에서 `normalized_name`을 자동 생성한다. 기존 아티스트는 DB 값을 사용하며, 자동 생성할 수 없는 신규 한글 이름은 영문 식별값을 입력하기 전까지 승인하지 않는다.
 - 아티스트 수정은 `update_artist_admin` DB 함수에서 표시 이름·normalized_name·별칭을 한 트랜잭션으로 반영한다.
 - 승인 등록은 DB 트랜잭션으로 처리하며 실패하면 후보와 정식 데이터 변경을 모두 취소한다.

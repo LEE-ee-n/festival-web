@@ -49,3 +49,9 @@ export function getCalendarSwipeDirection(
 
   return deltaX < 0 ? "next" : "previous";
 }
+
+export function shouldCaptureCalendarGesture(
+  axis: CalendarGestureAxis | null,
+): boolean {
+  return axis === "horizontal";
+}

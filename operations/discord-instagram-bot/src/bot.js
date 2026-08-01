@@ -35,6 +35,12 @@ import {
   getErrorMessage,
   truncateDiscordContent,
 } from "./discordMessage.js";
+import { parseDiscordAttachmentRegistration } from "./discordAttachment.js";
+import {
+  canReplaceDiscordSourceDraft,
+  createSourceReplacementButtonId,
+  parseSourceReplacementButtonId,
+} from "./discordReplacement.js";
 
 const required = [
   "DISCORD_BOT_TOKEN", "DISCORD_ALLOWED_USER_ID", "SUPABASE_URL",
@@ -186,7 +192,7 @@ async function getBrowser() {
 
 async function runCodex(imagePaths, source, jobDir) {
   const outputPath = resolve(jobDir, "codex-result.json");
-  const prompt = `Instagram 포스터와 캡션에서 페스티봄 DB 후보 JSON을 만드세요.
+  const prompt = `제공된 축제 포스터 이미지와 캡션에서 페스티봄 DB 후보 JSON을 만드세요.
 보이는 정보만 사용하고 추측하지 마세요. 모르는 시간과 무대는 빈 문자열로 두세요.
 candidate.raw_text에는 OCR 원문과 유용한 캡션 근거를 보존하세요.
 normalized_name은 영문 소문자와 숫자만 사용하세요. 포스터 원문은 input_name에 보존하세요.
@@ -195,7 +201,7 @@ festival.name은 start_date의 연도를 맨 앞에 붙여 "20XX 축제명" 형�
 기존 이름 앞에 다른 20XX 연도가 있으면 제거하고 start_date 연도로 교체하세요.
 아티스트 normalized_name에서는 특수문자를 제거하고 영문 소문자와 숫자만 남기세요.
 영문 아티스트의 통용 한글 독음은 aliases에 추가하세요. 취소나 제외가 명시된 아티스트만 status=cancelled로 두세요.
-POST URL: ${source.post_url}\nCAPTION:\n${source.caption}`;
+SOURCE URL: ${source.post_url}\nCAPTION:\n${source.caption}`;
   const args = [codexBin, "exec", "--sandbox", "read-only", "--ephemeral", "--skip-git-repo-check",
     "--cd", jobDir, "--output-schema", schemaPath, "--output-last-message", outputPath, "--color", "never"];
   for (const path of imagePaths) args.push("--image", path);
@@ -503,6 +509,79 @@ async function extractInstagramPost(url, jobId, update) {
   }
 }
 
+async function extractDiscordAttachmentPost(registration, sourceUrl, jobId, update) {
+  if (registration.images.length === 0) {
+    throw new Error("JPG, PNG, WebP 또는 GIF 이미지를 첨부해 주세요.");
+  }
+  if (registration.images.length > 5) {
+    throw new Error("이미지는 한 번에 최대 5장까지 등록할 수 있습니다.");
+  }
+
+  const jobDir = resolve(jobsRoot, jobId);
+  await mkdir(jobDir, { recursive: true });
+  try {
+    const images = [];
+    for (let index = 0; index < registration.images.length; index += 1) {
+      const attachment = registration.images[index];
+      if (Number(attachment.size) > 25 * 1024 * 1024) {
+        throw new Error(`${attachment.name || `${index + 1}번째 이미지`} 용량이 25MB를 초과합니다.`);
+      }
+      await update(`첨부 이미지 변환 ${index + 1}/${registration.images.length}`);
+      const response = await fetch(attachment.url, { signal: AbortSignal.timeout(60_000) });
+      if (!response.ok) throw new Error(`첨부 이미지 다운로드 실패: HTTP ${response.status}`);
+      const original = Buffer.from(await response.arrayBuffer());
+      const buffer = await sharp(original, { pages: 1, limitInputPixels: 40_000_000 })
+        .rotate()
+        .resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true })
+        .webp({ quality: 88, effort: 4 })
+        .toBuffer();
+      const path = resolve(jobDir, `image-${index + 1}.webp`);
+      await writeFile(path, buffer);
+      images.push({ path, buffer });
+    }
+
+    await update("이미지 OCR 및 신규 후보 생성 중");
+    const source = { post_url: sourceUrl, caption: registration.caption };
+    const draft = await runCodex(images.map((image) => image.path), source, jobDir);
+    draft.festival.normalized_name = normalizeFestivalName(
+      draft.festival.normalized_name || draft.festival.name,
+    );
+    draft.candidate.source_type = "discord_attachment";
+    draft.candidate.source_url = sourceUrl;
+    draft.festival.source_url = "";
+    draft.festival.official_url = "";
+    draft.festival.instagram_url = "";
+    draft.festival.thumbnail_url = "";
+    await update("DB 아티스트와 신규 후보를 비교하는 중");
+    await matchArtists(draft);
+    draft.artists = compareLineup(draft.artists, []);
+    const dateResult = normalizeDraftDates(draft);
+    const comparison = {
+      work_type: "new",
+      existing_festival_id: null,
+      possible_festival_ids: [],
+      date_review_required: !dateResult.hasCompleteFestivalDates,
+      counts: {
+        existing: 0,
+        add: draft.artists.filter((artist) => artist.comparison_status === "add").length,
+        remove_candidate: draft.artists
+          .filter((artist) => artist.comparison_status === "remove_candidate").length,
+      },
+    };
+    return {
+      draft,
+      comparison,
+      announcementRound: getAnnouncementRound(
+        `${draft.candidate.raw_text}\n${registration.caption}`,
+      ),
+      poster: images[0].buffer,
+      sourceUrl,
+    };
+  } finally {
+    await rm(jobDir, { recursive: true, force: true });
+  }
+}
+
 async function uploadPoster(jobId, poster) {
   const userId = (await supabase.auth.getUser()).data.user?.id;
   if (!userId) throw new Error("Supabase Bot 세션이 없습니다.");
@@ -574,6 +653,15 @@ function retryButton(jobId) {
   );
 }
 
+function sourceReplacementButton(messageId) {
+  return new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId(createSourceReplacementButtonId(messageId))
+      .setLabel("기존 삭제 후 재등록")
+      .setStyle(ButtonStyle.Danger),
+  );
+}
+
 function resultMessage(result, saved) {
   const { counts } = result.comparison;
   const type = result.comparison.work_type === "new" ? "신규" : result.comparison.work_type === "update" ? "업데이트" : "연결 확인 필요";
@@ -585,6 +673,159 @@ function resultMessage(result, saved) {
   return `${saved ? "✅ 임시 작업 생성 완료" : "⚠️ 임시 작업 저장 실패"} · ${type}\n`
     + `${url ? `${url}\n` : ""}`
     + `기존 ${counts.existing}, +추가 ${counts.add}, 확인 ${counts.remove_candidate}`;
+}
+
+async function findExistingSourceDrafts(sourceUrl) {
+  const [candidateResult, updateResult] = await Promise.all([
+    supabase
+      .from("festival_candidates")
+      .select("id,status,source_assets,work_type")
+      .eq("source_url", sourceUrl)
+      .order("version_number", { ascending: false }),
+    supabase
+      .from("festival_update_drafts")
+      .select("id,festival_id,status")
+      .eq("source_url", sourceUrl)
+      .order("version_number", { ascending: false }),
+  ]);
+  if (candidateResult.error) throw candidateResult.error;
+  if (updateResult.error) throw updateResult.error;
+  return {
+    candidates: candidateResult.data || [],
+    updates: updateResult.data || [],
+  };
+}
+
+async function showDuplicateSource(status, messageId, sourceLabel, existing) {
+  const existingUpdate = existing.updates[0];
+  const existingUrl = existingUpdate
+    ? `${adminBaseUrl}/admin/festivals/import-json?festivalId=${existingUpdate.festival_id}&updateDraftId=${existingUpdate.id}`
+    : `${adminBaseUrl}/admin/festival-candidates`;
+  const replaceable = canReplaceDiscordSourceDraft(existing.candidates, existing.updates);
+  await status.edit({
+    content: `이미 처리했거나 진행 중인 ${sourceLabel}입니다.\n${existingUrl}`,
+    components: replaceable ? [sourceReplacementButton(messageId)] : [],
+  });
+  return replaceable;
+}
+
+async function persistProcessedResult(result, jobId, status, logContext) {
+  try {
+    const saved = await saveResult(result, jobId, false);
+    await status.edit({ content: resultMessage(result, saved), components: [] });
+    logInfo(`${logContext} completed`, `job_id=${jobId} saved_id=${saved?.id ?? "none"}`);
+  } catch (error) {
+    logError(`${logContext} database save failed`, error, `job_id=${jobId}`);
+    await keepRetry(jobId, result, false);
+    await status.edit({
+      content: truncateDiscordContent(`${resultMessage(result, null)}\n${getErrorMessage(error)}`),
+      components: [retryButton(jobId)],
+    });
+  }
+}
+
+async function handleDiscordAttachmentRegistration(message, registration, options = {}) {
+  const sourceUrl = message.url;
+  const jobId = options.jobId || message.id;
+  logInfo(
+    "discord attachment job received",
+    `message_id=${message.id} images=${registration.images.length}`,
+  );
+  const status = options.status || await message.reply("첨부 이미지를 확인하는 중입니다.");
+  try {
+    if (!options.skipDuplicateCheck) {
+      const existing = await findExistingSourceDrafts(sourceUrl);
+      if (existing.candidates.length > 0 || existing.updates.length > 0) {
+        await showDuplicateSource(status, message.id, "첨부", existing);
+        logInfo("discord attachment job skipped as duplicate", `message_id=${message.id}`);
+        return;
+      }
+    }
+
+    const result = await extractDiscordAttachmentPost(
+      registration,
+      sourceUrl,
+      jobId,
+      (text) => status.edit({ content: text, components: [] }),
+    );
+    await persistProcessedResult(result, jobId, status, "discord attachment job");
+  } catch (error) {
+    logError("discord attachment job failed", error, `message_id=${message.id}`);
+    await status.edit({ content: formatDiscordError("처리 실패", error), components: [] });
+  }
+}
+
+async function handleInstagramRegistration(message, url, options = {}) {
+  const jobId = options.jobId || message.id;
+  logInfo("instagram job received", `message_id=${message.id} url=${url}`);
+  const status = options.status || await message.reply("Instagram 게시물을 확인하는 중입니다.");
+  try {
+    if (!options.skipDuplicateCheck) {
+      const existing = await findExistingSourceDrafts(url);
+      if (existing.candidates.length > 0 || existing.updates.length > 0) {
+        await showDuplicateSource(status, message.id, "URL", existing);
+        logInfo("instagram job skipped as duplicate", `message_id=${message.id} url=${url}`);
+        return;
+      }
+    }
+
+    const result = await extractInstagramPost(
+      url,
+      jobId,
+      (text) => status.edit({ content: text, components: [] }),
+    );
+    await persistProcessedResult(result, jobId, status, "instagram job");
+  } catch (error) {
+    logError("instagram job failed", error, `message_id=${message.id} url=${url}`);
+    await status.edit({ content: formatDiscordError("처리 실패", error), components: [] });
+  }
+}
+
+async function replacePendingSourceDraft(interaction, originalMessageId) {
+  const channel = interaction.channel;
+  if (!channel?.messages) throw new Error("원본 메시지 채널을 확인할 수 없습니다.");
+  const originalMessage = await channel.messages.fetch(originalMessageId);
+  const attachmentRegistration = parseDiscordAttachmentRegistration(
+    originalMessage.content,
+    [...originalMessage.attachments.values()],
+  );
+  const instagramUrl = originalMessage.content
+    .match(/https?:\/\/(?:www\.)?instagram\.com\/(?:p|reel)\/[A-Za-z0-9_-]+\/?/i)?.[0];
+  const sourceUrl = attachmentRegistration ? originalMessage.url : instagramUrl;
+  if (!sourceUrl) throw new Error("재등록할 원본 URL 또는 첨부 이미지를 찾을 수 없습니다.");
+
+  await interaction.message.edit({ content: "기존 임시 작업을 삭제하는 중입니다.", components: [] });
+  const { data, error } = await supabase.rpc("replace_pending_discord_source_drafts", {
+    p_source_url: sourceUrl,
+  });
+  if (error) throw error;
+
+  const storagePaths = Array.isArray(data?.storage_paths)
+    ? data.storage_paths.filter((path) => typeof path === "string" && path)
+    : [];
+  if (storagePaths.length > 0) {
+    const { error: storageError } = await supabase.storage
+      .from("festival-candidate-posters")
+      .remove(storagePaths);
+    if (storageError) {
+      logError("replaced candidate poster cleanup failed", storageError, `source_url=${sourceUrl}`);
+    }
+  }
+
+  const replacementJobId = `${originalMessage.id}-${interaction.id}`;
+  if (attachmentRegistration) {
+    await handleDiscordAttachmentRegistration(originalMessage, attachmentRegistration, {
+      jobId: replacementJobId,
+      skipDuplicateCheck: true,
+      status: interaction.message,
+    });
+    return;
+  }
+  await handleInstagramRegistration(originalMessage, instagramUrl, {
+    jobId: replacementJobId,
+    skipDuplicateCheck: true,
+    status: interaction.message,
+  });
 }
 
 client.on("messageCreate", async (message) => {
@@ -606,57 +847,43 @@ client.on("messageCreate", async (message) => {
       return;
     }
   }
+  const attachmentRegistration = parseDiscordAttachmentRegistration(
+    message.content,
+    [...message.attachments.values()],
+  );
+  if (attachmentRegistration) {
+    await handleDiscordAttachmentRegistration(message, attachmentRegistration);
+    return;
+  }
   const url = message.content.match(/https?:\/\/(?:www\.)?instagram\.com\/(?:p|reel)\/[A-Za-z0-9_-]+\/?/i)?.[0];
   if (!url) return;
-  const regenerate = false;
-  const jobId = message.id;
-  logInfo("instagram job received", `message_id=${message.id} url=${url}`);
-  const status = await message.reply("Instagram 게시물을 확인하는 중입니다.");
-  try {
-    const [candidateResult, updateResult] = await Promise.all([
-      supabase.from("festival_candidates").select("id").eq("source_url", url).limit(1),
-      supabase.from("festival_update_drafts").select("id,festival_id").eq("source_url", url).limit(1),
-    ]);
-    const existingCandidate = candidateResult.data?.[0];
-    const existingUpdate = updateResult.data?.[0];
-    if (existingCandidate || existingUpdate) {
-      const existingUrl = existingUpdate
-        ? `${adminBaseUrl}/admin/festivals/import-json?festivalId=${existingUpdate.festival_id}&updateDraftId=${existingUpdate.id}`
-        : `${adminBaseUrl}/admin/festival-candidates`;
-      await status.edit(`이미 처리했거나 진행 중인 URL입니다.\n${existingUrl}`);
-      logInfo("instagram job skipped as duplicate", `message_id=${message.id} url=${url}`);
-      return;
-    }
-    const result = await extractInstagramPost(url, jobId, (text) => status.edit(text));
-    try {
-      const saved = await saveResult(result, jobId, regenerate);
-      await status.edit({
-        content: resultMessage(result, saved),
-      });
-      logInfo(
-        "instagram job completed",
-        `message_id=${message.id} url=${url} saved_id=${saved?.id ?? "none"}`,
-      );
-    } catch (error) {
-      logError("instagram job database save failed", error, `message_id=${message.id} url=${url}`);
-      await keepRetry(jobId, result, regenerate);
-      await status.edit({
-        content: truncateDiscordContent(`${resultMessage(result, null)}\n${getErrorMessage(error)}`),
-        components: [retryButton(jobId)],
-      });
-    }
-  } catch (error) {
-    logError("instagram job failed", error, `message_id=${message.id} url=${url}`);
-    await status.edit(formatDiscordError("처리 실패", error));
-  }
+  await handleInstagramRegistration(message, url);
 });
 
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isButton() || !interaction.customId.startsWith("db-retry:")) return;
+  if (!interaction.isButton()) return;
   if (interaction.user.id !== allowedUserId) {
     await interaction.reply({ content: "권한이 없습니다.", ephemeral: true });
     return;
   }
+
+  const replacementMessageId = parseSourceReplacementButtonId(interaction.customId);
+  if (replacementMessageId) {
+    await interaction.deferUpdate();
+    try {
+      await replacePendingSourceDraft(interaction, replacementMessageId);
+      logInfo("source replacement completed", `message_id=${replacementMessageId}`);
+    } catch (error) {
+      logError("source replacement failed", error, `message_id=${replacementMessageId}`);
+      await interaction.message.edit({
+        content: formatDiscordError("재등록 실패", error),
+        components: [],
+      });
+    }
+    return;
+  }
+
+  if (!interaction.customId.startsWith("db-retry:")) return;
   const jobId = interaction.customId.slice("db-retry:".length);
   await interaction.deferReply({ ephemeral: true });
   try {

@@ -274,6 +274,10 @@ Migration 047은 `festivals.instagram_url`을 추가하고 신규 후보 승인,
 
 Migration 048은 nullable `festivals.calendar_color`와 5색 허용값 제약조건을 추가한다. 관리자 목록에서 선택한 색상은 `update_festival_calendar_color_with_audit` RPC가 즉시 저장하고 감사 로그를 남긴다. `null`인 기존 행은 ID 기반 자동 색상을 계속 사용한다. 2026-08-01 운영 DB 적용 후 컬럼·CHECK 제약조건과 RPC 권한(`authenticated = true`, `anon = false`)을 확인했다.
 
+Migration 049는 Discord Bot 후보 생성 함수가 Instagram 게시물 URL뿐 아니라 Discord 메시지 URL을 출처로 받을 수 있게 확장한다. Discord 직접 첨부 후보는 `source_type = 'discord_attachment'`로 구분하며 기존 Instagram 출처 유형은 유지한다. 2026-08-01 운영 DB 적용 후 내부 후보 함수 직접 실행 차단, 등록 RPC의 authenticated 전용 실행 권한과 Discord 첨부 분기 적용을 확인했다.
+
+Migration 050은 `replace_pending_discord_source_drafts` RPC를 추가한다. 이 함수는 Bot 본인이 만든 동일 출처의 `pending` 후보·업데이트 초안만 잠금 후 삭제하고 임시 포스터 경로를 반환한다. 승인·반려·최종 반영 이력이나 다른 생성자의 작업이 하나라도 있으면 전체 삭제를 중단한다. Bot은 자신이 만든 업데이트 초안의 상태만 RLS 범위 안에서 조회하고 자신의 `festival-candidate-posters` 폴더만 삭제할 수 있다. 2026-08-01 운영 DB 적용 후 RPC의 authenticated 전용 실행 권한, anon 차단, 보호 이력 검사와 SELECT·DELETE 정책을 확인했다.
+
 ## 6-1. festival_update_drafts
 
 기존 페스티벌 수정 전용 임시작업이다. `source_url`과 대상 `festival_id`를 유지하고, `draft_json`, `workflow_json`, `selection_json`에 최종 확정 전 작업을 보관한다. `base_festival_updated_at`과 `base_data_hash`는 시작 당시 기본정보·아티스트 연결·타임테이블·티켓을 묶어 검사한다.
