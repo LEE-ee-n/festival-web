@@ -3,10 +3,33 @@ import test from "node:test";
 
 import {
   getAdjacentMonthForDate,
+  getCalendarMonthFromSearchParams,
   getCalendarDays,
   getShiftedCalendarMonth,
   toDateKey,
 } from "../lib/calendar.ts";
+
+test("쿼리 주소 직접 진입 시 해당 연월을 초기 표시 월로 사용한다", () => {
+  const searchParams = new URLSearchParams("year=2026&month=8");
+
+  assert.deepEqual(
+    getCalendarMonthFromSearchParams(
+      searchParams,
+      new Date(2026, 6, 1),
+    ),
+    { year: 2026, monthIndex: 7 },
+  );
+});
+
+test("연월 쿼리가 없으면 오늘이 속한 달을 사용한다", () => {
+  assert.deepEqual(
+    getCalendarMonthFromSearchParams(
+      new URLSearchParams(),
+      new Date(2026, 7, 1),
+    ),
+    { year: 2026, monthIndex: 7 },
+  );
+});
 
 test("2026년 8월 달력은 월요일인 7월 27일부터 시작한다", () => {
   const calendarDays = getCalendarDays(2026, 7);

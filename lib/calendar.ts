@@ -16,6 +16,23 @@ export function parseDateKey(dateKey: string): Date {
   return new Date(year, month - 1, day);
 }
 
+export function getCalendarMonthFromSearchParams(
+  searchParams: Pick<URLSearchParams, "get">,
+  today: Date,
+) {
+  const year = Number(searchParams.get("year"));
+  const month = Number(searchParams.get("month"));
+  const hasValidYear =
+    Number.isInteger(year) && year >= 1900 && year <= 2100;
+  const hasValidMonth =
+    Number.isInteger(month) && month >= 1 && month <= 12;
+
+  return {
+    year: hasValidYear ? year : today.getFullYear(),
+    monthIndex: hasValidMonth ? month - 1 : today.getMonth(),
+  };
+}
+
 export function getAdjacentMonthForDate(
   dateKey: string,
   currentYear: number,

@@ -5,7 +5,7 @@
 ## 공개 화면
 
 - `app/page.tsx`: 메인 달력 화면 진입점
-- `components/Calendar.tsx`: 선택한 월의 축제를 조회하고 달력 이동과 선택 상태 관리
+- `components/Calendar.tsx`: URL 쿼리를 초기값으로 읽고 독립된 표시 월 상태에서 PC 휠·모바일 스와이프·버튼 이동과 뒤로가기를 동기화
 - `components/calendar/`: 달력 헤더, 모바일·PC 축제/아티스트 통합 검색, 날짜 셀, 월간 고정 축제 막대, 모바일 스와이프 훅, 상세 패널 UI
 - `components/FestivalList.tsx`, `components/FestivalCard.tsx`: 선택한 날짜의 축제 목록과 카드
 - `components/FestivalDetailDrawer.tsx`: 달력에서 선택한 축제 상세를 우측 패널로 표시
@@ -41,7 +41,7 @@
 ## 공통 로직
 
 - `lib/types.ts`: 축제, 출연진, 티켓 등 공통 TypeScript 타입
-- `lib/calendar.ts`: 월요일 시작 월간 날짜 배열, 날짜 변환과 날짜별 축제 분류
+- `lib/calendar.ts`: 월 쿼리 검증, 월요일 시작 월간 날짜 배열, 날짜 변환과 날짜별 축제 분류
 - `lib/calendarSwipe.ts`: 모바일 달력 제스처의 축 방향 잠금과 좌우 스와이프 판정
 - `lib/calendarFestivalBar.ts`: 여러 날짜에 걸친 축제 막대 길이와 종료 모양 계산
 - `lib/calendarFestivalLanes.ts`: 월간 축제 겹침을 계산해 축제별 고정 줄 배정

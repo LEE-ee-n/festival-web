@@ -15,6 +15,7 @@ import {
 import {
   formatKoreanDate,
   getAdjacentMonthForDate,
+  getCalendarMonthFromSearchParams,
   getCalendarDays,
   getFestivalsForDate,
   getShiftedCalendarMonth,
@@ -33,59 +34,26 @@ import RecentFestivalTicker from "@/components/calendar/RecentFestivalTicker";
 import { useCalendarSwipe } from "@/components/calendar/useCalendarSwipe";
 import { getFestivalColorClass } from "@/lib/festivalColor";
 
-function getCalendarMonth(
-  searchParams: URLSearchParams,
-  today: Date,
-) {
-  const year = Number(searchParams.get("year"));
-  const month = Number(searchParams.get("month"));
-
-  const hasValidYear =
-    Number.isInteger(year) && year >= 1900 && year <= 2100;
-  const hasValidMonth =
-    Number.isInteger(month) && month >= 1 && month <= 12;
-
-  return {
-    year: hasValidYear ? year : today.getFullYear(),
-    monthIndex: hasValidMonth ? month - 1 : today.getMonth(),
-  };
-}
-
 export default function Calendar() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const today = useMemo(() => new Date(), []);
-  const { year: currentYear, monthIndex: currentMonthIndex } =
-    useMemo(
-      () => getCalendarMonth(searchParams, today),
-      [searchParams, today],
-    );
+  const initialMonth = useMemo(
+    () => getCalendarMonthFromSearchParams(searchParams, today),
+    [searchParams, today],
+  );
+  const [visibleMonth, setVisibleMonth] = useState(initialMonth);
+  const {
+    year: currentYear,
+    monthIndex: currentMonthIndex,
+  } = visibleMonth;
   const monthCursorRef = useRef({
     year: currentYear,
     monthIndex: currentMonthIndex,
   });
-  const pendingMonthKeyRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    const currentMonthKey = `${currentYear}-${currentMonthIndex}`;
-
-    if (
-      pendingMonthKeyRef.current !== null &&
-      pendingMonthKeyRef.current !== currentMonthKey
-    ) {
-      return;
-    }
-
-    monthCursorRef.current = {
-      year: currentYear,
-      monthIndex: currentMonthIndex,
-    };
-    pendingMonthKeyRef.current = null;
-  }, [currentMonthIndex, currentYear]);
 
   const [selectedDateKey, setSelectedDateKey] = useState(() => {
-    const initialMonth = getCalendarMonth(searchParams, today);
     const isCurrentMonth =
       initialMonth.year === today.getFullYear() &&
       initialMonth.monthIndex === today.getMonth();
@@ -106,6 +74,34 @@ export default function Calendar() {
   const [errorMessage, setErrorMessage] = useState<string | null>(
     null,
   );
+
+  useEffect(() => {
+    const synchronizeMonthFromHistory = () => {
+      const historyMonth = getCalendarMonthFromSearchParams(
+        new URLSearchParams(window.location.search),
+        today,
+      );
+
+      monthCursorRef.current = historyMonth;
+      setVisibleMonth(historyMonth);
+      setSelectedDateKey(
+        toDateKey(
+          new Date(historyMonth.year, historyMonth.monthIndex, 1),
+        ),
+      );
+      setSelectedFestival(null);
+      setIsDatePanelOpen(false);
+    };
+
+    window.addEventListener("popstate", synchronizeMonthFromHistory);
+
+    return () => {
+      window.removeEventListener(
+        "popstate",
+        synchronizeMonthFromHistory,
+      );
+    };
+  }, [today]);
 
   const selectedDate = new Date(`${selectedDateKey}T00:00:00`);
   const isSelectedDateInCurrentMonth =
@@ -129,7 +125,7 @@ export default function Calendar() {
       nextSearchParams.set("year", String(year));
       nextSearchParams.set("month", String(monthIndex + 1));
       monthCursorRef.current = { year, monthIndex };
-      pendingMonthKeyRef.current = `${year}-${monthIndex}`;
+      setVisibleMonth({ year, monthIndex });
 
       setSelectedDateKey(toDateKey(new Date(year, monthIndex, 1)));
       setSelectedFestival(null);
@@ -166,8 +162,7 @@ export default function Calendar() {
       String(adjacentMonth.monthIndex + 1),
     );
     monthCursorRef.current = adjacentMonth;
-    pendingMonthKeyRef.current =
-      `${adjacentMonth.year}-${adjacentMonth.monthIndex}`;
+    setVisibleMonth(adjacentMonth);
 
     router.push(`${pathname}?${nextSearchParams.toString()}`, {
       scroll: false,
@@ -365,8 +360,7 @@ export default function Calendar() {
     };
 
     monthCursorRef.current = todayMonth;
-    pendingMonthKeyRef.current =
-      `${todayMonth.year}-${todayMonth.monthIndex}`;
+    setVisibleMonth(todayMonth);
     setSelectedDateKey(toDateKey(today));
     setSelectedFestival(null);
     setIsDatePanelOpen(false);
@@ -394,7 +388,7 @@ export default function Calendar() {
     nextSearchParams.set("year", String(year));
     nextSearchParams.set("month", String(month));
     monthCursorRef.current = { year, monthIndex: month - 1 };
-    pendingMonthKeyRef.current = `${year}-${month - 1}`;
+    setVisibleMonth({ year, monthIndex: month - 1 });
     setSelectedDateKey(festival.start_date);
     setSelectedFestival(festival);
     setHasListContext(false);
