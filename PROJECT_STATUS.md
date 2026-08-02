@@ -16,7 +16,8 @@
 - 구현 완료·운영 DB 적용 대기 계획: [2026-08-01 공식 링크 없음 확인 상태](plans/2026-08-01-festival-link-unavailable-confirmation.md)
 - 구현 완료·운영 설정 대기 계획: [2026-08-02 GA4·Microsoft Clarity 방문 분석 연결](plans/2026-08-02-ga4-clarity-analytics-installation.md)
 - 구현 완료·최초 실행 대기 계획: [2026-08-02 Supabase Free 플랜 수동 백업](plans/2026-08-02-free-plan-manual-backup.md)
-- 구현 완료·배포 검증 대기 계획: [2026-08-02 티켓 URL 오전 이메일 알림](plans/2026-08-02-ticket-url-morning-email-alert.md)
+- 완료 계획: [2026-08-02 티켓 URL 오전 이메일 알림](plans/2026-08-02-ticket-url-morning-email-alert.md)
+- 구현 완료·Figma 실제 생성 확인 대기 계획: [2026-08-02 Figma 8월 카드뉴스 초안 생성](plans/2026-08-02-figma-august-card-news-draft.md)
 - 구현 완료·화면 확인 대기 계획: [2026-08-01 공개 상세 무대 미정 제목 숨김](plans/2026-08-01-hide-unknown-stage-heading.md)
 - 운영 DB 적용 완료·화면 확인 대기 계획: [2026-08-01 페스티벌별 캘린더 색상 수동 지정](plans/2026-08-01-festival-calendar-color-selection.md)
 - 구현 완료·화면 확인 대기 계획: [2026-08-01 NEW 배지·캘린더 막대 글자·모바일 스크롤 보정](plans/2026-08-01-new-badge-calendar-text-brand-color.md)
@@ -69,7 +70,8 @@
 | 썸네일 처리 | 구현 완료·검증 필요 | 수집 이미지 임시 사용 후 삭제, 관리 화면 버튼으로 규칙 파일명 대표 이미지 즉시 연결 | 실제 Storage 파일로 버튼 연결과 교체 화면 확인 |
 | 감사 로그 | 완료 | 최종 반영을 한 감사 이벤트로 기록 | 기존 수정 최종 시험에서 실제 기록 확인 |
 | 티켓 사이트 전체 목록 비교 | 완료 | 세 북마클릿 JSON 통합, DB 비교, Discord `T-NNN` 명단·다중 URL 제외 | 실제 운영 중 제목 필터 오탐·누락 수집 |
-| 배포·운영 감시 | 기능 준비 | Vercel 알림·외부 접속 감시·수동 DB 백업·티켓 URL 오전 이메일 | 실제 이메일 수신과 Storage 백업 절차 확인 |
+| 배포·운영 감시 | 기능 준비 | Vercel 알림·외부 접속 감시·수동 DB 백업·티켓 URL 오전 이메일 | Storage 백업 절차 확인 |
+| Figma 카드뉴스 초안 | 구현 완료 | 2026년 8월 공개 축제 데이터를 Figma 템플릿 복제본에 반영 | 프로덕션 배포 후 Figma Desktop 실제 생성 확인 |
 
 상태 의미:
 

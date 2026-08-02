@@ -1,0 +1,10 @@
+{
+  "name": "Festibom 8월 카드뉴스 초안",
+  "id": "festibom-august-card-news-draft",
+  "api": "1.0.0",
+  "main": "code.js",
+  "editorType": ["figma"],
+  "networkAccess": {
+    "allowedDomains": ["https://festibom.com"]
+  }
+}
