@@ -488,7 +488,9 @@ export type Database = {
           name: string
           normalized_name: string
           official_url: string | null
+          official_url_unavailable: boolean
           instagram_url: string | null
+          instagram_url_unavailable: boolean
           price_info: string | null
           price_type: string | null
           program_info: string | null
@@ -516,7 +518,9 @@ export type Database = {
           name: string
           normalized_name: string
           official_url?: string | null
+          official_url_unavailable?: boolean
           instagram_url?: string | null
+          instagram_url_unavailable?: boolean
           price_info?: string | null
           price_type?: string | null
           program_info?: string | null
@@ -544,7 +548,9 @@ export type Database = {
           name?: string
           normalized_name?: string
           official_url?: string | null
+          official_url_unavailable?: boolean
           instagram_url?: string | null
+          instagram_url_unavailable?: boolean
           price_info?: string | null
           price_type?: string | null
           program_info?: string | null

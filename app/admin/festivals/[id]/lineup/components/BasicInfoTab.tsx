@@ -65,9 +65,14 @@ type BasicInfoTabProps = {
 
   officialUrl: string;
   setOfficialUrl: (value: string) => void;
+  officialUrlUnavailable?: boolean;
+  setOfficialUrlUnavailable?: (value: boolean) => void;
 
   instagramUrl: string;
   setInstagramUrl: (value: string) => void;
+  instagramUrlUnavailable?: boolean;
+  setInstagramUrlUnavailable?: (value: boolean) => void;
+  canConfirmLinkUnavailable?: boolean;
 
   priceType: string;
   setPriceType: (value: string) => void;
@@ -130,8 +135,13 @@ export default function BasicInfoTab({
   setThumbnailNote,
   officialUrl,
   setOfficialUrl,
+  officialUrlUnavailable = false,
+  setOfficialUrlUnavailable,
   instagramUrl,
   setInstagramUrl,
+  instagramUrlUnavailable = false,
+  setInstagramUrlUnavailable,
+  canConfirmLinkUnavailable = false,
   priceType,
   setPriceType,
   festivalStatus,
@@ -435,10 +445,31 @@ export default function BasicInfoTab({
               <input
                 type="url"
                 value={instagramUrl}
-                onChange={(event) => setInstagramUrl(event.target.value)}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setInstagramUrl(value);
+                  if (value.trim()) {
+                    setInstagramUrlUnavailable?.(false);
+                  }
+                }}
                 placeholder="https://www.instagram.com/account/"
                 className="mt-2 w-full rounded-xl border border-line-strong px-4 py-3 text-sm"
               />
+              {canConfirmLinkUnavailable && (
+                <label className="mt-3 flex items-center gap-2 text-sm text-ink-secondary">
+                  <input
+                    type="checkbox"
+                    checked={instagramUrlUnavailable}
+                    onChange={(event) => {
+                      const checked = event.target.checked;
+                      setInstagramUrlUnavailable?.(checked);
+                      if (checked) setInstagramUrl("");
+                    }}
+                    className="h-4 w-4"
+                  />
+                  공식 Instagram 계정 없음 — 확인 완료
+                </label>
+              )}
             </div>
 
             <div className="mt-5">
@@ -448,9 +479,30 @@ export default function BasicInfoTab({
               <input
                 type="url"
                 value={officialUrl}
-                onChange={(event) => setOfficialUrl(event.target.value)}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setOfficialUrl(value);
+                  if (value.trim()) {
+                    setOfficialUrlUnavailable?.(false);
+                  }
+                }}
                 className="mt-2 w-full rounded-xl border border-line-strong px-4 py-3 text-sm"
               />
+              {canConfirmLinkUnavailable && (
+                <label className="mt-3 flex items-center gap-2 text-sm text-ink-secondary">
+                  <input
+                    type="checkbox"
+                    checked={officialUrlUnavailable}
+                    onChange={(event) => {
+                      const checked = event.target.checked;
+                      setOfficialUrlUnavailable?.(checked);
+                      if (checked) setOfficialUrl("");
+                    }}
+                    className="h-4 w-4"
+                  />
+                  공식 홈페이지 없음 — 확인 완료
+                </label>
+              )}
             </div>
 
             <div className="mt-5 grid gap-4 sm:grid-cols-2">

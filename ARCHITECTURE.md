@@ -18,6 +18,7 @@
 - `app/admin/layout.tsx`: `/admin` 전체에 관리자 인증 적용
 - `app/admin/login/page.tsx`: Supabase 로그인과 관리자 권한 확인
 - `app/admin/page.tsx`: 신규 등록 작업함·페스티벌 관리·아티스트 관리 메뉴
+- `components/admin/AdminFestivalDataQuality.tsx`: 관리자 메인에서 예정·진행 중 페스티벌의 누락 정보 요약·필터·관리 이동 표시
 - `app/admin/festivals/page.tsx`: 축제 목록 조회와 삭제
 - `app/admin/festivals/new/page.tsx`: 과거 신규 축제 기본정보 직접 등록 경로
 - `app/admin/festival-candidates/page.tsx`: 신규 등록 작업함. 직접 작성·수집 JSON 초안 수정, 저장, 승인 등록, 삭제
@@ -49,6 +50,7 @@
 - `lib/auth/getCurrentAdminAccess.ts`: 로그인 사용자 관리자 여부 확인
 - `lib/artists/`: 아티스트 이름 정규화, 검색과 normalized_name 기준 후보 중복 매칭
 - `lib/festivals/`: 축제 기본정보, 출연진, 티켓, 썸네일의 조회·추가·수정·삭제
+- `lib/festivals/festivalDataQuality.ts`: 관리자 점검판의 누락 유형 판정과 유형별 집계
 - `lib/festivals/festivalDraftMerge.ts`: 검토 대기 초안과 신규 JSON의 필드별 동일·표현 차이·추가·변경 분류 및 안전 병합
 - `lib/festivals/ticketDisplay.ts`: 최신 티켓 회차와 표시할 판매처 버튼 결정
 - `lib/festivals/thumbnailValidation.ts`: 썸네일 형식, 실제 파일 내용, 5MB 제한 검사
@@ -67,6 +69,7 @@
 - `supabase/migrations/005~008`: 관리자 인증·RLS, 트랜잭션 JSON 등록, 티켓·썸네일 제한
 - `supabase/migrations/009~015`: 수집 후보 저장·승인 등록, 빈 출연진·티켓 허용, 정규화 이름 제약, 축제 진행 상태 자동 갱신
 - `supabase/migrations/016~017`: 아티스트 normalized_name 필수·형식·중복 제약과 관리자 통합 수정 함수
+- `supabase/migrations/051_festival_link_unavailable_confirmation.sql`: 공식 Instagram·홈페이지 없음 확인 칼럼, URL 입력 시 자동 해제 트리거, 기본정보 감사 RPC 확장
 - 013은 JSON·XLSX 축제 등록 함수의 중복 기준과 관리자 권한 검사도 통일한다.
 - 014는 한국 날짜 기준 매일 00:05에 취소되지 않은 축제를 `scheduled`·`ongoing`·`ended`로 자동 갱신한다.
 - 015는 축제 등록과 날짜·상태 수정 시 같은 규칙을 즉시 적용하며, 014 Cron은 누락 방지용으로 유지한다.
@@ -79,6 +82,8 @@
 - `tests/calendarFestivalBar.test.ts`: 캘린더 축제 막대 규칙
 - `tests/calendarFestivalLanes.test.ts`: 겹치는 축제의 월간 고정 줄 배정 규칙
 - `tests/calendarSelection.test.ts`: 이전·다음 달 날짜 선택과 월 이동 규칙
+- `tests/festivalDataQuality.test.ts`: 관리자 점검판의 복수 누락·종료 및 취소 제외·공백 판정 규칙
+- `tests/festivalBasicInfoPayload.test.ts`: 공식 링크 없음 확인 상태와 URL 입력 시 자동 해제 payload 규칙
 - `tests/publicSearch.test.ts`: 공개 검색 정규화, 와일드카드 처리, 아티스트 정렬·중복 제거
 - `tests/artistMatching.test.ts`: 후보 아티스트의 기존 아티스트 중복 매칭 규칙
 - `tests/artistNameNormalization.test.ts`: `normalized_name` 변환과 허용 형식

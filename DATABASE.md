@@ -103,6 +103,8 @@
 | `region` | text | YES | 없음 | 지역 |
 | `official_url` | text | YES | 없음 | 공식 사이트 |
 | `instagram_url` | text | YES | 없음 | 관리자가 최종 확인한 공식 Instagram 계정 URL (Migration 047) |
+| `official_url_unavailable` | boolean | NO | `false` | 공식 홈페이지가 실제로 없음을 관리자가 확인한 상태 (Migration 051 적용 필요) |
+| `instagram_url_unavailable` | boolean | NO | `false` | 공식 Instagram 계정이 실제로 없음을 관리자가 확인한 상태 (Migration 051 적용 필요) |
 | `status` | text | YES | `scheduled` | 예정·진행·종료·취소 |
 | `thumbnail_url` | text | YES | 없음 | 대표 이미지 경로 |
 | `timetable_status` | text | NO | `published` | 타임테이블 전체 공개·미공개 상태 (Migration 037 적용) |
@@ -277,6 +279,8 @@ Migration 048은 nullable `festivals.calendar_color`와 5색 허용값 제약조
 Migration 049는 Discord Bot 후보 생성 함수가 Instagram 게시물 URL뿐 아니라 Discord 메시지 URL을 출처로 받을 수 있게 확장한다. Discord 직접 첨부 후보는 `source_type = 'discord_attachment'`로 구분하며 기존 Instagram 출처 유형은 유지한다. 2026-08-01 운영 DB 적용 후 내부 후보 함수 직접 실행 차단, 등록 RPC의 authenticated 전용 실행 권한과 Discord 첨부 분기 적용을 확인했다.
 
 Migration 050은 `replace_pending_discord_source_drafts` RPC를 추가한다. 이 함수는 Bot 본인이 만든 동일 출처의 `pending` 후보·업데이트 초안만 잠금 후 삭제하고 임시 포스터 경로를 반환한다. 승인·반려·최종 반영 이력이나 다른 생성자의 작업이 하나라도 있으면 전체 삭제를 중단한다. Bot은 자신이 만든 업데이트 초안의 상태만 RLS 범위 안에서 조회하고 자신의 `festival-candidate-posters` 폴더만 삭제할 수 있다. 2026-08-01 운영 DB 적용 후 RPC의 authenticated 전용 실행 권한, anon 차단, 보호 이력 검사와 SELECT·DELETE 정책을 확인했다.
+
+Migration 051은 축제별 공식 Instagram·홈페이지의 `실제로 없음 확인` 상태를 추가한다. 기존 기본정보 감사 RPC가 두 값을 저장하며, URL이 어떤 경로로 새로 저장되더라도 트리거가 해당 확인 상태를 자동으로 해제한다. 코드와 migration 작성은 완료됐고 운영 DB 적용과 실제 저장 검증이 필요하다.
 
 ## 6-1. festival_update_drafts
 

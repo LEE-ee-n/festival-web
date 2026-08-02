@@ -14,7 +14,7 @@ export default function PrivacyPage() {
   return (
     <PublicInfoPage
       title="페스티봄 개인정보처리방침"
-      dateLabel="공고일·시행일: 2026년 7월 28일"
+      dateLabel="공고일·시행일: 2026년 8월 2일"
     >
       <section className="space-y-4">
         <p>
@@ -23,8 +23,8 @@ export default function PrivacyPage() {
         </p>
         <p>
           본 방침은 festibom.com에 적용됩니다. 현재 일반 이용자를 위한
-          회원가입, 댓글, 개인 기록, 방문자 분석 및 광고 기능은 제공하지
-          않습니다.
+          회원가입, 댓글, 개인 기록 및 광고 기능은 제공하지 않습니다. 서비스
+          개선을 위해 방문자 분석 도구를 사용합니다.
         </p>
       </section>
 
@@ -55,8 +55,9 @@ export default function PrivacyPage() {
           <p className="mt-2">
             호스팅과 데이터 제공 과정에서 IP 주소, 접속 일시, 브라우저와
             기기 정보, 요청 페이지, 오류 및 보안 로그가 Vercel 또는
-            Supabase에서 처리될 수 있습니다. 페스티봄은 별도의 방문자
-            분석 도구나 광고 추적 도구를 사용하지 않습니다.
+            Supabase에서 처리될 수 있습니다. 서비스 개선을 위해 Google
+            Analytics와 Microsoft Clarity가 페이지 방문, 유입 경로, 브라우저·기기
+            정보, 페이지 이동, 클릭 및 스크롤 정보를 처리할 수 있습니다.
           </p>
         </div>
       </PublicInfoSection>
@@ -112,8 +113,13 @@ export default function PrivacyPage() {
               </tr>
               <tr>
                 <td className="px-3 py-3">Google LLC</td>
-                <td className="px-3 py-3">Gmail을 통한 문의·제보 수신</td>
-                <td className="px-3 py-3">발신 이메일, 본문과 첨부자료</td>
+                <td className="px-3 py-3">Gmail 문의·제보 수신, 방문자 분석</td>
+                <td className="px-3 py-3">발신 이메일, 본문·첨부자료, 방문·유입·기기 정보</td>
+              </tr>
+              <tr>
+                <td className="px-3 py-3">Microsoft Corporation</td>
+                <td className="px-3 py-3">웹사이트 이용 행태 분석</td>
+                <td className="px-3 py-3">페이지 이동, 클릭·스크롤, 브라우저·기기 정보</td>
               </tr>
             </tbody>
           </table>
@@ -122,7 +128,7 @@ export default function PrivacyPage() {
 
       <PublicInfoSection title="6. 개인정보의 국외 처리">
         <p>
-          Vercel, Supabase 및 Google은 해외 법인이 운영하는 서비스이며,
+          Vercel, Supabase, Google 및 Microsoft는 해외 법인이 운영하는 서비스이며,
           서비스 이용 과정에서 정보가 암호화된 네트워크를 통해 해당
           사업자 또는 사업자가 사용하는 데이터센터로 전송·처리될 수
           있습니다.
@@ -136,6 +142,7 @@ export default function PrivacyPage() {
             리전
           </li>
           <li>Google LLC: 미국을 포함한 Google의 서비스 운영 지역</li>
+          <li>Microsoft Corporation: 미국을 포함한 Microsoft의 서비스 운영 지역</li>
         </ul>
         <p>
           처리 항목과 목적은 제5조와 같으며, 보유 기간은 제3조 또는 각
@@ -176,10 +183,11 @@ export default function PrivacyPage() {
 
       <PublicInfoSection title="9. 쿠키 및 유사 기술">
         <p>
-          현재 공개 서비스에서는 광고 또는 방문자 분석 목적의 쿠키를
-          사용하지 않습니다. 운영자 전용 관리자 화면은 로그인 상태 유지를
-          위해 Supabase 인증 저장소를 사용하며 일반 이용자에게는 적용되지
-          않습니다.
+          Google Analytics는 방문자 분석을 위해 쿠키 또는 유사 기술을 사용할
+          수 있습니다. Microsoft Clarity는 사이트 이용 행태를 분석하기 위한
+          기술을 사용할 수 있습니다. 운영자 전용 관리자 화면은 로그인 상태
+          유지를 위해 Supabase 인증 저장소를 사용하며 일반 이용자에게는
+          적용되지 않습니다.
         </p>
       </PublicInfoSection>
 
@@ -227,14 +235,13 @@ export default function PrivacyPage() {
       <PublicInfoSection title="13. 개인정보처리방침의 변경">
         <p>
           본 방침이 변경되는 경우 시행일과 주요 변경 내용을 공지사항을
-          통해 안내합니다. 회원가입, 댓글, 개인 기록, 방문자 분석, 광고나
-          결제 기능을 도입하는 경우 실제 처리 방식에 맞추어 방침을
-          개정합니다.
+          통해 안내합니다. 회원가입, 댓글, 개인 기록, 광고나 결제 기능을
+          도입하는 경우 실제 처리 방식에 맞추어 방침을 개정합니다.
         </p>
       </PublicInfoSection>
 
       <p className={`${typography.meta} border-t border-line pt-6 text-ink-tertiary`}>
-        공고일·시행일: 2026년 7월 28일
+        공고일·시행일: 2026년 8월 2일
       </p>
     </PublicInfoPage>
   );

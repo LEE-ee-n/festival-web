@@ -21,6 +21,8 @@ export type FestivalBasicInfoInput = {
   thumbnailUrl: string;
   officialUrl: string;
   instagramUrl: string;
+  officialUrlUnavailable?: boolean;
+  instagramUrlUnavailable?: boolean;
   priceType: string;
   priceInfo: string;
   programInfo: string;
@@ -35,6 +37,12 @@ export async function updateFestivalBasicInfo(
   validateFestivalThumbnailUrl(input.thumbnailUrl);
   if (input.instagramUrl.trim() && !normalizeInstagramProfileUrl(input.instagramUrl)) {
     throw new Error("Instagram 계정 URL을 확인해 주세요.");
+  }
+  if (input.instagramUrl.trim() && input.instagramUrlUnavailable) {
+    throw new Error("Instagram URL과 계정 없음 확인을 함께 저장할 수 없습니다.");
+  }
+  if (input.officialUrl.trim() && input.officialUrlUnavailable) {
+    throw new Error("공식 홈페이지 URL과 홈페이지 없음 확인을 함께 저장할 수 없습니다.");
   }
   const normalizedName = normalizeNormalizedName(input.normalizedName);
 

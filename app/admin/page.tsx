@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import AdminFestivalDataQuality from "@/components/admin/AdminFestivalDataQuality";
+
 export default function AdminPage() {
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6">
@@ -78,6 +80,10 @@ export default function AdminPage() {
             축제와 아티스트의 관리자 작업 내역과 변경 전·후 값을 확인합니다.
           </p>
         </Link>
+      </div>
+
+      <div className="mt-8">
+        <AdminFestivalDataQuality />
       </div>
     </main>
   );

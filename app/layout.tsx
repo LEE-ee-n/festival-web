@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import "./globals.css";
+import AnalyticsScripts from "../components/analytics/AnalyticsScripts";
 import CommonHeader from "../components/CommonHeader";
 import PublicFooter from "../components/PublicFooter";
 import {
@@ -36,6 +37,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
+        <AnalyticsScripts />
         <CommonHeader />
         {children}
         <PublicFooter />

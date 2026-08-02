@@ -19,6 +19,10 @@ export function toFestivalBasicInfoPayload(
     thumbnail_url: input.thumbnailUrl.trim() || null,
     official_url: input.officialUrl.trim() || null,
     instagram_url: normalizeInstagramProfileUrl(input.instagramUrl) || null,
+    official_url_unavailable:
+      !input.officialUrl.trim() && Boolean(input.officialUrlUnavailable),
+    instagram_url_unavailable:
+      !input.instagramUrl.trim() && Boolean(input.instagramUrlUnavailable),
     price_type: input.priceType || null,
     price_info: input.priceInfo.trim() || null,
     program_info: input.programInfo.trim() || null,

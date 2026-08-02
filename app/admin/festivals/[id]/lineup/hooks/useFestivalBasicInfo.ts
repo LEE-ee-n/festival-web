@@ -22,7 +22,9 @@ export type FestivalBasicInfoRecord = {
   description: string | null;
   thumbnail_url: string | null;
   official_url: string | null;
+  official_url_unavailable: boolean;
   instagram_url: string | null;
+  instagram_url_unavailable: boolean;
   price_type: string | null;
   price_info: string | null;
   program_info: string | null;
@@ -47,6 +49,10 @@ export function useFestivalBasicInfo(
   const [thumbnailUrl, setThumbnailUrl] = useState("");
   const [officialUrl, setOfficialUrl] = useState("");
   const [instagramUrl, setInstagramUrl] = useState("");
+  const [officialUrlUnavailable, setOfficialUrlUnavailable] =
+    useState(false);
+  const [instagramUrlUnavailable, setInstagramUrlUnavailable] =
+    useState(false);
   const [priceType, setPriceType] = useState("");
   const [priceInfo, setPriceInfo] = useState("");
   const [programInfo, setProgramInfo] = useState("");
@@ -79,6 +85,8 @@ export function useFestivalBasicInfo(
       setThumbnailUrl(festival.thumbnail_url ?? "");
       setOfficialUrl(festival.official_url ?? "");
       setInstagramUrl(festival.instagram_url ?? "");
+      setOfficialUrlUnavailable(festival.official_url_unavailable);
+      setInstagramUrlUnavailable(festival.instagram_url_unavailable);
       setPriceType(festival.price_type ?? "");
       setPriceInfo(festival.price_info ?? "");
       setProgramInfo(festival.program_info ?? "");
@@ -255,6 +263,8 @@ export function useFestivalBasicInfo(
         thumbnailUrl,
         officialUrl,
         instagramUrl,
+        officialUrlUnavailable,
+        instagramUrlUnavailable,
         priceType,
         priceInfo,
         programInfo,
@@ -317,6 +327,11 @@ export function useFestivalBasicInfo(
       setOfficialUrl,
       instagramUrl,
       setInstagramUrl,
+      officialUrlUnavailable,
+      setOfficialUrlUnavailable,
+      instagramUrlUnavailable,
+      setInstagramUrlUnavailable,
+      canConfirmLinkUnavailable: true,
       priceType,
       setPriceType,
       festivalStatus,
