@@ -102,7 +102,7 @@
 - `crawler/importers/nolManualImport.ts`: 브라우저에서 수동 복사한 놀티켓 상품 제목 정리
 - `lib/festivals/ticketDiscovery.ts`: 티켓 수집 JSON 검사, URL 및 축제 normalized_name·축제명·검색 별칭·날짜 중복 분류, 최소 검토 초안 생성
 - `crawler/bookmarklet/`: 현재 놀티켓 화면의 상품을 JSON으로 저장하는 원클릭 북마클릿
-- `crawler/bookmarklet/instagramFirstImageBookmarklet.ts`: Instagram 상세 팝업의 첫 사진을 WebP로 변환·저장하고 변환 차단 시 원본을 새 탭으로 여는 북마클릿
+- `crawler/bookmarklet/instagramFirstImageBookmarklet.ts`: Instagram 상세 페이지·팝업의 첫 사진을 화면 또는 `og:image`에서 찾아 WebP로 변환·저장하고 변환 차단 시 원본을 새 탭으로 여는 북마클릿
 - `crawler/processNolWorkflow.ts`: 최신 놀티켓 파일을 지정 수집·정리 폴더로 이동하고 날짜 규칙 적용
 - `crawler/tools/discovery-nol.cmd`, `discovery-ticketlink.cmd`, `discovery-yes24.cmd`: 파일명과 실행창에 수집 사이트를 명시한 실행 진입점
 - `crawler/bookmarklet/ticketlinkBookmarklet.ts`: href가 없는 티켓링크 상품 카드의 React 내부 productId를 읽어 제목·날짜·URL 복원

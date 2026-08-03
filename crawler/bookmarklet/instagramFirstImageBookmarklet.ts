@@ -13,18 +13,49 @@ export function buildInstagramFirstImageBookmarklet(): string {
       return;
     }
 
-    const dialog = [...document.querySelectorAll('[role="dialog"]')]
-      .find((element) => element.querySelectorAll("img").length > 0);
-    const article = [...document.querySelectorAll("article")]
-      .find((element) => element.querySelectorAll("img").length > 0);
-    const scope = dialog || article || document.querySelector("main");
-    if (!scope) {
-      alert("게시물 상세 영역을 찾지 못했습니다. 게시물을 상세 화면으로 연 뒤 다시 실행해주세요.");
-      return;
+    const findPostScope = () => {
+      const dialog = [...document.querySelectorAll('[role="dialog"]')]
+        .find((element) => element.querySelectorAll("img").length > 0);
+      const article = [...document.querySelectorAll("article")]
+        .find((element) => element.querySelectorAll("img").length > 0);
+
+      return dialog
+        || article
+        || document.querySelector('main, [role="main"]');
+    };
+    const findOpenGraphImageUrl = () => {
+      const meta = document.querySelector?.('meta[property="og:image"]');
+      const url = meta?.getAttribute?.("content") || meta?.content || "";
+
+      return /^https?:/i.test(url) ? url : "";
+    };
+
+    let scope = findPostScope();
+    let openGraphImageUrl = findOpenGraphImageUrl();
+
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const hasRenderedImage = scope
+        && scope.querySelectorAll("img").length > 0;
+
+      if (hasRenderedImage || openGraphImageUrl) break;
+
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      scope = findPostScope();
+      openGraphImageUrl = findOpenGraphImageUrl();
     }
 
-    const scopeRect = scope.getBoundingClientRect();
-    const candidates = [...scope.querySelectorAll("img")]
+    const imageRoot = document;
+    const scopeRect = {
+      left: 0,
+      right: window.innerWidth,
+      top: 0,
+      bottom: window.innerHeight,
+    };
+    const imageElements = [...new Set([
+      ...(scope ? scope.querySelectorAll("img") : []),
+      ...imageRoot.querySelectorAll("img"),
+    ])];
+    const imageCandidates = imageElements
       .map((image) => {
         const rect = image.getBoundingClientRect();
         const visibleWidth = Math.max(
@@ -44,22 +75,54 @@ export function buildInstagramFirstImageBookmarklet(): string {
 
         return {
           url: sourceSet.at(-1) || image.currentSrc || image.src,
-          width: image.naturalWidth,
-          height: image.naturalHeight,
+          width: image.naturalWidth || rect.width || rect.right - rect.left,
+          height: image.naturalHeight || rect.height || rect.bottom - rect.top,
           visibleArea: visibleWidth * visibleHeight,
         };
       })
       .filter((item) => item.width >= 300 && item.height >= 300)
-      .filter((item) => /^https?:/i.test(item.url) && item.visibleArea > 0)
+      .filter((item) => /^https?:/i.test(item.url) && item.visibleArea > 0);
+    const backgroundCandidates = typeof getComputedStyle === "function"
+      ? [...imageRoot.querySelectorAll("div")]
+        .map((element) => {
+          const rect = element.getBoundingClientRect();
+          const backgroundImage = getComputedStyle(element).backgroundImage || "";
+          const url = backgroundImage.startsWith('url("')
+            ? backgroundImage.slice(5, -2)
+            : backgroundImage.startsWith("url('")
+              ? backgroundImage.slice(5, -2)
+              : backgroundImage.startsWith("url(")
+                ? backgroundImage.slice(4, -1)
+                : "";
+          const visibleWidth = Math.max(
+            0,
+            Math.min(rect.right, window.innerWidth) - Math.max(rect.left, 0),
+          );
+          const visibleHeight = Math.max(
+            0,
+            Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0),
+          );
+
+          return {
+            url,
+            width: rect.width || rect.right - rect.left,
+            height: rect.height || rect.bottom - rect.top,
+            visibleArea: visibleWidth * visibleHeight,
+          };
+        })
+        .filter((item) => item.width >= 300 && item.height >= 300)
+        .filter((item) => /^https?:/i.test(item.url) && item.visibleArea > 0)
+      : [];
+    const candidates = [...imageCandidates, ...backgroundCandidates]
       .sort((a, b) => b.visibleArea - a.visibleArea);
 
-    const imageUrl = candidates[0]?.url;
+    const imageUrl = candidates[0]?.url || openGraphImageUrl;
     if (!imageUrl) {
       alert("현재 상세 화면에서 저장할 첫 번째 사진을 찾지 못했습니다.");
       return;
     }
 
-    const linkedPostPath = [...scope.querySelectorAll(
+    const linkedPostPath = [...imageRoot.querySelectorAll(
       'a[href*="/p/"], a[href*="/reel/"]',
     )]
       .map((anchor) => new URL(anchor.href, location.href).pathname)

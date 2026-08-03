@@ -23,7 +23,7 @@ export default function FestivalDetailSummary({
 
         <dl className="space-y-3 pt-3">
             <div className={summaryRowClass}>
-                <dt className="text-ink-secondary">기간</dt>
+                <dt className="text-ink-secondary">일정</dt>
                 <dd className={`${typography.label} text-ink-secondary`}>
                 {periodText}
                 </dd>
@@ -52,7 +52,7 @@ export default function FestivalDetailSummary({
 
             {festival.price_type && (
                 <div className={summaryRowClass}>
-                <dt className="text-ink-secondary">요금</dt>
+                <dt className="text-ink-secondary">관람</dt>
                 <dd className={`${typography.label} text-ink-secondary`}>
                     {festival.price_type === "free" && "무료"}
                     {festival.price_type === "paid" && "유료"}

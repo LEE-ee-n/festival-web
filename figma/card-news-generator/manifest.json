@@ -5,6 +5,9 @@
   "main": "code.js",
   "editorType": ["figma"],
   "networkAccess": {
-    "allowedDomains": ["https://festibom.com"]
+    "allowedDomains": [
+      "https://festibom.com",
+      "https://cljzrgjatdnefiogedmz.supabase.co"
+    ]
   }
 }

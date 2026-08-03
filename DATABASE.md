@@ -3,6 +3,15 @@
 기준일: 2026-07-22  
 기준: 운영 Supabase `information_schema.columns` 실측 결과 + 저장소 코드 사용처 + 적용된 migration 004~041
 
+## Free 플랜 수동 백업
+
+- 현재 Supabase Free 플랜은 자동 프로젝트 백업을 제공하지 않는다.
+- `operations/backup/run-supabase-db-backup.cmd`는 연결된 운영 프로젝트의 `public` 구조와 데이터를 날짜별 SQL 파일로 백업한다.
+- 백업 결과는 Git 저장소 밖에 저장하고 최근 4주를 유지하며, 매주 1회와 운영 DB migration 전 실행한다.
+- `auth` 사용자·프로젝트 secrets/settings·`storage` 메타데이터와 실제 Storage 파일은 이 DB 덤프에 포함되지 않는다.
+- `festival-thumbnails`, `festival-candidate-posters` 파일은 월 1회 별도 Storage 백업이 필요하다.
+- 복구는 새 프로젝트 또는 로컬 검증 환경에서 먼저 확인하며 운영 DB 자동 복원은 하지 않는다.
+
 ## 읽는 방법
 
 - `직접 사용`: 페이지나 함수가 Supabase `.from()`으로 테이블을 직접 조회·변경한다.

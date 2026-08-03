@@ -54,6 +54,7 @@ session.json
 *.zip
 *.bak
 *.backup
+/backups/
 
 # debug
 npm-debug.log*

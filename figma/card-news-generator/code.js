@@ -6,7 +6,124 @@ const TEMPLATE_NAMES = [
   "closing_template",
 ];
 
-figma.showUI(__html__, { width: 320, height: 240, title: "Festibom 카드뉴스" });
+const UI_HTML = `
+  <style>
+    body { margin: 0; font-family: Inter, Arial, sans-serif; color: #090A1A; }
+    main { padding: 20px; }
+    h1 { margin: 0; font-size: 18px; }
+    p { color: #505050; font-size: 13px; line-height: 1.5; }
+    button { width: 100%; border: 0; border-radius: 8px; padding: 11px; color: white; background: #312E81; font-weight: 700; cursor: pointer; }
+    button:disabled { background: #999; cursor: default; }
+    #result { min-height: 20px; margin: 14px 0 0; font-size: 13px; white-space: pre-wrap; }
+    .error { color: #C0364A; }
+  </style>
+  <main>
+    <h1>2026년 8월 카드뉴스</h1>
+    <p>현재 파일의 템플릿을 복제해 Festibom 축제 정보로 초안을 만듭니다.</p>
+    <button id="generate" type="button">8월 초안 생성</button>
+    <div id="result"></div>
+  </main>
+  <script>
+    const button = document.getElementById("generate");
+    const result = document.getElementById("result");
+    button.addEventListener("click", () => {
+      button.disabled = true;
+      result.className = "";
+      result.textContent = "데이터를 불러오는 중...";
+      parent.postMessage({ pluginMessage: { type: "generate" } }, "*");
+    });
+    function blobToPngBytes(blob) {
+      return new Promise((resolve, reject) => {
+        const objectUrl = URL.createObjectURL(blob);
+        const image = new Image();
+        image.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = image.naturalWidth;
+          canvas.height = image.naturalHeight;
+          const context = canvas.getContext("2d");
+          if (!context) {
+            URL.revokeObjectURL(objectUrl);
+            reject(new Error("이미지 변환 화면을 만들지 못했습니다."));
+            return;
+          }
+          context.drawImage(image, 0, 0);
+          URL.revokeObjectURL(objectUrl);
+          canvas.toBlob(async (pngBlob) => {
+            if (!pngBlob) {
+              reject(new Error("PNG 변환에 실패했습니다."));
+              return;
+            }
+            resolve(new Uint8Array(await pngBlob.arrayBuffer()));
+          }, "image/png");
+        };
+        image.onerror = () => {
+          URL.revokeObjectURL(objectUrl);
+          reject(new Error("포스터 이미지를 해석하지 못했습니다."));
+        };
+        image.src = objectUrl;
+      });
+    }
+    window.onmessage = async (event) => {
+      const message = event.data.pluginMessage;
+      if (!message) return;
+
+      if (message.type === "convert-image") {
+        try {
+          const response = await fetch(message.url);
+          if (!response.ok) throw new Error("포스터 다운로드에 실패했습니다.");
+          const bytes = await blobToPngBytes(await response.blob());
+          parent.postMessage({
+            pluginMessage: {
+              type: "image-converted",
+              requestId: message.requestId,
+              bytes,
+            },
+          }, "*");
+        } catch (error) {
+          parent.postMessage({
+            pluginMessage: {
+              type: "image-converted",
+              requestId: message.requestId,
+              error: String(error && error.message ? error.message : error),
+            },
+          }, "*");
+        }
+        return;
+      }
+
+      button.disabled = false;
+      result.className = message.type === "error" ? "error" : "";
+      result.textContent = message.message;
+    };
+  </script>`;
+
+figma.showUI(UI_HTML, { width: 320, height: 240, title: "Festibom 카드뉴스" });
+
+let imageRequestSequence = 0;
+const pendingImageRequests = new Map();
+
+function convertImageToPng(url) {
+  return new Promise((resolve, reject) => {
+    imageRequestSequence += 1;
+    const requestId = `image-${imageRequestSequence}`;
+    const timeoutId = setTimeout(() => {
+      pendingImageRequests.delete(requestId);
+      reject(new Error("포스터 PNG 변환 시간이 초과되었습니다."));
+    }, 30000);
+
+    pendingImageRequests.set(requestId, {
+      resolve: (bytes) => {
+        clearTimeout(timeoutId);
+        resolve(bytes);
+      },
+      reject: (error) => {
+        clearTimeout(timeoutId);
+        reject(error);
+      },
+    });
+    figma.ui.postMessage({ type: "convert-image", requestId, url });
+  });
+}
 
 function post(message, isError) {
   figma.ui.postMessage({ type: isError ? "error" : "success", message });
@@ -31,11 +148,14 @@ async function setText(root, name, value) {
     throw new Error(`텍스트 레이어가 아닙니다: ${name}`);
   }
 
-  if (node.fontName === figma.mixed) {
-    throw new Error(`글꼴이 섞여 있어 수정할 수 없습니다: ${name}`);
+  const fontNames = node.fontName === figma.mixed
+    ? node.getRangeAllFontNames(0, node.characters.length)
+    : [node.fontName];
+
+  for (const fontName of fontNames) {
+    await figma.loadFontAsync(fontName);
   }
 
-  await figma.loadFontAsync(node.fontName);
   node.characters = value;
 }
 
@@ -68,12 +188,7 @@ async function setImage(root, name, url) {
     throw new Error(`포스터 레이어가 없습니다: ${name}`);
   }
 
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error("포스터 이미지를 불러오지 못했습니다.");
-  }
-
-  const image = figma.createImage(new Uint8Array(await response.arrayBuffer()));
+  const image = figma.createImage(await convertImageToPng(url));
   node.fills = [{ type: "IMAGE", imageHash: image.hash, scaleMode: "FILL" }];
 }
 
@@ -94,10 +209,10 @@ function createDraftCopy(template, name, x, y) {
 
 async function fillFestivalCard(card, festival) {
   await setText(card, "festival_name", festival.name);
-  await setText(card, "date_text", festival.dateText);
-  await setText(card, "location_text", festival.locationText);
-  await setText(card, "ticket_platform_text", festival.ticketPlatformText);
-  await setText(card, "lineup_text", festival.lineupText);
+  await setText(card, "date_value", festival.dateText);
+  await setText(card, "location_value", festival.locationText);
+  await setText(card, "ticket_platform_value", festival.ticketPlatformText);
+  await setText(card, "lineup_value", festival.lineupText);
   setColor(card, "festival_color_bar", festival.colorHex);
 
   if (!festival.thumbnailUrl) {
@@ -155,38 +270,43 @@ async function generateDraft() {
   const y = Math.min(...figma.currentPage.children.map((node) => node.y));
   const copies = [];
 
-  const cover = createDraftCopy(templates.cover_template, "draft_2026_08_cover", x, y);
-  await setText(cover, "cover_eyebrow", draft.coverEyebrow);
-  await setText(cover, "cover_title", draft.coverTitle);
-  copies.push(cover);
-  x += cover.width + 80;
+  try {
+    const cover = createDraftCopy(templates.cover_template, "draft_2026_08_cover", x, y);
+    copies.push(cover);
+    await setText(cover, "cover_eyebrow", draft.coverEyebrow);
+    await setText(cover, "cover_title", draft.coverTitle);
+    x += cover.width + 80;
 
-  for (const festival of draft.festivalCards) {
-    const card = createDraftCopy(
-      templates.festival_card_template,
-      `draft_2026_08_festival_${festival.id}`,
-      x,
-      y,
-    );
-    await fillFestivalCard(card, festival);
-    copies.push(card);
-    x += card.width + 80;
+    for (const festival of draft.festivalCards) {
+      const card = createDraftCopy(
+        templates.festival_card_template,
+        `draft_2026_08_festival_${festival.id}`,
+        x,
+        y,
+      );
+      copies.push(card);
+      await fillFestivalCard(card, festival);
+      x += card.width + 80;
+    }
+
+    for (let index = 0; index < draft.festivalLists.length; index += 1) {
+      const listCard = createDraftCopy(
+        templates.festival_list_template,
+        `draft_2026_08_list_${index + 1}`,
+        x,
+        y,
+      );
+      copies.push(listCard);
+      await fillFestivalList(listCard, draft.festivalLists[index]);
+      x += listCard.width + 80;
+    }
+
+    const closing = createDraftCopy(templates.closing_template, "draft_2026_08_closing", x, y);
+    copies.push(closing);
+  } catch (error) {
+    copies.forEach((copy) => copy.remove());
+    throw error;
   }
-
-  for (let index = 0; index < draft.festivalLists.length; index += 1) {
-    const listCard = createDraftCopy(
-      templates.festival_list_template,
-      `draft_2026_08_list_${index + 1}`,
-      x,
-      y,
-    );
-    await fillFestivalList(listCard, draft.festivalLists[index]);
-    copies.push(listCard);
-    x += listCard.width + 80;
-  }
-
-  const closing = createDraftCopy(templates.closing_template, "draft_2026_08_closing", x, y);
-  copies.push(closing);
 
   figma.currentPage.selection = copies;
   figma.viewport.scrollAndZoomIntoView(copies);
@@ -195,13 +315,28 @@ async function generateDraft() {
 }
 
 figma.ui.onmessage = async (message) => {
+  if (message.type === "image-converted") {
+    const pendingRequest = pendingImageRequests.get(message.requestId);
+    if (!pendingRequest) return;
+
+    pendingImageRequests.delete(message.requestId);
+    if (message.error) {
+      pendingRequest.reject(new Error(message.error));
+    } else {
+      pendingRequest.resolve(new Uint8Array(message.bytes));
+    }
+    return;
+  }
+
   if (message.type !== "generate") return;
 
   try {
     const result = await generateDraft();
     post(result, false);
   } catch (error) {
-    const messageText = error instanceof Error ? error.message : "초안 생성에 실패했습니다.";
+    const messageText = typeof error === "object" && error && "message" in error
+      ? String(error.message)
+      : String(error || "초안 생성에 실패했습니다.");
     figma.notify(messageText, { error: true });
     post(messageText, true);
   }

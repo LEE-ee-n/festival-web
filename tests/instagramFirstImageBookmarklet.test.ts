@@ -136,7 +136,8 @@ test("WebP 변환이 차단되면 원본 사진을 새 탭으로 열기", async 
       pathname: "/p/ABC123/",
     },
     document: {
-      querySelectorAll: () => [dialog],
+      querySelectorAll: (selector: string) =>
+        selector === '[role="dialog"]' ? [dialog] : [],
     },
     window: {
       innerWidth: 1200,
@@ -222,6 +223,173 @@ test("Instagram 계정 경로가 포함된 독립 상세 페이지에서도 저�
   assert.match(
     filename,
     /^\d{8}-instagram-DbDN-kdk-DY\.webp$/,
+  );
+  assert.match(alerts[0], /WebP로 저장/);
+});
+
+test("게시물 영역이 없어도 og:image로 첫 사진을 저장한다", async () => {
+  const alerts: string[] = [];
+  let fetchedUrl = "";
+  let filename = "";
+  const download = {
+    href: "",
+    set download(value: string) { filename = value; },
+    click() {},
+    remove() {},
+  };
+  const canvas = {
+    width: 0,
+    height: 0,
+    getContext: () => ({ drawImage() {} }),
+    toBlob(callback: (blob: { type: string }) => void) {
+      callback({ type: "image/webp" });
+    },
+  };
+  class TestUrl extends URL {
+    static createObjectURL() { return "blob:webp"; }
+    static revokeObjectURL() {}
+  }
+  const bookmarklet = buildInstagramFirstImageBookmarklet()
+    .slice("javascript:".length);
+
+  await runInNewContext(bookmarklet, {
+    location: {
+      hostname: "www.instagram.com",
+      pathname: "/p/Dbfeab1OWZ6/",
+    },
+    document: {
+      querySelectorAll: () => [],
+      querySelector: (selector: string) =>
+        selector === 'meta[property="og:image"]'
+          ? {
+              getAttribute: () =>
+                "https://cdninstagram.example/open-graph.jpg",
+            }
+          : null,
+      createElement: (tagName: string) =>
+        tagName === "canvas" ? canvas : download,
+      body: { appendChild() {} },
+    },
+    window: {
+      innerWidth: 1200,
+      innerHeight: 1000,
+      open: () => null,
+    },
+    fetch: async (url: string) => {
+      fetchedUrl = url;
+      return {
+        ok: true,
+        blob: async () => ({ type: "image/jpeg" }),
+      };
+    },
+    createImageBitmap: async () => ({
+      width: 1080,
+      height: 1350,
+      close() {},
+    }),
+    URL: TestUrl,
+    Date,
+    Promise,
+    alert: (message: string) => alerts.push(message),
+    setTimeout: (callback: () => void) => callback(),
+  });
+
+  assert.equal(
+    fetchedUrl,
+    "https://cdninstagram.example/open-graph.jpg",
+  );
+  assert.match(filename, /^\d{8}-instagram-Dbfeab1OWZ6\.webp$/);
+  assert.match(alerts[0], /WebP로 저장/);
+});
+
+test("빈 main 바깥의 CSS 배경 사진도 저장한다", async () => {
+  const alerts: string[] = [];
+  let fetchedUrl = "";
+  const download = {
+    href: "",
+    download: "",
+    click() {},
+    remove() {},
+  };
+  const canvas = {
+    width: 0,
+    height: 0,
+    getContext: () => ({ drawImage() {} }),
+    toBlob(callback: (blob: { type: string }) => void) {
+      callback({ type: "image/webp" });
+    },
+  };
+  const emptyMain = {
+    querySelectorAll: () => [],
+    getBoundingClientRect: () => ({
+      left: 0,
+      right: 1200,
+      top: 0,
+      bottom: 1000,
+    }),
+  };
+  const backgroundElement = {
+    getBoundingClientRect: () => ({
+      left: 100,
+      right: 900,
+      top: 50,
+      bottom: 950,
+      width: 800,
+      height: 900,
+    }),
+  };
+  class TestUrl extends URL {
+    static createObjectURL() { return "blob:webp"; }
+    static revokeObjectURL() {}
+  }
+  const bookmarklet = buildInstagramFirstImageBookmarklet()
+    .slice("javascript:".length);
+
+  await runInNewContext(bookmarklet, {
+    location: {
+      hostname: "www.instagram.com",
+      pathname: "/p/Dbisx8CpR30/",
+    },
+    document: {
+      querySelectorAll: (selector: string) =>
+        selector === "div" ? [backgroundElement] : [],
+      querySelector: (selector: string) =>
+        selector === 'main, [role="main"]' ? emptyMain : null,
+      createElement: (tagName: string) =>
+        tagName === "canvas" ? canvas : download,
+      body: { appendChild() {} },
+    },
+    window: {
+      innerWidth: 1200,
+      innerHeight: 1000,
+      open: () => null,
+    },
+    getComputedStyle: () => ({
+      backgroundImage:
+        'url("https://cdninstagram.example/background.jpg")',
+    }),
+    fetch: async (url: string) => {
+      fetchedUrl = url;
+      return {
+        ok: true,
+        blob: async () => ({ type: "image/jpeg" }),
+      };
+    },
+    createImageBitmap: async () => ({
+      width: 1080,
+      height: 1350,
+      close() {},
+    }),
+    URL: TestUrl,
+    Date,
+    Promise,
+    alert: (message: string) => alerts.push(message),
+    setTimeout: (callback: () => void) => callback(),
+  });
+
+  assert.equal(
+    fetchedUrl,
+    "https://cdninstagram.example/background.jpg",
   );
   assert.match(alerts[0], /WebP로 저장/);
 });

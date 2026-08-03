@@ -27,36 +27,38 @@ export default function CalendarHeader({
 }: CalendarHeaderProps) {
   return (
     <div className="grid grid-cols-[1fr_auto_1fr] items-center px-4 pt-[10px] sm:px-6 sm:pt-3">
-      <div className="hidden items-center gap-2 justify-self-start sm:flex">
+      <div className="justify-self-start">
+        <div className="sm:hidden">
+          <FestivalSearch
+            onSelectFestival={onSelectSearchFestival}
+            onSelectArtist={onSelectSearchArtist}
+          />
+        </div>
+      </div>
+
+      <div className="flex items-center gap-4">
         <button
           type="button"
           onClick={onPreviousMonth}
           aria-label="이전 달"
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-surface text-2xl leading-none text-ink-secondary shadow-sm transition hover:bg-surface-subtle"
+          className="hidden h-7 w-7 items-center justify-center text-2xl leading-none text-ink-secondary transition hover:text-ink sm:flex"
         >
           ‹
         </button>
+
+        <h1 className={`${typography.calendarTitle} text-ink`}>
+          {currentYear}년 {currentMonthIndex + 1}월
+        </h1>
 
         <button
           type="button"
           onClick={onNextMonth}
           aria-label="다음 달"
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-surface text-2xl leading-none text-ink-secondary shadow-sm transition hover:bg-surface-subtle"
+          className="hidden h-7 w-7 items-center justify-center text-2xl leading-none text-ink-secondary transition hover:text-ink sm:flex"
         >
           ›
         </button>
       </div>
-
-      <div className="justify-self-start sm:hidden">
-        <FestivalSearch
-          onSelectFestival={onSelectSearchFestival}
-          onSelectArtist={onSelectSearchArtist}
-        />
-      </div>
-
-      <h1 className={`${typography.calendarTitle} text-ink`}>
-        {currentYear}년 {currentMonthIndex + 1}월
-      </h1>
 
       <div className="flex items-center gap-2 justify-self-end">
         <div className="hidden sm:block">

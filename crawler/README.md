@@ -33,9 +33,9 @@ npm test
 - `crawler-output/ticket-discovery/discord-webhook-url.txt`: Git 밖에서 보관하는 Discord 웹훅 URL 한 줄
 - `bookmarklet/`: NOL·티켓링크·YES24 목록 저장 북마클릿과 Instagram 상세 첫 사진 WebP 저장 북마클릿의 설치 파일 생성
 
-Instagram 북마클릿은 게시물을 상세 팝업으로 열고 캐러셀 첫 사진이 보이는 상태에서
-실행한다. 첫 사진을 품질 92% WebP로 저장하며 브라우저 보안 정책으로 변환이
-차단되면 원본 사진을 새 탭으로 연다.
+Instagram 북마클릿은 게시물 상세 페이지 또는 상세 팝업에서 실행한다. 화면의
+첫 사진을 우선 사용하고, Instagram의 화면 구조가 달라 사진 영역을 찾지 못하면
+`og:image`를 사용한다. 품질 92% WebP 변환이 차단되면 원본 사진을 새 탭으로 연다.
 
 YES24는 콘서트 전체보기에서도 동작하지만, 페스티벌 탭에서 실행하면 불필요한 상품이 줄어든다. 상세 페이지를 자동으로 열지 않고 현재 화면의 상품만 읽는다.
 

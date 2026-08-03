@@ -5,6 +5,11 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { supabase } from "@/lib/supabase/client";
+import {
+  getRecentFestivalTickerDismissedUntil,
+  RECENT_FESTIVAL_TICKER_DISMISS_STORAGE_KEY,
+  shouldHideRecentFestivalTicker,
+} from "@/lib/recentFestivalTicker";
 import { typography } from "@/lib/typography";
 import type { RecentFestivalSummary } from "@/lib/types";
 
@@ -18,7 +23,21 @@ export default function RecentFestivalTicker() {
   const [previousIndex, setPreviousIndex] = useState<number | null>(
     null,
   );
-  const [isDismissed, setIsDismissed] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(() => {
+    if (typeof window === "undefined") return false;
+
+    try {
+      const storedValue = window.localStorage.getItem(
+        RECENT_FESTIVAL_TICKER_DISMISS_STORAGE_KEY,
+      );
+      return shouldHideRecentFestivalTicker(
+        storedValue,
+        Date.now(),
+      );
+    } catch {
+      return false;
+    }
+  });
 
   useEffect(() => {
     let isCancelled = false;
@@ -66,7 +85,9 @@ export default function RecentFestivalTicker() {
     return () => window.clearTimeout(timer);
   }, [currentIndex, festivals.length]);
 
-  if (isDismissed || festivals.length === 0) return null;
+  if (isDismissed || festivals.length === 0) {
+    return null;
+  }
 
   const currentFestival = festivals[currentIndex];
   const previousFestival =
@@ -90,7 +111,7 @@ export default function RecentFestivalTicker() {
               className={`${typography.metaStrong} recent-festival-ticker-out absolute inset-0 flex min-w-0 items-center text-festival-night`}
             >
               <span className="truncate">
-                {previousFestival.name}이 새로 등록되었습니다.
+                {previousFestival.name}이(가) 새로 등록되었습니다.
               </span>
             </Link>
           )}
@@ -104,14 +125,27 @@ export default function RecentFestivalTicker() {
             ].join(" ")}
           >
             <span className="truncate">
-              {currentFestival.name}이 새로 등록되었습니다.
+              {currentFestival.name}이(가) 새로 등록되었습니다.
             </span>
           </Link>
         </div>
 
         <button
           type="button"
-          onClick={() => setIsDismissed(true)}
+          onClick={() => {
+            try {
+              window.localStorage.setItem(
+                RECENT_FESTIVAL_TICKER_DISMISS_STORAGE_KEY,
+                String(
+                  getRecentFestivalTickerDismissedUntil(Date.now()),
+                ),
+              );
+            } catch {
+              // 저장소가 차단돼도 현재 화면에서는 알림을 닫는다.
+            }
+
+            setIsDismissed(true);
+          }}
           aria-label="최근 등록 알림 닫기"
           title="닫기"
           className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-ink-muted transition hover:bg-surface-muted hover:text-ink-secondary"
