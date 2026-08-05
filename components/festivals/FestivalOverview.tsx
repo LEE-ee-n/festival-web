@@ -3,11 +3,15 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
+import FestivalRegionFilter from "@/components/festivals/filters/FestivalRegionFilter";
 import { formatFestivalPeriod, toDateKey } from "@/lib/calendar";
 import {
   countPublicFestivalStates,
+  filterPublicFestivalsByRegion,
+  getPublicFestivalRegions,
   getPublicFestivalState,
   sortPublicFestivals,
+  type PublicFestivalRegionFilter,
   type PublicFestivalState,
 } from "@/lib/festivals/publicFestivalOverview";
 import { supabase } from "@/lib/supabase/client";
@@ -47,6 +51,8 @@ export default function FestivalOverview() {
   >([]);
   const [activeFilter, setActiveFilter] =
     useState<FestivalFilter>("all");
+  const [activeRegion, setActiveRegion] =
+    useState<PublicFestivalRegionFilter>("all");
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(
     null,
@@ -103,27 +109,38 @@ export default function FestivalOverview() {
     };
   }, []);
 
+  const regions = useMemo(
+    () => getPublicFestivalRegions(festivals),
+    [festivals],
+  );
+
+  const regionFilteredFestivals = useMemo(
+    () => filterPublicFestivalsByRegion(festivals, activeRegion),
+    [festivals, activeRegion],
+  );
+
   const counts = useMemo(
-    () => countPublicFestivalStates(festivals, todayKey),
-    [festivals, todayKey],
+    () =>
+      countPublicFestivalStates(regionFilteredFestivals, todayKey),
+    [regionFilteredFestivals, todayKey],
   );
 
   const visibleFestivals = useMemo(() => {
     const filteredFestivals =
       activeFilter === "all"
-        ? festivals
-        : festivals.filter(
+        ? regionFilteredFestivals
+        : regionFilteredFestivals.filter(
             (festival) =>
               getPublicFestivalState(festival, todayKey) ===
               activeFilter,
           );
 
     return sortPublicFestivals(filteredFestivals, todayKey);
-  }, [activeFilter, festivals, todayKey]);
+  }, [activeFilter, regionFilteredFestivals, todayKey]);
 
   return (
     <section>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {FILTERS.map((filter) => {
           const isActive = activeFilter === filter.value;
 
@@ -144,6 +161,12 @@ export default function FestivalOverview() {
             </button>
           );
         })}
+
+        <FestivalRegionFilter
+          regions={regions}
+          value={activeRegion}
+          onChange={setActiveRegion}
+        />
       </div>
 
       {errorMessage && (
@@ -164,7 +187,7 @@ export default function FestivalOverview() {
         </div>
       ) : visibleFestivals.length === 0 ? (
         <p className={`${typography.body} mt-8 rounded-2xl border border-line bg-surface py-16 text-center text-ink-tertiary`}>
-          해당 상태의 페스티벌이 없습니다.
+          선택한 조건의 페스티벌이 없습니다.
         </p>
       ) : (
         <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">

@@ -8,6 +8,7 @@ import {
   FESTIVAL_DATA_QUALITY_ISSUES,
   type FestivalDataQualityFestival,
   type FestivalDataQualityIssue,
+  type FestivalDataQualityLineupRow,
 } from "@/lib/festivals/festivalDataQuality";
 import { supabase } from "@/lib/supabase/client";
 import { getSupabaseErrorMessage } from "@/lib/supabase/errorMessage";
@@ -17,6 +18,9 @@ type SelectedIssue = "all" | FestivalDataQualityIssue;
 export default function AdminFestivalDataQuality() {
   const [festivals, setFestivals] = useState<
     FestivalDataQualityFestival[]
+  >([]);
+  const [lineupRows, setLineupRows] = useState<
+    FestivalDataQualityLineupRow[]
   >([]);
   const [selectedIssue, setSelectedIssue] =
     useState<SelectedIssue>("all");
@@ -30,29 +34,42 @@ export default function AdminFestivalDataQuality() {
 
     async function loadFestivals() {
       try {
-        const { data, error } = await supabase
-          .from("festivals")
-          .select(`
-            id,
-            name,
-            start_date,
-            end_date,
-            status,
-            instagram_url,
-            instagram_url_unavailable,
-            official_url,
-            official_url_unavailable,
-            thumbnail_url,
-            location,
-            address,
-            price_type
-          `)
-          .order("start_date", { ascending: true });
+        const [festivalsResult, lineupResult] =
+          await Promise.all([
+            supabase
+              .from("festivals")
+              .select(`
+                id,
+                name,
+                start_date,
+                end_date,
+                status,
+                instagram_url,
+                instagram_url_unavailable,
+                official_url,
+                official_url_unavailable,
+                thumbnail_url,
+                location,
+                address,
+                price_type
+              `)
+              .order("start_date", { ascending: true }),
+            supabase
+              .from("festival_artists")
+              .select("festival_id, performance_date"),
+          ]);
 
-        if (error) throw error;
+        if (festivalsResult.error) {
+          throw festivalsResult.error;
+        }
+
+        if (lineupResult.error) {
+          throw lineupResult.error;
+        }
 
         if (!isCancelled) {
-          setFestivals(data ?? []);
+          setFestivals(festivalsResult.data ?? []);
+          setLineupRows(lineupResult.data ?? []);
         }
       } catch (error) {
         if (!isCancelled) {
@@ -74,8 +91,8 @@ export default function AdminFestivalDataQuality() {
   }, []);
 
   const report = useMemo(
-    () => createFestivalDataQualityReport(festivals),
-    [festivals],
+    () => createFestivalDataQualityReport(festivals, lineupRows),
+    [festivals, lineupRows],
   );
   const filteredItems = useMemo(
     () => selectedIssue === "all"
@@ -112,7 +129,7 @@ export default function AdminFestivalDataQuality() {
         </p>
       ) : (
         <>
-          <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+          <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
             <button
               type="button"
               onClick={() => setSelectedIssue("all")}
@@ -167,7 +184,9 @@ export default function AdminFestivalDataQuality() {
                           key={issue}
                           className="rounded-md border border-line-strong px-2 py-1 text-xs text-ink-secondary"
                         >
-                          {issueLabels.get(issue)}
+                          {issue === "performance_date"
+                            ? `${issueLabels.get(issue)} ${festival.out_of_range_performance_date_count}건`
+                            : issueLabels.get(issue)}
                         </span>
                       ))}
                     </div>

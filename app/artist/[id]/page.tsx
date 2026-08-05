@@ -1,139 +1,28 @@
-"use client";
-
-import Image from "next/image";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { notFound } from "next/navigation";
 
+import ArtistProfileHeader from "@/components/artist/ArtistProfileHeader";
+import { getPublicArtistDetail } from "@/lib/artists/getPublicArtistDetail";
 import { formatFestivalPeriod } from "@/lib/calendar";
-import { supabase } from "@/lib/supabase/client";
 import { typography } from "@/lib/typography";
-import type {
-  PublicArtistDetail,
-  PublicArtistFestivalAppearance,
-} from "@/lib/types";
 
-export default function ArtistDetailPage() {
-  const params = useParams<{ id: string }>();
-  const artistId = Number(params.id);
+export const revalidate = 3600;
 
-  const [artist, setArtist] =
-    useState<PublicArtistDetail | null>(null);
-  const [festivalRows, setFestivalRows] = useState<
-    PublicArtistFestivalAppearance[]
-  >([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<
-    string | null
-  >(null);
+type ArtistDetailPageProps = {
+  params: Promise<{ id: string }>;
+};
 
-  useEffect(() => {
-    async function fetchArtist() {
-      try {
-        setIsLoading(true);
-        setErrorMessage(null);
+export default async function ArtistDetailPage({
+  params,
+}: ArtistDetailPageProps) {
+  const { id } = await params;
+  const detail = await getPublicArtistDetail(id);
 
-        const [artistResult, festivalsResult] =
-          await Promise.all([
-            supabase
-              .from("artists")
-              .select(`
-                id,
-                name,
-                image_url
-              `)
-              .eq("id", artistId)
-              .maybeSingle(),
-
-            supabase
-              .from("festival_artists")
-              .select(`
-                performance_date,
-                performance_time,
-                stage_name,
-                festivals (
-                  id,
-                  name,
-                  start_date,
-                  end_date,
-                  location,
-                  region,
-                  status
-                )
-              `)
-              .eq("artist_id", artistId)
-              .neq("status", "cancelled")
-              .order("performance_date", {
-                ascending: true,
-                nullsFirst: false,
-              }),
-          ]);
-
-        if (artistResult.error) {
-          throw artistResult.error;
-        }
-
-        if (festivalsResult.error) {
-          throw festivalsResult.error;
-        }
-
-        if (!artistResult.data) {
-          throw new Error("아티스트를 찾을 수 없습니다.");
-        }
-
-        setArtist(artistResult.data);
-        setFestivalRows(festivalsResult.data || []);
-      } catch (error) {
-        console.error(error);
-
-        setErrorMessage(
-          error instanceof Error
-            ? error.message
-            : "아티스트 정보를 불러오지 못했습니다.",
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    if (artistId) {
-      void fetchArtist();
-    }
-  }, [artistId]);
-
-  if (isLoading) {
-    return (
-      <main className="min-h-screen bg-surface px-4 py-10">
-        <div className="mx-auto max-w-3xl animate-pulse rounded-3xl bg-surface p-8 shadow-sm">
-          <div className="h-8 w-1/2 rounded bg-surface-strong" />
-          <div className="mt-8 h-32 rounded bg-surface-muted" />
-        </div>
-      </main>
-    );
+  if (!detail) {
+    notFound();
   }
 
-  if (errorMessage || !artist) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-surface px-4">
-        <div className="w-full max-w-md rounded-3xl border border-line bg-surface p-8 text-center shadow-sm">
-          <h1 className={`${typography.articleSectionTitle} text-ink`}>
-            아티스트 정보를 표시할 수 없습니다.
-          </h1>
-
-          <p className={`${typography.body} mt-3 text-ink-tertiary`}>
-            {errorMessage}
-          </p>
-
-          <Link
-            href="/"
-            className={`${typography.button} mt-6 inline-flex rounded-xl bg-surface-dark px-4 py-2.5 text-white`}
-          >
-            달력으로 돌아가기
-          </Link>
-        </div>
-      </main>
-    );
-  }
+  const { artist, festivalRows } = detail;
 
   return (
     <main className="min-h-screen bg-surface px-4 py-8 sm:py-12">
@@ -145,31 +34,12 @@ export default function ArtistDetailPage() {
           ← 달력으로 돌아가기
         </Link>
 
-        <header className="mt-5 flex min-h-44 items-stretch gap-5 rounded-3xl border border-line bg-surface p-6 shadow-sm sm:min-h-52 sm:gap-8 sm:p-9">
-          <div className="flex min-w-0 flex-1 flex-col">
-            <h1 className={`${typography.pageTitle} break-keep text-ink`}>
-              {artist.name}
-            </h1>
-
-            <div
-              className="mt-5 min-h-12 flex-1"
-              aria-hidden="true"
-            />
-          </div>
-
-          {artist.image_url && (
-            <div className="relative aspect-square w-28 shrink-0 overflow-hidden rounded-2xl bg-surface-muted sm:w-36">
-              <Image
-                src={artist.image_url}
-                alt={`${artist.name} 아티스트 이미지`}
-                fill
-                sizes="(max-width: 640px) 112px, 144px"
-                className="object-cover"
-                unoptimized
-              />
-            </div>
-          )}
-        </header>
+        <ArtistProfileHeader
+          name={artist.name}
+          imageUrl={artist.image_url}
+          instagramUrl={artist.instagram_url}
+          featuredPlaylistUrl={artist.featured_playlist_url}
+        />
 
         <div className="mt-6 overflow-hidden rounded-3xl border border-line bg-surface shadow-sm">
           <div className="p-6 sm:p-9">
@@ -184,9 +54,7 @@ export default function ArtistDetailPage() {
             ) : (
               <div className="mt-5 space-y-4">
                 {festivalRows.map((row, index) => {
-                  const festival = Array.isArray(
-                    row.festivals,
-                  )
+                  const festival = Array.isArray(row.festivals)
                     ? row.festivals[0]
                     : row.festivals;
 

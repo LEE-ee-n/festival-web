@@ -2,6 +2,7 @@
 
 import { ChangeEvent, useRef, useState } from "react";
 import * as XLSX from "xlsx";
+import AdminNotice from "@/components/admin/AdminNotice";
 import { supabase } from "@/lib/supabase/client";
 import {
   parseArtistUpdateResult,
@@ -288,7 +289,7 @@ export default function ArtistUpdateImportPage() {
   return (
     <main className="min-h-screen bg-surface-subtle px-4 py-10">
       <div className="mx-auto max-w-6xl">
-        <p className="text-sm font-semibold text-blue-600">
+        <p className="text-sm font-semibold text-ink-secondary">
           관리자
         </p>
 
@@ -320,11 +321,7 @@ export default function ArtistUpdateImportPage() {
             </p>
           )}
 
-          {errorMessage && (
-            <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
-              {errorMessage}
-            </div>
-          )}
+          <AdminNotice message={errorMessage} className="mt-4" />
         
         <div className="mt-5 flex flex-wrap gap-3">
         <button

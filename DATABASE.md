@@ -1,7 +1,7 @@
 # Festibom 운영 DB 명세
 
-기준일: 2026-07-22  
-기준: 운영 Supabase `information_schema.columns` 실측 결과 + 저장소 코드 사용처 + 적용된 migration 004~041
+기준일: 2026-08-05
+기준: 운영 Supabase `information_schema.columns` 실측 결과 + 저장소 코드 사용처 + 적용된 migration 004~053
 
 ## Free 플랜 수동 백업
 
@@ -9,7 +9,7 @@
 - `operations/backup/run-supabase-db-backup.cmd`는 연결된 운영 프로젝트의 `public` 구조와 데이터를 날짜별 SQL 파일로 백업한다.
 - 백업 결과는 Git 저장소 밖에 저장하고 최근 4주를 유지하며, 매주 1회와 운영 DB migration 전 실행한다.
 - `auth` 사용자·프로젝트 secrets/settings·`storage` 메타데이터와 실제 Storage 파일은 이 DB 덤프에 포함되지 않는다.
-- `festival-thumbnails`, `festival-candidate-posters` 파일은 월 1회 별도 Storage 백업이 필요하다.
+- `festival-thumbnails`, `festival-candidate-posters`, `artist-images` 파일은 월 1회 별도 Storage 백업이 필요하다.
 - 복구는 새 프로젝트 또는 로컬 검증 환경에서 먼저 확인하며 운영 DB 자동 복원은 하지 않는다.
 
 ## 읽는 방법
@@ -17,14 +17,14 @@
 - `직접 사용`: 페이지나 함수가 Supabase `.from()`으로 테이블을 직접 조회·변경한다.
 - `RPC 경유`: 페이지가 RPC를 호출하고 PostgreSQL 함수가 테이블을 변경한다.
 - `간접 사용`: 공통 hook 또는 함수가 조회하며 페이지는 그 결과를 사용한다.
-- Storage bucket인 `festival-thumbnails`, `festival-candidate-posters`는 DB 테이블이 아니므로 별도로 표시한다.
+- Storage bucket인 `festival-thumbnails`, `festival-candidate-posters`, `artist-images`는 DB 테이블이 아니므로 별도로 표시한다.
 
 ## TypeScript DB 타입
 
 - 운영 `public` 스키마 타입 스냅샷은 `lib/supabase/database.types.ts`다.
 - 재생성 명령은 `npm run db:types`이며 생성 파일은 직접 수정하지 않는다.
 - 웹 클라이언트는 `lib/supabase/client.ts`에서 `createClient<Database>`로 타입을 연결한다.
-- `lib/supabase/database.ts`는 생성 타입을 다시 내보내고, PostgreSQL에서 NULL을 허용하지만 생성 결과가 NULL을 누락한 `apply_lineup_work_with_audit`, `change_festival_thumbnail_with_audit` 인수만 실제 함수 정의에 맞게 보정한다.
+- `lib/supabase/database.ts`는 생성 타입을 다시 내보내고, PostgreSQL에서 NULL을 허용하지만 생성 결과가 NULL을 누락한 `apply_lineup_work_with_audit`, `change_festival_thumbnail_with_audit`, `update_festival_calendar_color_with_audit` 인수만 실제 함수 정의에 맞게 보정한다.
 - `Json`을 반환하는 RPC 결과는 `lib/supabase/rpcResults.ts`에서 필수 필드와 타입을 검사한 뒤 화면 타입으로 변환한다.
 - 이번 타입 연결은 DB 객체나 저장 데이터를 변경하지 않는다.
 
@@ -109,20 +109,22 @@
 | `created_at` | timestamptz | YES | `now()` | 생성 시각 |
 | `updated_at` | timestamptz | YES | `now()` | 수정 시각 |
 | `address` | text | YES | 없음 | 상세 주소 |
-| `region` | text | YES | 없음 | 지역 |
+| `region` | text | NO | 없음 | 17개 표준 광역지역 2글자 또는 `충남 아산시` 형식의 지역 (Migration 053) |
 | `official_url` | text | YES | 없음 | 공식 사이트 |
 | `instagram_url` | text | YES | 없음 | 관리자가 최종 확인한 공식 Instagram 계정 URL (Migration 047) |
 | `official_url_unavailable` | boolean | NO | `false` | 공식 홈페이지가 실제로 없음을 관리자가 확인한 상태 (Migration 051 적용 필요) |
 | `instagram_url_unavailable` | boolean | NO | `false` | 공식 Instagram 계정이 실제로 없음을 관리자가 확인한 상태 (Migration 051 적용 필요) |
 | `status` | text | YES | `scheduled` | 예정·진행·종료·취소 |
 | `thumbnail_url` | text | YES | 없음 | 대표 이미지 경로 |
-| `timetable_status` | text | NO | `published` | 타임테이블 전체 공개·미공개 상태 (Migration 037 적용) |
+| `timetable_status` | text | NO | `published` | 타임테이블 전체 공개·미공개 상태. 신규 후보 승인 시 반영(037·039), 관리자 화면에서 기본정보 업데이트 RPC로 변경(052) |
 | `price_type` | text | YES | 없음 | 무료·유료 구분 |
 | `slug` | text | YES | 없음 | URL용 식별자 |
 | `search_aliases` | text | YES | 없음 | 검색 보조 별칭 |
 | `normalized_name` | text | NO | 없음 | 정규화 축제명·식별값 |
 
 식별 기준은 `normalized_name + start_date + end_date` 복합 unique다. `name`과 `search_aliases`는 검색 보조값일 뿐 동일 축제 확정 기준이 아니다.
+
+`region`은 `서울`, `경기`, `인천`, `강원`, `대전`, `세종`, `충북`, `충남`, `광주`, `전북`, `전남`, `대구`, `경북`, `부산`, `울산`, `경남`, `제주` 중 하나로 시작해야 한다. 광역지역만 저장하거나 `충남 아산시`처럼 한 칸 띄운 세부지역을 함께 저장할 수 있으며, Migration 053의 NOT NULL·CHECK·trigger가 모든 저장 경로에서 이를 강제한다.
 
 주요 코드:
 
@@ -201,11 +203,15 @@
 | `normalized_name` | text | NO | 없음 | 검색·중복 판별값, unique |
 | `artist_type` | text | YES | 없음 | 아티스트 유형 |
 | `image_url` | text | YES | 없음 | 프로필 이미지 |
+| `instagram_url` | text | YES | 없음 | 공식 Instagram 프로필 |
+| `featured_playlist_url` | text | YES | 없음 | 추천 YouTube 재생목록 |
 
 사용 페이지·함수:
 
 - `/admin/artists`, `/admin/artists/import-update`
 - `delete_artist_admin`: 라인업 연결이 없는 아티스트만 별칭과 함께 감사 기록 후 삭제
+- `update_artist_admin`: 기본정보·별칭·프로필 링크와 `image_url`을 한 감사 작업으로 수정
+- Storage `artist-images`: 관리자가 업로드한 `{normalized_name}.webp` 공개 로고
 - `/artist/[id]`, 축제 상세·라인업 관리
 - `matchFestivalDraftArtists`, `searchArtists`
 - 기존 축제 JSON 업데이트의 ID 매칭

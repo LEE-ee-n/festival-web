@@ -63,7 +63,7 @@ export default function AdminLoginPage() {
   return (
     <main className="flex min-h-screen items-start justify-center bg-surface-subtle px-4 pt-20">
       <div className="w-full max-w-md rounded-3xl border border-line bg-surface p-8 shadow-sm">
-        <p className="text-sm font-semibold text-blue-600">
+        <p className="text-sm font-semibold text-ink-secondary">
           관리자
         </p>
 

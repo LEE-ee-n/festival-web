@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import AdminNotice from "@/components/admin/AdminNotice";
 import { Suspense, useEffect, useRef, useState } from "react";
 
 import { parseFestivalDraftJson } from "@/lib/festivals/festivalDraft";
@@ -601,16 +602,16 @@ function LegacyFestivalJsonUpdateContent() {
             </div>
           )}
 
-          {errorMessage && (
-            <p className="mt-3 rounded-xl bg-red-50 p-3 text-sm font-semibold text-red-700">
-              {errorMessage}
-            </p>
-          )}
-          {result && (
-            <p className="mt-3 rounded-xl bg-emerald-50 p-3 text-sm font-semibold text-emerald-700">
-              업데이트가 완료되었습니다. 감사 작업 #{result.audit_event_id}에 실제 변경 {result.change_count}건을 기록했습니다.
-            </p>
-          )}
+          <AdminNotice message={errorMessage} className="mt-3" />
+          <AdminNotice
+            tone="success"
+            message={
+              result
+                ? `업데이트가 완료되었습니다. 감사 작업 #${result.audit_event_id}에 실제 변경 ${result.change_count}건을 기록했습니다.`
+                : null
+            }
+            className="mt-3"
+          />
         </section>
       </div>
     </main>

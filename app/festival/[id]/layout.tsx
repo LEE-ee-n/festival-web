@@ -3,9 +3,12 @@ import type { ReactNode } from "react";
 
 import { getPublicFestivalSeoData } from "@/lib/publicSeoData";
 import {
+  createBreadcrumbJsonLd,
   createFestivalDescription,
   createFestivalEventJsonLd,
+  createFestivalPagePath,
   createFestivalTitle,
+  isSafeHttpUrl,
   serializeJsonLd,
 } from "@/lib/seo";
 import { SITE_NAME } from "@/lib/site";
@@ -36,7 +39,14 @@ export async function generateMetadata({
   }
 
   const title = createFestivalTitle(festival.name);
-  const description = createFestivalDescription(festival);
+  const description = createFestivalDescription(
+    festival,
+    festival.performers.map((performer) => performer.name),
+  );
+  const pagePath = createFestivalPagePath(festival.id);
+  const imageUrl = isSafeHttpUrl(festival.thumbnail_url)
+    ? festival.thumbnail_url
+    : null;
 
   return {
     title: {
@@ -44,13 +54,20 @@ export async function generateMetadata({
     },
     description,
     alternates: {
-      canonical: `/festival/${festival.id}`,
+      canonical: pagePath,
     },
     openGraph: {
       title,
       description,
       type: "website",
-      url: `/festival/${festival.id}`,
+      url: pagePath,
+      ...(imageUrl ? { images: [imageUrl] } : {}),
+    },
+    twitter: {
+      card: imageUrl ? "summary_large_image" : "summary",
+      title,
+      description,
+      ...(imageUrl ? { images: [imageUrl] } : {}),
     },
   };
 }
@@ -62,18 +79,38 @@ export default async function FestivalDetailLayout({
   const { id } = await params;
   const festival = await getPublicFestivalSeoData(id);
 
+  if (!festival) {
+    return children;
+  }
+
+  const eventJsonLd = createFestivalEventJsonLd(festival, {
+    imageUrl: festival.thumbnail_url,
+    performers: festival.performers,
+    offer: festival.offer,
+  });
+  const breadcrumbJsonLd = createBreadcrumbJsonLd([
+    { name: "홈", path: "/" },
+    { name: "전체 페스티벌", path: "/festivals" },
+    {
+      name: festival.name,
+      path: createFestivalPagePath(festival.id),
+    },
+  ]);
+
   return (
     <>
-      {festival && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: serializeJsonLd(
-              createFestivalEventJsonLd(festival),
-            ),
-          }}
-        />
-      )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: serializeJsonLd(eventJsonLd),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: serializeJsonLd(breadcrumbJsonLd),
+        }}
+      />
 
       {children}
     </>

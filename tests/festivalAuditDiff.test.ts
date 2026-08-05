@@ -25,3 +25,17 @@ test("등록과 삭제 스냅샷도 변경 항목으로 표시한다", () => {
   assert.equal(getFestivalAuditDiff({ name: "삭제" }, null)[0].before, "삭제");
   assert.equal(formatAuditValue(null), "없음");
 });
+
+test("타임테이블 공개 상태 변경을 감사 기록에 표시한다", () => {
+  const changes = getFestivalAuditDiff(
+    { timetable_status: "published" },
+    { timetable_status: "unpublished" },
+  );
+
+  assert.deepEqual(changes, [{
+    field: "timetable_status",
+    label: "타임테이블 공개 상태",
+    before: "published",
+    after: "unpublished",
+  }]);
+});

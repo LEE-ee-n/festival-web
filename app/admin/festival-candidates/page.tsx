@@ -12,6 +12,8 @@ import TicketDiscoveryUploader from "@/app/admin/festival-candidates/components/
 import { useFestivalCandidateDraft } from "@/app/admin/festival-candidates/hooks/useFestivalCandidateDraft";
 import { useFestivalCandidates } from "@/app/admin/festival-candidates/hooks/useFestivalCandidates";
 import AdminBackLink from "@/components/admin/AdminBackLink";
+import AdminNotice from "@/components/admin/AdminNotice";
+import TimetableVisibilityToggle from "@/components/admin/TimetableVisibilityToggle";
 import { matchFestivalDraftArtists } from "@/lib/artists/matchFestivalDraftArtists";
 import {
   FESTIVAL_REGISTRATION_STEPS,
@@ -438,11 +440,7 @@ export default function FestivalCandidatesPage() {
           ))}
         </div>
 
-        {(errorMessage || editorError) && (
-          <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
-            {editorError || errorMessage}
-          </div>
-        )}
+        <AdminNotice message={editorError || errorMessage} className="mt-5" />
         {notice && (
           <p className="mt-5 text-sm font-semibold text-ink">{notice}</p>
         )}
@@ -662,26 +660,18 @@ export default function FestivalCandidatesPage() {
 
                   {currentStep === "timetable" && (
                     <div>
-                      <div className="mt-6 flex flex-wrap gap-2 rounded-xl border border-line bg-surface-subtle p-4">
-                        <button
-                          type="button"
-                          onClick={() => updateWorkflow("timetable_visibility", "published")}
-                          className={draft.workflow?.timetable_visibility !== "unpublished" ? "rounded-lg bg-surface-dark px-4 py-2 text-sm font-bold text-white" : "rounded-lg border border-line-strong bg-surface px-4 py-2 text-sm font-bold text-ink-secondary"}
-                        >
-                          타임테이블 검토
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => updateWorkflow("timetable_visibility", "unpublished")}
-                          className={draft.workflow?.timetable_visibility === "unpublished" ? "rounded-lg bg-surface-dark px-4 py-2 text-sm font-bold text-white" : "rounded-lg border border-line-strong bg-surface px-4 py-2 text-sm font-bold text-ink-secondary"}
-                        >
-                          타임테이블 미공개
-                        </button>
+                      <div className="mt-6 rounded-xl border border-line bg-surface-subtle p-4">
+                        <TimetableVisibilityToggle
+                          value={draft.workflow?.timetable_visibility}
+                          onChange={(value) => updateWorkflow("timetable_visibility", value)}
+                        />
                       </div>
                       {draft.workflow?.timetable_visibility === "unpublished" ? (
-                        <p className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-800">
-                          OCR 타임테이블은 저장하지 않고 미공개 상태만 반영합니다.
-                        </p>
+                        <AdminNotice
+                          tone="warning"
+                          message="OCR 타임테이블은 저장하지 않고 미공개 상태만 반영합니다."
+                          className="mt-5"
+                        />
                       ) : (
                         <CandidateLineupTab
                           artists={draft.artists}

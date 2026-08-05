@@ -2,6 +2,11 @@ import Link from "next/link";
 import { CalendarDays, LayoutGrid } from "lucide-react";
 
 import FestivalSearch from "@/components/calendar/FestivalSearch";
+import FestivalRegionFilter from "@/components/festivals/filters/FestivalRegionFilter";
+import type {
+  PublicFestivalRegion,
+  PublicFestivalRegionFilter,
+} from "@/lib/festivals/publicFestivalOverview";
 import type { PublicArtistSearchResult } from "@/lib/publicSearch";
 import type { Festival } from "@/lib/types";
 import { typography } from "@/lib/typography";
@@ -12,6 +17,9 @@ type CalendarHeaderProps = {
   onPreviousMonth: () => void;
   onNextMonth: () => void;
   onMoveToToday: () => void;
+  regions: PublicFestivalRegion[];
+  activeRegion: PublicFestivalRegionFilter;
+  onRegionChange: (value: PublicFestivalRegionFilter) => void;
   onSelectSearchFestival: (festival: Festival) => void;
   onSelectSearchArtist: (artist: PublicArtistSearchResult) => void;
 };
@@ -22,16 +30,26 @@ export default function CalendarHeader({
   onPreviousMonth,
   onNextMonth,
   onMoveToToday,
+  regions,
+  activeRegion,
+  onRegionChange,
   onSelectSearchFestival,
   onSelectSearchArtist,
 }: CalendarHeaderProps) {
   return (
-    <div className="grid grid-cols-[1fr_auto_1fr] items-center px-4 pt-[10px] sm:px-6 sm:pt-3">
-      <div className="justify-self-start">
+    <div className="grid grid-cols-[1fr_auto_1fr] items-center px-0 pt-[10px] sm:px-6 sm:pt-3">
+      <div className="flex items-center gap-1 justify-self-start sm:gap-2">
         <div className="sm:hidden">
           <FestivalSearch
             onSelectFestival={onSelectSearchFestival}
             onSelectArtist={onSelectSearchArtist}
+          />
+        </div>
+        <div className="sm:hidden">
+          <FestivalRegionFilter
+            regions={regions}
+            value={activeRegion}
+            onChange={onRegionChange}
           />
         </div>
       </div>
@@ -60,11 +78,19 @@ export default function CalendarHeader({
         </button>
       </div>
 
-      <div className="flex items-center gap-2 justify-self-end">
+      <div className="flex items-center gap-1 justify-self-end sm:gap-2">
         <div className="hidden sm:block">
           <FestivalSearch
             onSelectFestival={onSelectSearchFestival}
             onSelectArtist={onSelectSearchArtist}
+          />
+        </div>
+        <div className="hidden sm:block">
+          <FestivalRegionFilter
+            regions={regions}
+            value={activeRegion}
+            onChange={onRegionChange}
+            desktopAlign="right"
           />
         </div>
         <Link

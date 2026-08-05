@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { groupArtistsByDateAndStage } from "@/lib/festivals/artistScheduleGroups";
 import { supabase } from "@/lib/supabase/client";
 import type {
   Festival,
@@ -9,10 +10,7 @@ import type {
   FestivalTicketRound,
 } from "@/lib/types";
 
-export type ArtistsByDateAndStage = Record<
-  string,
-  Record<string, FestivalArtist[]>
->;
+export type { ArtistsByDateAndStage } from "@/lib/festivals/artistScheduleGroups";
 
 type FestivalDetailState = {
   festival: Festival | null;
@@ -66,7 +64,7 @@ export function useFestivalDetail(
           .select(`
             id, name, start_date, end_date, location, address, region,
             category, description, official_url, instagram_url, thumbnail_url, price_info,
-            price_type, program_info, source_url, slug, status,
+            price_type, program_info, source_url, slug, status, timetable_status,
             confidence_score, verification_status, created_at, updated_at
           `)
           .eq("id", databaseFestivalId)
@@ -77,19 +75,13 @@ export function useFestivalDetail(
         if (error) throw error;
         if (!data) throw new Error("축제를 찾을 수 없습니다.");
 
-        const { data: timetableData } = await supabase
-          .from("festivals")
-          .select("timetable_status")
-          .eq("id", databaseFestivalId)
-          .maybeSingle();
-
         if (!isCancelled) {
           setState((current) => ({
             ...current,
             festival: {
               ...data,
               timetable_status:
-                timetableData?.timetable_status === "unpublished"
+                data.timetable_status === "unpublished"
                   ? "unpublished"
                   : "published",
             } as Festival,
@@ -198,33 +190,10 @@ export function useFestivalDetail(
     };
   }, [databaseFestivalId, enabled]);
 
-  const artistsByDateAndStage = useMemo(() => {
-    const groups = state.festivalArtists.reduce<ArtistsByDateAndStage>(
-      (dateGroups, artist) => {
-        const date = artist.performance_date || "날짜 미정";
-        const stage = artist.stage_name?.trim() || "무대 미정";
-
-        dateGroups[date] ??= {};
-        dateGroups[date][stage] ??= [];
-        dateGroups[date][stage].push(artist);
-        return dateGroups;
-      },
-      {},
-    );
-
-    Object.values(groups).forEach((stageGroups) => {
-      Object.values(stageGroups).forEach((artists) => {
-        artists.sort((a, b) => {
-          if (!a.performance_time && !b.performance_time) return 0;
-          if (!a.performance_time) return 1;
-          if (!b.performance_time) return -1;
-          return a.performance_time.localeCompare(b.performance_time);
-        });
-      });
-    });
-
-    return groups;
-  }, [state.festivalArtists]);
+  const artistsByDateAndStage = useMemo(
+    () => groupArtistsByDateAndStage(state.festivalArtists),
+    [state.festivalArtists],
+  );
 
   return {
     ...state,

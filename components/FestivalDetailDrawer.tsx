@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 import { ListMusic } from "lucide-react";
 
 import FestivalDetailSummary from "@/components/festival/FestivalDetailSummary";
@@ -93,6 +94,29 @@ export default function FestivalDetailDrawer({
 
           {isArtistsLoading ? (
             <FestivalTimetableSkeleton />
+          ) : festival.timetable_status === "unpublished" ? (
+            <section className="border-b border-line px-6 py-6">
+              <h2 className={`${typography.sectionTitle} text-ink`}>
+                출연진
+              </h2>
+              <p className={`${typography.label} mt-2 text-ink-tertiary`}>
+                타임테이블 미공개
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {Array.from(new Map(festivalArtists.map((item) => {
+                  const artist = Array.isArray(item.artists) ? item.artists[0] : item.artists;
+                  return [item.artist_id, artist];
+                })).values()).map((artist) => artist ? (
+                  <Link
+                    key={artist.id}
+                    href={`/artist/${artist.id}`}
+                    className={`${typography.label} rounded-full border border-line bg-surface px-3 py-2 text-ink`}
+                  >
+                    {artist.name}
+                  </Link>
+                ) : null)}
+              </div>
+            </section>
           ) : (
             <FestivalTimetable
               artistsByDateAndStage={artistsByDateAndStage}

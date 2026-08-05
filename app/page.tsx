@@ -37,12 +37,27 @@ export default function HomePage() {
     description: HOME_DESCRIPTION,
   };
 
+  const organizationJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: SITE_NAME,
+    alternateName: "Festibom",
+    url: SITE_URL,
+    description: HOME_DESCRIPTION,
+  };
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: serializeJsonLd(websiteJsonLd),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: serializeJsonLd(organizationJsonLd),
         }}
       />
 

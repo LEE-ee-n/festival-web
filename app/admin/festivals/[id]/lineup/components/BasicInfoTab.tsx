@@ -242,8 +242,13 @@ export default function BasicInfoTab({
                     type="text"
                     value={region}
                     onChange={(event) => setRegion(event.target.value)}
+                    required
+                    placeholder="예: 서울 또는 충남 아산시"
                     className="mt-2 w-full rounded-xl border border-line-strong px-4 py-3 text-sm"
                   />
+                  <p className="mt-2 text-xs text-ink-tertiary">
+                    표준 광역지역 2글자로 시작하고, 세부지역은 한 칸 띄워 입력하세요.
+                  </p>
                 </div>
 
                 <div>

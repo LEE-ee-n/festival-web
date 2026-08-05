@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -50,27 +50,33 @@ export type Database = {
         Row: {
           artist_type: string | null
           created_at: string | null
+          featured_playlist_url: string | null
           genre: string | null
           id: number
           image_url: string | null
+          instagram_url: string | null
           name: string
           normalized_name: string
         }
         Insert: {
           artist_type?: string | null
           created_at?: string | null
+          featured_playlist_url?: string | null
           genre?: string | null
           id?: number
           image_url?: string | null
+          instagram_url?: string | null
           name: string
           normalized_name: string
         }
         Update: {
           artist_type?: string | null
           created_at?: string | null
+          featured_playlist_url?: string | null
           genre?: string | null
           id?: number
           image_url?: string | null
+          instagram_url?: string | null
           name?: string
           normalized_name?: string
         }
@@ -484,17 +490,17 @@ export type Database = {
           description: string | null
           end_date: string
           id: number
+          instagram_url: string | null
+          instagram_url_unavailable: boolean
           location: string | null
           name: string
           normalized_name: string
           official_url: string | null
           official_url_unavailable: boolean
-          instagram_url: string | null
-          instagram_url_unavailable: boolean
           price_info: string | null
           price_type: string | null
           program_info: string | null
-          region: string | null
+          region: string
           search_aliases: string | null
           slug: string | null
           source_url: string | null
@@ -514,17 +520,17 @@ export type Database = {
           description?: string | null
           end_date: string
           id?: number
+          instagram_url?: string | null
+          instagram_url_unavailable?: boolean
           location?: string | null
           name: string
           normalized_name: string
           official_url?: string | null
           official_url_unavailable?: boolean
-          instagram_url?: string | null
-          instagram_url_unavailable?: boolean
           price_info?: string | null
           price_type?: string | null
           program_info?: string | null
-          region?: string | null
+          region: string
           search_aliases?: string | null
           slug?: string | null
           source_url?: string | null
@@ -544,17 +550,17 @@ export type Database = {
           description?: string | null
           end_date?: string
           id?: number
+          instagram_url?: string | null
+          instagram_url_unavailable?: boolean
           location?: string | null
           name?: string
           normalized_name?: string
           official_url?: string | null
           official_url_unavailable?: boolean
-          instagram_url?: string | null
-          instagram_url_unavailable?: boolean
           price_info?: string | null
           price_type?: string | null
           program_info?: string | null
-          region?: string | null
+          region?: string
           search_aliases?: string | null
           slug?: string | null
           source_url?: string | null
@@ -669,6 +675,10 @@ export type Database = {
         Returns: number
       }
       approve_new_festival_candidate: {
+        Args: { p_candidate_id: number; p_draft: Json; p_review_notes?: string }
+        Returns: Json
+      }
+      approve_new_festival_candidate_base_047: {
         Args: { p_candidate_id: number; p_draft: Json; p_review_notes?: string }
         Returns: Json
       }
@@ -910,6 +920,10 @@ export type Database = {
         }
         Returns: Json
       }
+      format_festival_display_name: {
+        Args: { p_name: string; p_start_date: string }
+        Returns: string
+      }
       import_festival_from_xlsx: {
         Args: { p_artists: Json; p_festival: Json }
         Returns: Json
@@ -920,6 +934,7 @@ export type Database = {
       }
       is_admin: { Args: never; Returns: boolean }
       is_festival_bot: { Args: never; Returns: boolean }
+      is_valid_festival_region: { Args: { p_region: string }; Returns: boolean }
       normalize_artist_name: { Args: { input_name: string }; Returns: string }
       normalize_festival_name: {
         Args: { p_name: string; p_start_date?: string }
@@ -949,15 +964,39 @@ export type Database = {
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
-      update_artist_admin: {
-        Args: {
-          p_aliases?: string[]
-          p_artist_id: number
-          p_name: string
-          p_normalized_name: string
-        }
-        Returns: Json
-      }
+      update_artist_admin:
+        | {
+            Args: {
+              p_aliases?: string[]
+              p_artist_id: number
+              p_name: string
+              p_normalized_name: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_aliases?: string[]
+              p_artist_id: number
+              p_featured_playlist_url?: string
+              p_instagram_url?: string
+              p_name: string
+              p_normalized_name: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_aliases?: string[]
+              p_artist_id: number
+              p_featured_playlist_url?: string
+              p_image_url?: string
+              p_instagram_url?: string
+              p_name: string
+              p_normalized_name: string
+            }
+            Returns: Json
+          }
       update_artist_from_festival_admin: {
         Args: {
           p_aliases?: string[]
@@ -974,8 +1013,8 @@ export type Database = {
         Returns: number
       }
       update_festival_calendar_color_with_audit: {
-        Args: { p_calendar_color: string | null; p_festival_id: number }
-        Returns: string | null
+        Args: { p_calendar_color: string; p_festival_id: number }
+        Returns: string
       }
       update_festival_statuses: { Args: never; Returns: undefined }
     }

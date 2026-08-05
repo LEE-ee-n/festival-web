@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import AdminBackLink from "@/components/admin/AdminBackLink";
+import AdminNotice from "@/components/admin/AdminNotice";
 import FestivalColorSelector from "@/components/admin/FestivalColorSelector";
 import { supabase } from "@/lib/supabase/client";
 import { deleteFestival } from "@/lib/festivals/deleteFestival";
@@ -178,7 +179,7 @@ export default function AdminFestivalsPage() {
 
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold text-blue-600">
+            <p className="text-sm font-semibold text-ink-secondary">
               관리자
             </p>
 
@@ -203,11 +204,7 @@ export default function AdminFestivalsPage() {
           </div>
         </div>
 
-        {errorMessage && (
-          <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
-            {errorMessage}
-          </div>
-        )}
+        <AdminNotice message={errorMessage} className="mt-6" />
 
         <section className="mt-8 overflow-hidden rounded-3xl border border-line bg-surface shadow-sm">
           {isLoading ? (

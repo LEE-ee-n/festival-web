@@ -84,6 +84,8 @@ export interface PublicArtistDetail {
   id: number;
   name: string;
   image_url: string | null;
+  instagram_url: string | null;
+  featured_playlist_url: string | null;
 }
 
 export interface PublicArtistFestivalSummary {

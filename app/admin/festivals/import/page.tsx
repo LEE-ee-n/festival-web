@@ -13,6 +13,7 @@ import {
   useState,
 } from "react";
 import Papa from "papaparse";
+import AdminNotice from "@/components/admin/AdminNotice";
 
 type CsvArtistRow = {
   input_name: string;
@@ -510,7 +511,7 @@ export default function FestivalImportPage() {
         </Link>
 
         <header className="mt-5">
-          <p className="text-sm font-semibold text-blue-600">
+          <p className="text-sm font-semibold text-ink-secondary">
             관리자
           </p>
 
@@ -642,11 +643,7 @@ export default function FestivalImportPage() {
             </p>
           )}
 
-          {errorMessage && (
-            <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
-              {errorMessage}
-            </div>
-          )}
+          <AdminNotice message={errorMessage} className="mt-4" />
 
           {!selectedFestival && rows.length > 0 && (
             <p className="mt-4 text-sm font-medium text-amber-600">

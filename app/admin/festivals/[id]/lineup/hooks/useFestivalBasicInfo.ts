@@ -30,6 +30,7 @@ export type FestivalBasicInfoRecord = {
   program_info: string | null;
   status: string | null;
   verification_status: string | null;
+  timetable_status: string | null;
 };
 
 export function useFestivalBasicInfo(
@@ -59,6 +60,11 @@ export function useFestivalBasicInfo(
   const [festivalStatus, setFestivalStatus] = useState("");
   const [verificationStatus, setVerificationStatus] =
     useState("pending");
+  const [timetableStatus, setTimetableStatus] = useState<
+    "published" | "unpublished"
+  >("published");
+  const [isSavingTimetableStatus, setIsSavingTimetableStatus] =
+    useState(false);
   const [thumbnailFile, setThumbnailFile] =
     useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState("");
@@ -93,6 +99,11 @@ export function useFestivalBasicInfo(
       setFestivalStatus(festival.status ?? "");
       setVerificationStatus(
         festival.verification_status ?? "pending",
+      );
+      setTimetableStatus(
+        festival.timetable_status === "unpublished"
+          ? "unpublished"
+          : "published",
       );
     },
     [],
@@ -283,9 +294,70 @@ export function useFestivalBasicInfo(
     }
   }
 
+  async function saveTimetableStatus(
+    status: "published" | "unpublished",
+  ) {
+    if (status === timetableStatus) {
+      return;
+    }
+
+    if (
+      !window.confirm(
+        status === "unpublished"
+          ? "타임테이블을 미공개로 변경하시겠습니까?"
+          : "타임테이블을 공개 상태로 변경하시겠습니까?",
+      )
+    ) {
+      return;
+    }
+
+    try {
+      setIsSavingTimetableStatus(true);
+      setErrorMessage(null);
+      await updateFestivalBasicInfo(festivalId, {
+        name: festivalName,
+        normalizedName,
+        searchAliases,
+        startDate,
+        endDate,
+        location,
+        address,
+        region,
+        category,
+        description,
+        thumbnailUrl,
+        officialUrl,
+        instagramUrl,
+        officialUrlUnavailable,
+        instagramUrlUnavailable,
+        priceType,
+        priceInfo,
+        programInfo,
+        status: festivalStatus,
+        verificationStatus,
+        timetableStatus: status,
+      });
+      setTimetableStatus(status);
+      window.alert("타임테이블 공개 상태가 저장되었습니다.");
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "타임테이블 상태 저장에 실패했습니다.",
+      );
+    } finally {
+      setIsSavingTimetableStatus(false);
+    }
+  }
+
   return {
     festivalName,
+    startDate,
+    endDate,
     initializeBasicInfo,
+    timetableStatus,
+    saveTimetableStatus,
+    isSavingTimetableStatus,
     tabProps: {
       festivalId,
       festivalName,

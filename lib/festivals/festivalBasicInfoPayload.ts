@@ -1,4 +1,5 @@
 import type { FestivalBasicInfoInput } from "@/lib/festivals/updateFestivalBasicInfo";
+import { normalizeFestivalRegion } from "./regionValidation.ts";
 import { normalizeInstagramProfileUrl } from "../../operations/discord-instagram-bot/src/instagramProfile.js";
 
 export function toFestivalBasicInfoPayload(
@@ -13,7 +14,7 @@ export function toFestivalBasicInfoPayload(
     end_date: input.endDate,
     location: input.location.trim() || null,
     address: input.address.trim() || null,
-    region: input.region.trim() || null,
+    region: normalizeFestivalRegion(input.region),
     category: input.category.trim() || null,
     description: input.description.trim() || null,
     thumbnail_url: input.thumbnailUrl.trim() || null,
@@ -28,5 +29,8 @@ export function toFestivalBasicInfoPayload(
     program_info: input.programInfo.trim() || null,
     status: input.status || "scheduled",
     verification_status: input.verificationStatus || "pending",
+    ...(input.timetableStatus
+      ? { timetable_status: input.timetableStatus }
+      : {}),
   };
 }

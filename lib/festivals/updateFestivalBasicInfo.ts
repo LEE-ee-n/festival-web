@@ -28,6 +28,7 @@ export type FestivalBasicInfoInput = {
   programInfo: string;
   status: string;
   verificationStatus: string;
+  timetableStatus?: "published" | "unpublished";
 };
 
 export async function updateFestivalBasicInfo(

@@ -12,6 +12,7 @@ import {
   type AuditCountSummary,
   type JsonAuditSummary,
 } from "@/lib/audit/auditSummary";
+import AdminNotice from "@/components/admin/AdminNotice";
 import { supabase } from "@/lib/supabase/client";
 import type { Json } from "@/lib/supabase/database";
 
@@ -181,7 +182,7 @@ export default function AuditHistoryTab({ festivalId, scope = "festival" }: Audi
         <button type="button" onClick={() => void loadEvents()} className="rounded-xl border border-line-strong bg-surface px-4 py-2 text-sm font-semibold text-ink-secondary">새로고침</button>
       </div>
 
-      {errorMessage && <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{errorMessage}</div>}
+      <AdminNotice message={errorMessage} className="mt-5" />
       {!errorMessage && displayEvents.length === 0 && <div className="mt-5 rounded-2xl border border-line bg-surface p-6 text-sm text-ink-tertiary">아직 변경 기록이 없습니다.</div>}
 
       <div className="mt-5 space-y-3">
@@ -223,7 +224,7 @@ export default function AuditHistoryTab({ festivalId, scope = "festival" }: Audi
                     {event.source_type && <span>출처 유형: <strong>{event.source_type}</strong></span>}
                     {event.reason && <span>정정 사유: <strong>{event.reason}</strong></span>}
                     {event.note && <span>메모: <strong>{event.note}</strong></span>}
-                    {event.source_url && <a href={event.source_url} target="_blank" rel="noreferrer" className="font-semibold text-blue-600">출처 열기</a>}
+                    {event.source_url && <a href={event.source_url} target="_blank" rel="noreferrer" className="font-semibold text-ink-secondary underline hover:text-ink">출처 열기</a>}
                   </div>
                 )}
 

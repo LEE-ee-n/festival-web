@@ -29,7 +29,7 @@ export default function CandidateSourcePreview({
           href={sourceUrl ?? undefined}
           target="_blank"
           rel="noreferrer"
-          className="inline-block break-all text-sm font-medium text-blue-600 hover:underline"
+          className="inline-block break-all text-sm font-medium text-ink-secondary hover:text-ink hover:underline"
         >
           원본 출처 열기
         </a>
@@ -56,7 +56,7 @@ export default function CandidateSourcePreview({
                 href={asset.url}
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-lg border border-line-strong px-3 py-2 text-sm text-blue-600"
+                className="rounded-lg border border-line-strong px-3 py-2 text-sm text-ink-secondary hover:text-ink"
               >
                 {asset.name || `자료 ${index + 1}`}
               </a>

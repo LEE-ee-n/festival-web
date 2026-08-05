@@ -30,7 +30,8 @@ export async function getFestivalLineupData(
         price_info,
         program_info,
         status,
-        verification_status
+        verification_status,
+        timetable_status
       `)
       .eq("id", festivalId)
       .single(),

@@ -33,6 +33,11 @@ import CalendarGrid from "@/components/calendar/CalendarGrid";
 import RecentFestivalTicker from "@/components/calendar/RecentFestivalTicker";
 import { useCalendarSwipe } from "@/components/calendar/useCalendarSwipe";
 import { getFestivalColorClass } from "@/lib/festivalColor";
+import {
+  filterPublicFestivalsByRegion,
+  getPublicFestivalRegions,
+  type PublicFestivalRegionFilter,
+} from "@/lib/festivals/publicFestivalOverview";
 
 export default function Calendar() {
   const router = useRouter();
@@ -67,6 +72,8 @@ export default function Calendar() {
 
   const [isDatePanelOpen, setIsDatePanelOpen] = useState(false);
   const [festivals, setFestivals] = useState<Festival[]>([]);
+  const [activeRegion, setActiveRegion] =
+    useState<PublicFestivalRegionFilter>("all");
   const [selectedFestival, setSelectedFestival] =
     useState<Festival | null>(null);
   const [hasListContext, setHasListContext] = useState(false);
@@ -251,27 +258,38 @@ export default function Calendar() {
     [currentYear, currentMonthIndex],
   );
 
+  const regions = useMemo(
+    () => getPublicFestivalRegions(festivals),
+    [festivals],
+  );
+
+  const visibleFestivals = useMemo(
+    () => filterPublicFestivalsByRegion(festivals, activeRegion),
+    [activeRegion, festivals],
+  );
+
   const festivalsByDate = useMemo(() => {
     const result = new Map<string, Festival[]>();
 
     calendarDays.forEach((day) => {
       result.set(
         day.dateKey,
-        getFestivalsForDate(festivals, day.dateKey),
+        getFestivalsForDate(visibleFestivals, day.dateKey),
       );
     });
 
     return result;
-  }, [calendarDays, festivals]);
+  }, [calendarDays, visibleFestivals]);
 
   const festivalLanes = useMemo(
-    () => assignFestivalLanes(festivals),
-    [festivals],
+    () => assignFestivalLanes(visibleFestivals),
+    [visibleFestivals],
   );
 
   const selectedFestivals = useMemo(
-    () => getFestivalsForDate(festivals, activeSelectedDateKey),
-    [activeSelectedDateKey, festivals],
+    () =>
+      getFestivalsForDate(visibleFestivals, activeSelectedDateKey),
+    [activeSelectedDateKey, visibleFestivals],
   );
 
   const calendarWheelTargetRef = useRef<HTMLDivElement>(null);
@@ -390,6 +408,7 @@ export default function Calendar() {
     monthCursorRef.current = { year, monthIndex: month - 1 };
     setVisibleMonth({ year, monthIndex: month - 1 });
     setSelectedDateKey(festival.start_date);
+    setActiveRegion("all");
     setSelectedFestival(festival);
     setHasListContext(false);
     setIsDatePanelOpen(true);
@@ -402,6 +421,12 @@ export default function Calendar() {
     artist: PublicArtistSearchResult,
   ) {
     router.push(`/artist/${artist.id}`);
+  }
+
+  function changeRegion(value: PublicFestivalRegionFilter) {
+    setActiveRegion(value);
+    setSelectedFestival(null);
+    setHasListContext(true);
   }
 
   return (
@@ -427,6 +452,9 @@ export default function Calendar() {
             onPreviousMonth={() => moveMonth(-1)}
             onNextMonth={() => moveMonth(1)}
             onMoveToToday={moveToToday}
+            regions={regions}
+            activeRegion={activeRegion}
+            onRegionChange={changeRegion}
             onSelectSearchFestival={selectSearchedFestival}
             onSelectSearchArtist={selectSearchedArtist}
           />

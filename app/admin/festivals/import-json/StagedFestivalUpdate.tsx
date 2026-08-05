@@ -5,6 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import CandidateLineupTab from "@/app/admin/festival-candidates/components/CandidateLineupTab";
 import CandidateSourcePreview from "@/app/admin/festival-candidates/components/CandidateSourcePreview";
 import AdminBackLink from "@/components/admin/AdminBackLink";
+import AdminNotice from "@/components/admin/AdminNotice";
+import TimetableVisibilityToggle from "@/components/admin/TimetableVisibilityToggle";
 import JsonLineupAuditFields from "./JsonLineupAuditFields";
 import FestivalUpdateComparisonTable from "./FestivalUpdateComparisonTable";
 import { matchFestivalDraftArtists } from "@/lib/artists/matchFestivalDraftArtists";
@@ -529,12 +531,13 @@ export default function StagedFestivalUpdate({ festivalId, updateDraftId }: Prop
           </section>
         )}
 
-        {step === "timetable" && <section className="mt-6"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-lg font-bold">타임테이블 검토</h2><p className="mt-1 text-sm text-ink-tertiary">확정된 아티스트의 일정만 추가·수정할 수 있습니다.</p></div><div className="flex gap-2"><button type="button" onClick={() => setDraft({ ...draft, workflow: { ...draft.workflow, timetable_visibility: "published" } })} className={`rounded-lg px-3 py-2 text-sm font-bold ${draft.workflow?.timetable_visibility !== "unpublished" ? "bg-surface-dark text-white" : "border"}`}>타임테이블 검토</button><button type="button" onClick={() => setDraft({ ...draft, workflow: { ...draft.workflow, timetable_visibility: "unpublished" } })} className={`rounded-lg px-3 py-2 text-sm font-bold ${draft.workflow?.timetable_visibility === "unpublished" ? "bg-surface-dark text-white" : "border"}`}>전체 미공개</button></div></div>
+        {step === "timetable" && <section className="mt-6"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-lg font-bold">타임테이블 검토</h2><p className="mt-1 text-sm text-ink-tertiary">확정된 아티스트의 일정만 추가·수정할 수 있습니다.</p></div><TimetableVisibilityToggle value={draft.workflow?.timetable_visibility} onChange={(value) => setDraft({ ...draft, workflow: { ...draft.workflow, timetable_visibility: value } })} /></div>
           {draft.workflow?.timetable_visibility === "unpublished" ? (
-            <p className="mt-5 rounded-xl bg-amber-50 p-4 text-sm font-bold text-amber-800">
-              타임테이블 미공개로 반영합니다. 아티스트 연결만 추가하고
-              일정은 저장하지 않습니다.
-            </p>
+            <AdminNotice
+              tone="warning"
+              message="타임테이블 미공개로 반영합니다. 아티스트 연결만 추가하고 일정은 저장하지 않습니다."
+              className="mt-5"
+            />
           ) : (
             <FestivalUpdateComparisonTable
               items={lineupItems}
@@ -567,8 +570,8 @@ export default function StagedFestivalUpdate({ festivalId, updateDraftId }: Prop
           </section>
         )}
 
-        {errorMessage && <p className="mt-4 rounded-xl bg-red-50 p-3 text-sm font-bold text-red-700">{errorMessage}</p>}
-        {notice && <p className="mt-4 rounded-xl bg-blue-50 p-3 text-sm font-bold text-blue-700">{notice}</p>}
+        <AdminNotice message={errorMessage} className="mt-4" />
+        <AdminNotice message={notice} tone="info" className="mt-4" />
         <div className="mt-6 flex justify-between border-t border-line pt-5"><button type="button" disabled={isSaving || step === "artist_review"} onClick={() => void move("previous")} className="rounded-xl border border-line-strong px-5 py-3 text-sm font-bold disabled:opacity-30">이전</button>{step !== "final_confirmation" ? <button type="button" disabled={isSaving} onClick={() => void move("next")} className="rounded-xl bg-surface-dark px-5 py-3 text-sm font-bold text-white disabled:opacity-40">이 단계 확정 후 다음</button> : <button type="button" onClick={() => void finalize()} disabled={isSaving || selectedIds.size === 0} className="rounded-xl bg-surface-dark px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40">{isSaving ? "반영 중..." : "페스티벌 수정 최종 확정"}</button>}</div>
       </div>
     </main>

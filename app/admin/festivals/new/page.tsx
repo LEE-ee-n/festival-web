@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import BasicInfoTab from "@/app/admin/festivals/[id]/lineup/components/BasicInfoTab";
+import AdminNotice from "@/components/admin/AdminNotice";
 import { createFestival } from "@/lib/festivals/createFestival";
 
 export default function NewFestivalPage() {
@@ -101,7 +102,7 @@ export default function NewFestivalPage() {
         </Link>
 
         <div className="mt-5">
-          <p className="text-sm font-semibold text-blue-600">관리자</p>
+          <p className="text-sm font-semibold text-ink-secondary">관리자</p>
           <h1 className="mt-2 text-3xl font-bold text-ink">
             새 페스티벌 등록
           </h1>
@@ -110,11 +111,7 @@ export default function NewFestivalPage() {
           </p>
         </div>
 
-        {errorMessage && (
-          <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
-            {errorMessage}
-          </div>
-        )}
+        <AdminNotice message={errorMessage} className="mt-6" />
 
         <BasicInfoTab
           title="축제 기본정보"

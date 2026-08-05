@@ -1,10 +1,14 @@
 import ArtistEditFields from "./ArtistEditFields";
+import ArtistProfileStatus from "@/components/admin/ArtistProfileStatus";
 
 export type ManagedArtistRow = {
   id: number;
   name: string;
   normalized_name: string;
   aliases: string[];
+  image_url: string | null;
+  instagram_url: string | null;
+  featured_playlist_url: string | null;
 };
 
 export type ArtistSortKey = "id" | "name" | "normalized_name";
@@ -16,6 +20,10 @@ type ArtistManagementTableProps = {
   editName: string;
   editNormalizedName: string;
   editAliases: string;
+  editInstagramUrl: string;
+  editFeaturedPlaylistUrl: string;
+  editImageFile: File | null;
+  editImagePreviewUrl: string;
   sortKey: ArtistSortKey;
   sortDirection: SortDirection;
   isSaving: boolean;
@@ -25,6 +33,9 @@ type ArtistManagementTableProps = {
   onNameChange: (value: string) => void;
   onNormalizedNameChange: (value: string) => void;
   onAliasesChange: (value: string) => void;
+  onInstagramUrlChange: (value: string) => void;
+  onFeaturedPlaylistUrlChange: (value: string) => void;
+  onImageFileChange: (file: File | null) => void;
   onSave: () => void;
   onCancel: () => void;
   onDelete: () => void;
@@ -49,11 +60,18 @@ export default function ArtistManagementTable(props: ArtistManagementTableProps)
     name: props.editName,
     normalizedName: props.editNormalizedName,
     aliases: props.editAliases,
+    instagramUrl: props.editInstagramUrl,
+    featuredPlaylistUrl: props.editFeaturedPlaylistUrl,
+    imageFile: props.editImageFile,
+    imagePreviewUrl: props.editImagePreviewUrl,
     isSaving: props.isSaving,
     isDeleting: props.isDeleting,
     onNameChange: props.onNameChange,
     onNormalizedNameChange: props.onNormalizedNameChange,
     onAliasesChange: props.onAliasesChange,
+    onInstagramUrlChange: props.onInstagramUrlChange,
+    onFeaturedPlaylistUrlChange: props.onFeaturedPlaylistUrlChange,
+    onImageFileChange: props.onImageFileChange,
     onSave: props.onSave,
     onCancel: props.onCancel,
     onDelete: props.onDelete,
@@ -64,11 +82,12 @@ export default function ArtistManagementTable(props: ArtistManagementTableProps)
       <div className="mt-6 hidden md:block">
         <table className="w-full table-fixed text-center text-sm">
           <colgroup>
-            <col className="w-[8%]" />
-            <col className="w-[21%]" />
-            <col className="w-[22%]" />
-            <col className="w-[31%]" />
+            <col className="w-[7%]" />
             <col className="w-[18%]" />
+            <col className="w-[19%]" />
+            <col className="w-[28%]" />
+            <col className="w-[17%]" />
+            <col className="w-[11%]" />
           </colgroup>
           <thead className="border-b border-line-strong text-ink-secondary">
             <tr>
@@ -92,6 +111,7 @@ export default function ArtistManagementTable(props: ArtistManagementTableProps)
                 </button>
               </th>
               <th className="px-3 py-3 font-semibold">별칭</th>
+              <th className="px-3 py-3 font-semibold">프로필</th>
               <th className="px-3 py-3 font-semibold">작업</th>
             </tr>
           </thead>
@@ -106,7 +126,12 @@ export default function ArtistManagementTable(props: ArtistManagementTableProps)
                   className={isEditing ? "border-y-2 border-gray-500 bg-surface-subtle" : "bg-surface"}
                 >
                   {isEditing ? (
-                    <ArtistEditFields layout="desktop" {...editProps} artistId={artist.id} />
+                    <ArtistEditFields
+                      layout="desktop"
+                      {...editProps}
+                      artistId={artist.id}
+                      imageUrl={artist.image_url}
+                    />
                   ) : (
                     <>
                       <td className="px-3 py-3 text-ink-tertiary">{artist.id}</td>
@@ -116,6 +141,14 @@ export default function ArtistManagementTable(props: ArtistManagementTableProps)
                       </td>
                       <td className="break-words px-3 py-3 text-ink-secondary">
                         {artist.aliases.join(", ") || "-"}
+                      </td>
+                      <td className="px-2 py-3">
+                        <ArtistProfileStatus
+                          artistName={artist.name}
+                          imageUrl={artist.image_url}
+                          instagramUrl={artist.instagram_url}
+                          featuredPlaylistUrl={artist.featured_playlist_url}
+                        />
                       </td>
                       <td className="px-3 py-3">
                         <button
@@ -166,7 +199,12 @@ export default function ArtistManagementTable(props: ArtistManagementTableProps)
                 ].join(" ")}
               >
                 {isEditing ? (
-                  <ArtistEditFields layout="mobile" {...editProps} artistId={artist.id} />
+                  <ArtistEditFields
+                    layout="mobile"
+                    {...editProps}
+                    artistId={artist.id}
+                    imageUrl={artist.image_url}
+                  />
                 ) : (
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -178,6 +216,14 @@ export default function ArtistManagementTable(props: ArtistManagementTableProps)
                         {artist.aliases.join(", ") || "별칭 없음"}
                       </p>
                       <p className="mt-2 text-xs text-ink-muted">ID {artist.id}</p>
+                      <div className="mt-3">
+                        <ArtistProfileStatus
+                          artistName={artist.name}
+                          imageUrl={artist.image_url}
+                          instagramUrl={artist.instagram_url}
+                          featuredPlaylistUrl={artist.featured_playlist_url}
+                        />
+                      </div>
                     </div>
                     <button
                       type="button"

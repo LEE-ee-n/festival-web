@@ -39,25 +39,33 @@ function hasSupportedImageSignature(bytes: Uint8Array) {
   return isJpeg || isPng || isWebp;
 }
 
-export async function validateFestivalThumbnailFile(file: File) {
+export async function validateImageFile(
+  file: File,
+  label: string,
+  maxBytes = FESTIVAL_THUMBNAIL_MAX_BYTES,
+) {
   const extension = getFileExtension(file.name);
 
   if (
     !allowedExtensions.has(extension) ||
     !allowedMimeTypes.has(file.type.toLowerCase())
   ) {
-    throw new Error("썸네일은 JPG, PNG, WebP 파일만 사용할 수 있습니다.");
+    throw new Error(`${label}는 JPG, PNG, WebP 파일만 사용할 수 있습니다.`);
   }
 
-  if (file.size > FESTIVAL_THUMBNAIL_MAX_BYTES) {
-    throw new Error("썸네일 파일은 5MB 이하여야 합니다.");
+  if (file.size > maxBytes) {
+    throw new Error(`${label} 파일은 5MB 이하여야 합니다.`);
   }
 
   const header = new Uint8Array(await file.slice(0, 12).arrayBuffer());
 
   if (!hasSupportedImageSignature(header)) {
-    throw new Error("파일 내용이 올바른 JPG, PNG 또는 WebP 이미지가 아닙니다.");
+    throw new Error(`파일 내용이 올바른 JPG, PNG 또는 WebP ${label}가 아닙니다.`);
   }
+}
+
+export async function validateFestivalThumbnailFile(file: File) {
+  return validateImageFile(file, "썸네일");
 }
 
 export function validateFestivalThumbnailUrl(url: string) {

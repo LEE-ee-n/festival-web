@@ -1,3 +1,4 @@
+import { getPerformanceDateRangeError } from "@/lib/festivals/festivalDataQuality";
 import type { FestivalArtist } from "@/lib/types";
 
 type LineupByDateAndStage = Record<
@@ -9,6 +10,8 @@ type ArtistLineupTableProps = {
   isLoading: boolean;
   rows: FestivalArtist[];
   lineupByDateAndStage: LineupByDateAndStage;
+  festivalStartDate: string;
+  festivalEndDate: string;
   updateRow: (
     lineupId: number,
     field:
@@ -43,6 +46,8 @@ export default function ArtistLineupTable({
   isLoading,
   rows,
   lineupByDateAndStage,
+  festivalStartDate,
+  festivalEndDate,
   updateRow,
   saveRow,
   deleteRow,
@@ -118,6 +123,12 @@ export default function ArtistLineupTable({
                           {stageArtists.map((row) => {
                             const artist = artistOf(row);
                             const isSaving = savingArtistId === row.id;
+                            const dateRangeError =
+                              getPerformanceDateRangeError(
+                                row.performance_date,
+                                festivalStartDate || null,
+                                festivalEndDate || null,
+                              );
 
                             return (
                               <tr
@@ -152,6 +163,11 @@ export default function ArtistLineupTable({
                                       updateRow(row.id, "performance_date", event.target.value)}
                                     className={inputClass}
                                   />
+                                  {dateRangeError && (
+                                    <p className="mt-1 text-xs font-semibold text-red-600">
+                                      {dateRangeError}
+                                    </p>
+                                  )}
                                 </td>
 
                                 <td className="block border-line pb-3 lg:table-cell lg:border-b lg:px-3 lg:py-3 lg:align-middle">

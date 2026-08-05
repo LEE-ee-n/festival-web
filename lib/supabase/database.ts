@@ -28,6 +28,17 @@ type NullableRpcFunctions = {
       p_new_url: string | null;
     };
   };
+  update_festival_calendar_color_with_audit: Omit<
+    GeneratedFunctions["update_festival_calendar_color_with_audit"],
+    "Args"
+  > & {
+    Args: Omit<
+      GeneratedFunctions["update_festival_calendar_color_with_audit"]["Args"],
+      "p_calendar_color"
+    > & {
+      p_calendar_color: string | null;
+    };
+  };
 };
 
 export type Database = Omit<GeneratedDatabase, "public"> & {

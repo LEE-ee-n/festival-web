@@ -4,10 +4,16 @@ export const FESTIVAL_DATA_QUALITY_ISSUES = [
   { key: "thumbnail", label: "썸네일 없음" },
   { key: "venue", label: "장소·주소 미완성" },
   { key: "price_type", label: "가격 구분 미정" },
+  { key: "performance_date", label: "축제 기간 밖 아티스트 공연일" },
 ] as const;
 
 export type FestivalDataQualityIssue =
   (typeof FESTIVAL_DATA_QUALITY_ISSUES)[number]["key"];
+
+export type FestivalDataQualityLineupRow = {
+  festival_id: number;
+  performance_date: string | null;
+};
 
 export type FestivalDataQualityFestival = {
   id: number;
@@ -28,10 +34,44 @@ export type FestivalDataQualityFestival = {
 export type FestivalDataQualityItem =
   FestivalDataQualityFestival & {
     issues: FestivalDataQualityIssue[];
+    out_of_range_performance_date_count: number;
   };
 
 function isBlank(value: string | null): boolean {
   return !value || value.trim().length === 0;
+}
+
+export function getPerformanceDateRangeError(
+  performanceDate: string | null,
+  startDate: string | null,
+  endDate: string | null,
+): string | null {
+  if (!performanceDate || !startDate || !endDate) {
+    return null;
+  }
+
+  if (
+    performanceDate < startDate ||
+    performanceDate > endDate
+  ) {
+    return `축제 기간(${startDate} ~ ${endDate}) 밖의 날짜입니다.`;
+  }
+
+  return null;
+}
+
+export function countOutOfRangePerformanceDates(
+  festival: { start_date: string; end_date: string },
+  rows: FestivalDataQualityLineupRow[],
+): number {
+  return rows.filter(
+    (row) =>
+      getPerformanceDateRangeError(
+        row.performance_date,
+        festival.start_date,
+        festival.end_date,
+      ) !== null,
+  ).length;
 }
 
 export function getFestivalDataQualityIssues(
@@ -67,6 +107,7 @@ export function getFestivalDataQualityIssues(
 
 export function createFestivalDataQualityReport(
   festivals: FestivalDataQualityFestival[],
+  lineupRows: FestivalDataQualityLineupRow[] = [],
 ) {
   const counts: Record<FestivalDataQualityIssue, number> = {
     instagram: 0,
@@ -74,8 +115,23 @@ export function createFestivalDataQualityReport(
     thumbnail: 0,
     venue: 0,
     price_type: 0,
+    performance_date: 0,
   };
   const items: FestivalDataQualityItem[] = [];
+  const lineupRowsByFestival = new Map<
+    number,
+    FestivalDataQualityLineupRow[]
+  >();
+
+  lineupRows.forEach((row) => {
+    const rows = lineupRowsByFestival.get(row.festival_id);
+
+    if (rows) {
+      rows.push(row);
+    } else {
+      lineupRowsByFestival.set(row.festival_id, [row]);
+    }
+  });
 
   festivals.forEach((festival) => {
     if (
@@ -86,13 +142,25 @@ export function createFestivalDataQualityReport(
     }
 
     const issues = getFestivalDataQualityIssues(festival);
+    const outOfRangeCount = countOutOfRangePerformanceDates(
+      festival,
+      lineupRowsByFestival.get(festival.id) ?? [],
+    );
+
+    if (outOfRangeCount > 0) {
+      issues.push("performance_date");
+    }
 
     if (issues.length === 0) return;
 
     issues.forEach((issue) => {
       counts[issue] += 1;
     });
-    items.push({ ...festival, issues });
+    items.push({
+      ...festival,
+      issues,
+      out_of_range_performance_date_count: outOfRangeCount,
+    });
   });
 
   return { counts, items };

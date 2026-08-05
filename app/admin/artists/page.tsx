@@ -9,6 +9,7 @@ import {
 } from "react";
 
 import AdminBackLink from "@/components/admin/AdminBackLink";
+import AdminNotice from "@/components/admin/AdminNotice";
 import ArtistCandidateTable, {
   type ArtistCandidate,
 } from "./components/ArtistCandidateTable";
@@ -23,9 +24,25 @@ import {
 } from "@/lib/artists/normalizeArtistName";
 import { supabase } from "@/lib/supabase/client";
 import { parseArtistMutationResult } from "@/lib/supabase/rpcResults";
+import {
+  normalizeFeaturedPlaylistUrl,
+  normalizeInstagramUrl,
+} from "@/lib/artists/profileLinks";
+import {
+  prepareArtistImageRename,
+  prepareArtistImageUpload,
+  removeArtistImageByUrl,
+  type PreparedArtistImageChange,
+} from "@/lib/artists/uploadArtistImage";
 
 type SimilarArtist = ArtistCandidate;
 type ManagedArtist = ManagedArtistRow;
+type SelectableArtist = Pick<
+  ManagedArtist,
+  "id" | "name" | "normalized_name"
+> & {
+  aliases?: string[];
+};
 
 function normalizeSearchText(value: string) {
   return value.toLowerCase().replace(/\s+/g, "");
@@ -50,6 +67,10 @@ export default function AdminArtistsPage() {
   const [editName, setEditName] = useState("");
   const [editUniqueName, setEditUniqueName] = useState("");
   const [editAliases, setEditAliases] = useState("");
+  const [editInstagramUrl, setEditInstagramUrl] = useState("");
+  const [editFeaturedPlaylistUrl, setEditFeaturedPlaylistUrl] = useState("");
+  const [editImageFile, setEditImageFile] = useState<File | null>(null);
+  const [editImagePreviewUrl, setEditImagePreviewUrl] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -66,7 +87,7 @@ export default function AdminArtistsPage() {
       const [artistsResult, aliasesResult] = await Promise.all([
         supabase
           .from("artists")
-          .select("id, name, normalized_name")
+          .select("id, name, normalized_name, image_url, instagram_url, featured_playlist_url")
           .order("id", { ascending: true }),
         supabase
           .from("artist_aliases")
@@ -91,6 +112,9 @@ export default function AdminArtistsPage() {
           name: artist.name,
           normalized_name: artist.normalized_name,
           aliases: aliasesByArtist.get(artist.id) ?? [],
+          image_url: artist.image_url,
+          instagram_url: artist.instagram_url,
+          featured_playlist_url: artist.featured_playlist_url,
         })),
       );
     } catch (error) {
@@ -111,6 +135,15 @@ export default function AdminArtistsPage() {
 
     return () => window.clearTimeout(timeoutId);
   }, [loadArtists]);
+
+  useEffect(() => () => {
+    if (editImagePreviewUrl) URL.revokeObjectURL(editImagePreviewUrl);
+  }, [editImagePreviewUrl]);
+
+  function handleImageFileChange(file: File | null) {
+    setEditImageFile(file);
+    setEditImagePreviewUrl(file ? URL.createObjectURL(file) : "");
+  }
 
   const filteredArtists = useMemo(() => {
     const query = listFilter.trim().toLowerCase();
@@ -160,7 +193,7 @@ export default function AdminArtistsPage() {
   }
 
   function selectArtist(
-    artist: ManagedArtist | SimilarArtist,
+    artist: SelectableArtist,
     options?: { revealInList?: boolean },
   ) {
     const fullArtist = artists.find((item) => item.id === artist.id);
@@ -170,6 +203,10 @@ export default function AdminArtistsPage() {
     setEditName(fullArtist?.name ?? artist.name);
     setEditUniqueName(fullArtist?.normalized_name ?? artist.normalized_name);
     setEditAliases((fullArtist?.aliases ?? []).join(", "));
+    setEditInstagramUrl(fullArtist?.instagram_url ?? "");
+    setEditFeaturedPlaylistUrl(fullArtist?.featured_playlist_url ?? "");
+    setEditImageFile(null);
+    setEditImagePreviewUrl("");
     setErrorMessage(null);
     setSuccessMessage(null);
 
@@ -181,6 +218,10 @@ export default function AdminArtistsPage() {
     setEditName("");
     setEditUniqueName("");
     setEditAliases("");
+    setEditInstagramUrl("");
+    setEditFeaturedPlaylistUrl("");
+    setEditImageFile(null);
+    setEditImagePreviewUrl("");
     setErrorMessage(null);
   }
 
@@ -303,6 +344,18 @@ export default function AdminArtistsPage() {
         .filter(Boolean),
     )];
 
+    let instagramUrl: string | null;
+    let featuredPlaylistUrl: string | null;
+    let preparedImageChange: PreparedArtistImageChange | null = null;
+    let didPersistChanges = false;
+    try {
+      instagramUrl = normalizeInstagramUrl(editInstagramUrl);
+      featuredPlaylistUrl = normalizeFeaturedPlaylistUrl(editFeaturedPlaylistUrl);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "프로필 링크를 확인해 주세요.");
+      return;
+    }
+
     if (!name) {
       setErrorMessage("화면 표시 이름을 입력하세요.");
       return;
@@ -331,22 +384,64 @@ export default function AdminArtistsPage() {
       setErrorMessage(null);
       setSuccessMessage(null);
 
+      const selectedArtist = artists.find((artist) => artist.id === selectedArtistId);
+      if (editImageFile) {
+        preparedImageChange = await prepareArtistImageUpload(
+          uniqueName,
+          editImageFile,
+          selectedArtist?.image_url ?? "",
+        );
+      } else if (
+        selectedArtist
+        && selectedArtist.normalized_name !== uniqueName
+        && selectedArtist.image_url
+      ) {
+        preparedImageChange = await prepareArtistImageRename(
+          uniqueName,
+          selectedArtist.image_url,
+        );
+      }
+
       const { error } = await supabase.rpc("update_artist_admin", {
         p_artist_id: selectedArtistId,
         p_name: name,
         p_normalized_name: uniqueName,
         p_aliases: aliases,
+        p_instagram_url: instagramUrl ?? "",
+        p_featured_playlist_url: featuredPlaylistUrl ?? "",
+        p_image_url: preparedImageChange?.publicUrl ?? null,
       });
 
       if (error) throw error;
+      didPersistChanges = true;
+
+      const cleanupWarning = await preparedImageChange?.finalize();
 
       await loadArtists();
       setSelectedArtistId(null);
       setEditName("");
       setEditUniqueName("");
       setEditAliases("");
-      setSuccessMessage(`${name}의 정보를 수정했습니다.`);
+      setEditInstagramUrl("");
+      setEditFeaturedPlaylistUrl("");
+      setEditImageFile(null);
+      setEditImagePreviewUrl("");
+      setSuccessMessage(
+        cleanupWarning
+          ? `${name}의 정보는 저장했지만 이전 로고 정리에 실패했습니다: ${cleanupWarning}`
+          : `${name}의 정보를 수정했습니다.`,
+      );
     } catch (error) {
+      let rollbackMessage = "";
+      if (preparedImageChange && !didPersistChanges) {
+        try {
+          await preparedImageChange.rollback();
+        } catch (rollbackError) {
+          rollbackMessage = rollbackError instanceof Error
+            ? ` 새 로고 복원·정리에도 실패했습니다: ${rollbackError.message}`
+            : " 새 로고 복원·정리에도 실패했습니다.";
+        }
+      }
       const message =
         typeof error === "object"
         && error !== null
@@ -357,8 +452,9 @@ export default function AdminArtistsPage() {
       setErrorMessage(
         message.includes("update_artist_admin")
           || message.toLowerCase().includes("schema cache")
-          ? "Supabase에 017_update_artist_admin.sql을 먼저 실행해 주세요."
-          : message,
+          || message.toLowerCase().includes("bucket not found")
+          ? "Supabase에 054_artist_image_upload.sql을 먼저 실행해 주세요."
+          : `${message}${rollbackMessage}`,
       );
     } finally {
       setIsSaving(false);
@@ -377,12 +473,21 @@ export default function AdminArtistsPage() {
       setSuccessMessage(null);
       const { error } = await supabase.rpc("delete_artist_admin", { p_artist_id: selectedArtistId });
       if (error) throw error;
+      const imageCleanupWarning = await removeArtistImageByUrl(selected?.image_url ?? "");
       setSelectedArtistId(null);
       setEditName("");
       setEditUniqueName("");
       setEditAliases("");
+      setEditInstagramUrl("");
+      setEditFeaturedPlaylistUrl("");
+      setEditImageFile(null);
+      setEditImagePreviewUrl("");
       await loadArtists();
-      setSuccessMessage(`${label}을(를) 삭제했습니다.`);
+      setSuccessMessage(
+        imageCleanupWarning
+          ? `${label}은(는) 삭제했지만 로고 파일 정리에 실패했습니다: ${imageCleanupWarning}`
+          : `${label}을(를) 삭제했습니다.`,
+      );
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "아티스트 삭제에 실패했습니다.");
     } finally {
@@ -451,16 +556,8 @@ export default function AdminArtistsPage() {
           </form>
         </section>
 
-        {errorMessage && (
-          <p className="mt-4 rounded-xl bg-red-50 p-4 text-sm font-semibold text-red-700">
-            {errorMessage}
-          </p>
-        )}
-        {successMessage && (
-          <p className="mt-4 rounded-xl bg-green-50 p-4 text-sm font-semibold text-green-700">
-            {successMessage}
-          </p>
-        )}
+        <AdminNotice message={errorMessage} className="mt-4" />
+        <AdminNotice message={successMessage} tone="success" className="mt-4" />
 
         {hasSearched && (
           <section className="mt-6 rounded-3xl border border-line bg-surface p-6 shadow-sm sm:p-8">
@@ -517,6 +614,10 @@ export default function AdminArtistsPage() {
               editName={editName}
               editNormalizedName={editUniqueName}
               editAliases={editAliases}
+              editInstagramUrl={editInstagramUrl}
+              editFeaturedPlaylistUrl={editFeaturedPlaylistUrl}
+              editImageFile={editImageFile}
+              editImagePreviewUrl={editImagePreviewUrl}
               sortKey={sortKey}
               sortDirection={sortDirection}
               isSaving={isSaving}
@@ -527,6 +628,9 @@ export default function AdminArtistsPage() {
               onNormalizedNameChange={(value) =>
                 setEditUniqueName(normalizeArtistName(value))}
               onAliasesChange={setEditAliases}
+              onInstagramUrlChange={setEditInstagramUrl}
+              onFeaturedPlaylistUrlChange={setEditFeaturedPlaylistUrl}
+              onImageFileChange={handleImageFileChange}
               onSave={() => void handleSaveArtist()}
               onCancel={cancelArtistEdit}
               onDelete={() => void handleDeleteArtist()}

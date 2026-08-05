@@ -31,6 +31,7 @@ const fieldLabels: Record<string, string> = {
   program_info: "프로그램 정보",
   status: "진행 상태",
   verification_status: "공개 승인 상태",
+  timetable_status: "타임테이블 공개 상태",
   artist_name: "아티스트",
   artist_normalized_name: "아티스트 normalized_name",
   aliases: "아티스트 별칭",

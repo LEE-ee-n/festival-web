@@ -5,6 +5,8 @@ import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import AdminBackLink from "@/components/admin/AdminBackLink";
+import AdminNotice from "@/components/admin/AdminNotice";
+import TimetableVisibilityToggle from "@/components/admin/TimetableVisibilityToggle";
 import ArtistLineupTable from "./components/ArtistLineupTable";
 import ArtistAddSection from "./components/ArtistAddSection";
 import BasicInfoTab from "./components/BasicInfoTab";
@@ -110,7 +112,7 @@ export default function FestivalLineupAdminPage() {
 
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold text-blue-600">
+            <p className="text-sm font-semibold text-ink-secondary">
               관리자
             </p>
             <h1 className="mt-2 text-3xl font-bold text-ink">
@@ -146,7 +148,7 @@ export default function FestivalLineupAdminPage() {
               className={[
                 "border-b-2 px-5 py-3 text-sm font-semibold",
                 activeTab === tab.id
-                  ? "border-blue-600 text-blue-600"
+                  ? "border-surface-dark text-ink"
                   : "border-transparent text-ink-tertiary",
               ].join(" ")}
             >
@@ -155,16 +157,11 @@ export default function FestivalLineupAdminPage() {
           ))}
         </div>
 
-        {errorMessage && (
-          <div
-            ref={errorRef}
-            tabIndex={-1}
-            role="alert"
-            className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700 outline-none"
-          >
-            {errorMessage}
-          </div>
-        )}
+        <AdminNotice
+          message={errorMessage}
+          noticeRef={errorRef}
+          className="mt-6"
+        />
 
         {activeTab === "basic" && (
           <>
@@ -174,11 +171,32 @@ export default function FestivalLineupAdminPage() {
 
         {activeTab === "lineup" && (
           <>
+            <section className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-line bg-surface p-6 shadow-sm">
+              <div>
+                <h2 className="text-lg font-bold text-ink">
+                  타임테이블 공개 상태
+                </h2>
+                <p className="mt-1 text-sm text-ink-tertiary">
+                  공개 상세 화면의 타임테이블 표시를 즉시 변경합니다.
+                </p>
+              </div>
+              <TimetableVisibilityToggle
+                value={basicInfo.timetableStatus}
+                disabled={basicInfo.isSavingTimetableStatus}
+                onChange={(value) => void basicInfo.saveTimetableStatus(value)}
+              />
+            </section>
             <LineupWorkPanel {...artists.workPanelProps} />
-            <ArtistAddSection {...artists.addSectionProps} />
+            <ArtistAddSection
+              {...artists.addSectionProps}
+              festivalStartDate={basicInfo.startDate}
+              festivalEndDate={basicInfo.endDate}
+            />
             <ArtistLineupTable
               {...artists.tableProps}
               isLoading={isLoading}
+              festivalStartDate={basicInfo.startDate}
+              festivalEndDate={basicInfo.endDate}
             />
             <button
               type="button"
