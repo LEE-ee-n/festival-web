@@ -323,6 +323,14 @@ export default function Calendar() {
   const handleCalendarWheel = useCallback(
     (event: WheelEvent) => {
       if (
+        event.target instanceof Element &&
+        event.target.closest("[data-calendar-filter-menu]")
+      ) {
+        event.stopPropagation();
+        return;
+      }
+
+      if (
         event.ctrlKey ||
         window.matchMedia("(pointer: coarse)").matches ||
         Math.abs(event.deltaY) <= Math.abs(event.deltaX)

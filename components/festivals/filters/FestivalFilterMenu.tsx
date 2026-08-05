@@ -91,6 +91,7 @@ export default function FestivalFilterMenu<
         <div
           role="dialog"
           aria-label={title}
+          data-calendar-filter-menu="true"
           className={[
             "fixed inset-x-4 bottom-4 z-50 max-h-[calc(100dvh-2rem)] overflow-hidden rounded-2xl border border-line-strong bg-surface p-2 shadow-lg sm:absolute sm:inset-x-auto sm:bottom-auto sm:top-[calc(100%+8px)] sm:z-30 sm:w-max sm:min-w-44 sm:max-w-[calc(100vw-2rem)]",
             desktopAlign === "right" ? "sm:right-0" : "sm:left-0",
