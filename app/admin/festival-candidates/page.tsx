@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import CandidateBasicInfoTab from "@/app/admin/festival-candidates/components/CandidateBasicInfoTab";
+import { normalizeFestivalRegion } from "@/lib/festivals/regionValidation.ts";
 import CandidateLineupTab from "@/app/admin/festival-candidates/components/CandidateLineupTab";
 import CandidateTicketTab from "@/app/admin/festival-candidates/components/CandidateTicketTab";
 import CandidateSourcePreview from "@/app/admin/festival-candidates/components/CandidateSourcePreview";
@@ -215,7 +216,15 @@ export default function FestivalCandidatesPage() {
   function moveToApprovalError(currentDraft: FestivalDraftJson) {
     let selector = "";
 
-    if (!/^[a-z0-9]+$/.test(currentDraft.festival.normalized_name)) {
+    try {
+      normalizeFestivalRegion(currentDraft.festival.region ?? "");
+    } catch {
+      selector = '[data-approval-field="festival-region"]';
+    }
+
+    if (selector) {
+      // 지역 오류를 먼저 해결해야 다음 단계로 이동할 수 있다.
+    } else if (!/^[a-z0-9]+$/.test(currentDraft.festival.normalized_name)) {
       selector = '[data-approval-field="festival-normalized-name"]';
     } else {
       const unnamedIndex = currentDraft.artists.findIndex(
@@ -270,7 +279,16 @@ export default function FestivalCandidatesPage() {
   async function handleMoveStep(nextStep: FestivalRegistrationStep) {
     if (!selectedCandidate || !draft) return;
     try {
-      const moved = moveRegistrationStep(draft, nextStep);
+      const draftForMove = currentStep === "festival_info"
+        ? {
+            ...draft,
+            festival: {
+              ...draft.festival,
+              region: normalizeFestivalRegion(draft.festival.region ?? ""),
+            },
+          }
+        : draft;
+      const moved = moveRegistrationStep(draftForMove, nextStep);
       await saveDraft(selectedCandidate.id, moved, reviewNotes);
       initializeDraft(moved);
       setEditorError(null);
@@ -279,6 +297,7 @@ export default function FestivalCandidatesPage() {
       setEditorError(
         error instanceof Error ? error.message : "현재 단계를 먼저 확인해 주세요.",
       );
+      moveToApprovalError(draft);
     }
   }
 

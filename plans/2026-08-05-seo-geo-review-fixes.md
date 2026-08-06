@@ -1,4 +1,4 @@
-# [구현 완료·실제 응답 확인 대기] SEO·GEO 구현 검토 결함 수정
+# [완료] SEO·GEO 구현 검토 결함 수정
 
 ## 목적과 완료 조건
 
@@ -122,4 +122,7 @@ sitemap:
 - 전체 테스트 211개, SEO 테스트 13개, TypeScript 검사, 관련 파일 ESLint와 `git diff --check`가 통과했다.
 - localhost 아티스트 상세(`/artist/112`)에서 본문·출연 목록의 서버 HTML, metadata, Artist·Breadcrumb JSON-LD를 확인했다.
 - 없는 ID의 404 안내 화면도 확인했다. HTTP 상태 코드는 브라우저 Network 탭으로 추가 확인이 필요하다.
-- 배포 환경의 실제 404·500·sitemap 응답과 Google 리치 결과 확인은 남아 있다.
+- 배포 환경에서 홈페이지·sitemap·robots가 모두 HTTP 200으로 응답하는 것을 확인했다.
+- 존재하지 않는 축제·아티스트 URL이 모두 HTTP 404로 응답하는 것을 확인했다.
+- 실제 축제(`/festival/77`)와 아티스트(`/artist/1`) 페이지에서 description, canonical, JSON-LD, BreadcrumbList를 확인했다.
+- Google 리치 결과의 실제 노출 여부는 Search Console 등록 후 별도 확인 항목으로 남긴다.

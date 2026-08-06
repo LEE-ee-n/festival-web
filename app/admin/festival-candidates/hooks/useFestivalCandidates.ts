@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { supabase } from "@/lib/supabase/client";
 import { parseFestivalCandidateRecord } from "@/lib/festivals/festivalCandidateRecord";
+import { normalizeFestivalRegion } from "@/lib/festivals/regionValidation.ts";
 import { parseApproveFestivalCandidateResult } from "@/lib/supabase/rpcResults";
 import type {
   FestivalCandidate,
@@ -216,11 +217,22 @@ export function useFestivalCandidates(
       setIsMutating(true);
       setErrorMessage(null);
 
+      const normalizedRegion = normalizeFestivalRegion(
+        draft.festival.region ?? "",
+      );
+      const approvedDraft: FestivalDraftJson = {
+        ...draft,
+        festival: {
+          ...draft.festival,
+          region: normalizedRegion,
+        },
+      };
+
       const { data, error } = await supabase.rpc(
         "approve_reviewed_festival_candidate",
         {
           p_candidate_id: candidateId,
-          p_draft: draft,
+          p_draft: approvedDraft,
           p_review_notes: reviewNotes.trim() || undefined,
         },
       );

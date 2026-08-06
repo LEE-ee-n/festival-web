@@ -88,10 +88,16 @@ export default function CandidateBasicInfoTab({
         <label className="text-sm font-semibold text-ink-secondary">
           지역
           <input
+            data-approval-field="festival-region"
             value={festival.region ?? ""}
             onChange={(event) => onChange("region", event.target.value)}
+            required
+            placeholder="예: 서울 또는 충남 아산시"
             className={inputClass}
           />
+          <span className="mt-1 block text-xs font-normal text-ink-tertiary">
+            표준 광역지역 2글자로 시작하고, 세부지역은 한 칸 띄워 입력하세요.
+          </span>
         </label>
         <label className="text-sm font-semibold text-ink-secondary">
           축제 분류

@@ -554,7 +554,7 @@ Migration 파일 작성과 운영 DB 적용은 구분하며, 위 037~041은 사�
 
 ## 15. SEO·GEO 검토 수정 작업
 
-- 구현 완료·실제 응답 확인 대기: [2026-08-05 SEO·GEO 구현 검토 결함 수정](plans/2026-08-05-seo-geo-review-fixes.md)
+- 완료: [2026-08-05 SEO·GEO 구현 검토 결함 수정](plans/2026-08-05-seo-geo-review-fixes.md) — 배포 HTTP·메타데이터·JSON-LD 확인
 - 범위: 공개 아티스트 404 판정, 상세·메타데이터 조회 오류 처리, sitemap 실패 처리, 아티스트 JSON-LD `sameAs` 정정
 - 아티스트 사진·타임테이블·관리자 기능은 이번 수정 범위에서 제외한다.
 - 전체 테스트 211개, SEO 테스트 13개, TypeScript 검사, 관련 파일 ESLint와 `git diff --check` 통과.
