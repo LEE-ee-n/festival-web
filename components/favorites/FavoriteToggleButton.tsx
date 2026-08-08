@@ -28,24 +28,26 @@ export default function FavoriteToggleButton({
       disabled={isLoading || isSaving}
       aria-pressed={isActive}
       aria-label={ariaLabel}
-      className={`inline-flex h-[38px] items-center gap-2 rounded-xl border px-3 text-sm font-semibold transition-colors disabled:opacity-50 sm:h-[42px] ${
+      className={`inline-flex h-[38px] w-[38px] items-center justify-start transition-colors disabled:opacity-50 sm:h-[42px] sm:w-[42px] ${
         isActive
-          ? "border-rose-200 bg-rose-50 text-rose-700"
-          : "border-line-strong bg-surface text-ink-secondary hover:text-ink"
+          ? "text-red-500"
+          : "text-ink-tertiary hover:text-ink-secondary"
       }`}
     >
       <Heart
-        className="h-4 w-4"
+        className="h-6 w-6"
         fill={isActive ? "currentColor" : "none"}
         aria-hidden="true"
       />
-      {isLoading
-        ? "확인 중"
-        : isSaving
-          ? "저장 중"
-          : isActive
-            ? activeLabel
-            : inactiveLabel}
+      <span className="sr-only">
+        {isLoading
+          ? "확인 중"
+          : isSaving
+            ? "저장 중"
+            : isActive
+              ? activeLabel
+              : inactiveLabel}
+      </span>
     </button>
   );
 }

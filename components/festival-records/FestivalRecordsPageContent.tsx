@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-
 import FestivalRecordGrid from "@/components/festival-records/FestivalRecordGrid";
 import { useFestivalDiaryList } from "@/lib/hooks/useFestivalDiaryList";
 import { typography } from "@/lib/typography";
@@ -14,11 +12,8 @@ export default function FestivalRecordsPageContent() {
 
   return (
     <>
-      <div className="mb-7 flex items-center justify-between gap-4">
+      <div className="mb-7">
         <p className={`${typography.meta} text-ink-tertiary`}>총 {records.items.length}개</p>
-        <Link href="/mypage/festival-records/new" className={`${typography.button} rounded-xl bg-surface-dark px-4 py-2.5 text-white`}>
-          기록 추가
-        </Link>
       </div>
       {records.errorMessage ? (
         <p className="text-sm text-red-600">{records.errorMessage}</p>

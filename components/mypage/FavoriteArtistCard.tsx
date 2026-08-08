@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Music2 } from "lucide-react";
+import { ChevronRight, Music2 } from "lucide-react";
 
 import type { FavoriteArtistListItem } from "@/lib/favorites/artistFavorites";
 import { typography } from "@/lib/typography";
@@ -17,7 +17,7 @@ export default function FavoriteArtistCard({
       href={`/artist/${artist.id}`}
       className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-4 transition-shadow hover:shadow-md"
     >
-      <div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-line bg-surface-subtle">
+      <div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface-subtle">
         {artist.imageUrl ? (
           <Image
             src={artist.imageUrl}
@@ -32,14 +32,12 @@ export default function FavoriteArtistCard({
         )}
       </div>
 
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <h3 className={`${typography.cardTitle} truncate text-ink`}>
           {artist.name}
         </h3>
-        <p className={`${typography.meta} mt-1 text-ink-tertiary`}>
-          아티스트 상세 보기
-        </p>
       </div>
+      <ChevronRight className="h-5 w-5 shrink-0 text-ink-tertiary" aria-hidden="true" />
     </Link>
   );
 }

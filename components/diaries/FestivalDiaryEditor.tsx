@@ -66,11 +66,11 @@ function FestivalDiaryForm({
     }
 
     const saved = await diaryState.save({ attendedDate, title, content });
-    if (saved) setNotice("페스티벌 기록을 저장했습니다.");
+    if (saved) setNotice("페스티봄 일기를 저장했습니다.");
   }
 
   async function handleDelete() {
-    if (!window.confirm("이 페스티벌 기록을 삭제하시겠습니까?")) return;
+    if (!window.confirm("이 페스티봄 일기를 삭제하시겠습니까?")) return;
 
     const removed = await diaryState.remove();
     if (!removed) return;
@@ -78,7 +78,7 @@ function FestivalDiaryForm({
     setTitle("");
     setContent("");
     setAttendedDate(defaultAttendedDate);
-    setNotice("페스티벌 기록을 삭제했습니다.");
+    setNotice("페스티봄 일기를 삭제했습니다.");
   }
 
   return (
@@ -185,7 +185,7 @@ export default function FestivalDiaryEditor({
   return (
     <section id="my-festival-diary" className="scroll-mt-24">
       <h2 className={`${typography.sectionTitle} text-ink`}>
-        나의 페스티벌 기록
+        페스티봄 일기
       </h2>
       <p className={`${typography.meta} mt-2 text-ink-tertiary`}>
         {festivalName}에서 좋았던 순간을 나만의 기록으로 남겨보세요.

@@ -10,7 +10,12 @@ export default function FestivalRecordSlider({ items }: FestivalRecordSliderProp
   return (
     <section className="rounded-3xl border border-line bg-surface p-6 shadow-sm sm:p-8">
       <div className="flex items-center justify-between gap-4">
-        <h2 className={`${typography.sectionTitle} text-ink`}>페스티벌 기록보기</h2>
+        <div className="flex items-center gap-3">
+          <h2 className={`${typography.sectionTitle} text-ink`}>페스티봄 일기</h2>
+          <Link href="/mypage/festival-records/new" className={`${typography.button} inline-flex rounded-xl border border-line-strong px-3 py-2 text-ink-secondary`}>
+            기록 추가
+          </Link>
+        </div>
         <Link href="/mypage/festival-records" className={`${typography.metaStrong} shrink-0 text-ink-secondary hover:underline`}>
           전체보기 →
         </Link>
@@ -30,9 +35,6 @@ export default function FestivalRecordSlider({ items }: FestivalRecordSliderProp
               <FestivalRecordCard key={record.id} record={record} compact />
             ))}
           </div>
-          <Link href="/mypage/festival-records/new" className={`${typography.button} mt-3 inline-flex rounded-xl border border-line-strong px-4 py-2.5 text-ink-secondary`}>
-            기록 추가
-          </Link>
         </>
       )}
     </section>

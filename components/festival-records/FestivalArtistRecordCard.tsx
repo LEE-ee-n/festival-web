@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Heart } from "lucide-react";
 
 import {
   saveFestivalArtistRecord,
@@ -22,12 +22,13 @@ function statusLabel(status: FestivalExperienceStatus | null) {
 
 type FestivalArtistRecordCardProps = {
   item: FestivalRecordPerformance;
-  index: number;
+  isFavorite: boolean;
   isOpen: boolean;
   onToggle: () => void;
+  onSaved: () => void;
 };
 
-export default function FestivalArtistRecordCard({ item, index, isOpen, onToggle }: FestivalArtistRecordCardProps) {
+export default function FestivalArtistRecordCard({ item, isFavorite, isOpen, onToggle, onSaved }: FestivalArtistRecordCardProps) {
   const [experienceStatus, setExperienceStatus] = useState<FestivalExperienceStatus | null>(item.experienceStatus);
   const [memo, setMemo] = useState(item.memo ?? "");
   const [songNames, setSongNames] = useState(item.songs.map((song) => song.songName).join(", "));
@@ -35,6 +36,12 @@ export default function FestivalArtistRecordCard({ item, index, isOpen, onToggle
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(Boolean(item.experienceStatus));
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const performanceDetails = [
+    item.performanceTime
+      ? `${item.performanceTime.slice(0, 5)}${item.performanceEndTime ? ` ~ ${item.performanceEndTime.slice(0, 5)}` : ""}`
+      : null,
+    item.stageName || null,
+  ].filter(Boolean);
 
   async function save() {
     if (!experienceStatus || isSaving) return;
@@ -49,6 +56,7 @@ export default function FestivalArtistRecordCard({ item, index, isOpen, onToggle
         songNames: songNames.split(",").map((song) => song.trim()).filter(Boolean),
       });
       setIsSaved(true);
+      onSaved();
     } catch (error) {
       console.error("Failed to save festival artist record", error);
       setErrorMessage("아티스트 기록 저장에 실패했습니다.");
@@ -59,13 +67,13 @@ export default function FestivalArtistRecordCard({ item, index, isOpen, onToggle
 
   return (
     <article className="overflow-hidden rounded-2xl border border-line bg-surface">
-      <button type="button" onClick={onToggle} className="flex w-full items-center gap-3 px-4 py-4 text-left sm:px-5">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-muted text-sm font-bold text-ink-secondary">{index}</span>
-        <span className="min-w-0 flex-1">
-          <strong className="block truncate text-base text-ink">{item.artistName}</strong>
-          <span className="mt-1 block text-xs text-ink-tertiary">
-            {item.performanceTime?.slice(0, 5) || "시간 미정"}{item.performanceEndTime ? ` ~ ${item.performanceEndTime.slice(0, 5)}` : ""} · {item.stageName || "무대 미정"}
-          </span>
+      <button type="button" onClick={onToggle} className="flex w-full flex-wrap items-center gap-x-2 gap-y-1 px-4 py-4 text-left sm:px-5">
+        <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+          <strong className="truncate text-base text-ink">{item.artistName}</strong>
+          {isFavorite && <Heart className="h-4 w-4 shrink-0 fill-red-500 text-red-500" aria-label="좋아하는 아티스트" />}
+          {performanceDetails.length > 0 && (
+            <span className="text-xs text-ink-tertiary">{performanceDetails.join(" · ")}</span>
+          )}
         </span>
         <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${isSaved ? "bg-green-50 text-green-700" : "bg-surface-muted text-ink-muted"}`}>{isSaved ? statusLabel(experienceStatus) : "미작성"}</span>
         <ChevronDown className={`h-4 w-4 shrink-0 text-ink-muted transition-transform ${isOpen ? "rotate-180" : ""}`} />
@@ -73,16 +81,27 @@ export default function FestivalArtistRecordCard({ item, index, isOpen, onToggle
 
       {isOpen && (
         <div className="space-y-6 border-t border-line px-4 py-5 sm:px-5">
-          <fieldset>
-            <legend className={`${typography.metaStrong} text-ink-secondary`}>상태</legend>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {STATUS_OPTIONS.map((option) => (
-                <button key={option.value} type="button" onClick={() => { setExperienceStatus(option.value); setIsSaved(false); }} className={`rounded-xl border px-3 py-2 text-sm font-semibold ${experienceStatus === option.value ? "border-ink bg-surface-dark text-white" : "border-line-strong text-ink-secondary"}`}>
-                  {option.label}
-                </button>
-              ))}
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div role="group" aria-label="상태" className="flex min-w-0 items-center gap-3">
+              <span className={`${typography.metaStrong} shrink-0 text-ink-secondary`}>상태</span>
+              <div className="flex flex-nowrap gap-2 overflow-x-auto">
+                {STATUS_OPTIONS.map((option) => (
+                  <button key={option.value} type="button" onClick={() => { setExperienceStatus(option.value); setIsSaved(false); }} className={`rounded-xl border px-3 py-2 text-sm font-semibold ${experienceStatus === option.value ? "border-ink-secondary bg-ink-secondary text-white" : "border-line-strong text-ink-secondary"}`}>
+                    {option.label}
+                  </button>
+                ))}
+              </div>
             </div>
-          </fieldset>
+
+            <div role="group" aria-label="평점" className="flex shrink-0 items-center gap-3">
+              <span className={`${typography.metaStrong} text-ink-secondary`}>평점</span>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((value) => (
+                  <button key={value} type="button" onClick={() => { setRating(rating === value ? null : value); setIsSaved(false); }} aria-label={`${value}점`} className={`text-2xl ${rating && value <= rating ? "text-amber-500" : "text-line-strong"}`}>★</button>
+                ))}
+              </div>
+            </div>
+          </div>
 
           <label className={`${typography.metaStrong} block text-ink-secondary`}>
             기록
@@ -94,18 +113,9 @@ export default function FestivalArtistRecordCard({ item, index, isOpen, onToggle
             <input value={songNames} onChange={(event) => { setSongNames(event.target.value); setIsSaved(false); }} placeholder="여러 곡은 쉼표로 구분" className="mt-2 w-full rounded-xl border border-line-strong px-4 py-3 text-sm outline-none focus:border-ink-muted" />
           </label>
 
-          <fieldset>
-            <legend className={`${typography.metaStrong} text-ink-secondary`}>평점</legend>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {[1, 2, 3, 4, 5].map((value) => (
-                <button key={value} type="button" onClick={() => { setRating(rating === value ? null : value); setIsSaved(false); }} aria-label={`${value}점`} className={`text-2xl ${rating && value <= rating ? "text-amber-500" : "text-line-strong"}`}>★</button>
-              ))}
-            </div>
-          </fieldset>
-
           {errorMessage && <p role="alert" className="text-sm text-red-600">{errorMessage}</p>}
-          <button type="button" disabled={!experienceStatus || isSaving} onClick={() => void save()} className={`${typography.button} rounded-xl bg-surface-dark px-4 py-2.5 text-white disabled:opacity-50`}>
-            {isSaving ? "저장 중" : isSaved ? "저장됨" : "이 아티스트 기록 저장"}
+          <button type="button" disabled={!experienceStatus || isSaving} onClick={() => void save()} className={`${typography.button} ml-auto block rounded-xl bg-ink-secondary px-4 py-2.5 text-white disabled:opacity-50`}>
+            {isSaving ? "저장 중" : isSaved ? "저장됨" : "저장"}
           </button>
         </div>
       )}

@@ -76,7 +76,7 @@ export default function MyPageContent() {
           <FestivalRecordSlider items={festivalDiaries.items} />
         )}
 
-      <section className="rounded-3xl border border-line bg-surface p-6 shadow-sm sm:p-8">
+      <section className="px-6 py-2 sm:px-8">
         <div className="mb-5 flex items-end justify-between gap-4">
           <div>
             <h2 className={`${typography.sectionTitle} text-ink`}>
@@ -100,7 +100,10 @@ export default function MyPageContent() {
             </button>
           </div>
         ) : (
-          <ScheduleList items={schedule.items} />
+          <ScheduleList
+            items={schedule.items}
+            favoriteArtistIds={favoriteArtists.items.map((artist) => artist.id)}
+          />
         )}
       </section>
 

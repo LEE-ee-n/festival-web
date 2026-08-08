@@ -42,40 +42,45 @@ export default function FestivalRecordDetailView({ recordId }: { recordId: numbe
     <article className="overflow-hidden rounded-3xl border border-line bg-surface shadow-sm">
       <header className="relative min-h-[420px] bg-surface-dark text-white">
         {heroImage && <><div className="absolute inset-0"><img src={heroImage} alt="" className="h-full w-full object-cover" /></div><div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/20" /></>}
-        <div className="relative flex min-h-[420px] flex-col justify-between p-6 sm:p-10">
-          <div className="flex items-start justify-between gap-4">
-            <span className={`${typography.sectionTitle}`}>{record.festivalStartDate.slice(0, 4)}</span>
-            <Link href={`/mypage/festival-records/${record.id}/edit`} className={`${typography.button} rounded-full bg-black/45 px-4 py-2 backdrop-blur`}>··· 기록 수정</Link>
-          </div>
-          <div>
+        <div className="relative flex min-h-[420px] flex-col justify-end p-6 sm:p-10">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <h1 className="text-3xl font-black sm:text-5xl">{record.festivalName.replace(/^\d{4}\s*/, "")}</h1>
-            <div className="mt-5 space-y-2 text-sm text-white/85">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-white/85 sm:justify-end">
               <p>{record.attendedDates.map(formatDate).join(" · ")}</p>
               {record.festivalLocation && <p className="flex items-center gap-2"><MapPin className="h-4 w-4" />{record.festivalLocation}</p>}
             </div>
-            <blockquote className="mt-6 max-w-2xl text-lg leading-8">“{record.summary}”</blockquote>
           </div>
         </div>
       </header>
 
       <div className="p-6 sm:p-10">
-        <h2 className={`${typography.sectionTitle} text-ink`}>기록한 아티스트</h2>
-        {record.performances.length === 0 ? <p className="mt-5 text-sm text-ink-tertiary">아직 기록할 아티스트를 선택하지 않았습니다.</p> : (
-          <div className="mt-7 space-y-10">
+        <div className="mb-10 border-b border-line pb-8 whitespace-pre-wrap text-base leading-8 text-ink-secondary">
+          {record.summary}
+        </div>
+        {record.performances.length === 0 ? <p className="text-sm text-ink-tertiary">아직 기록할 아티스트를 선택하지 않았습니다.</p> : (
+          <div className="space-y-10">
             {performanceGroups.map((group) => (
               <section key={group.date}>
-                <h3 className={`${typography.metaStrong} mb-5 text-ink-secondary`}>{group.date === "날짜 미정" ? group.date : formatDate(group.date)}</h3>
-                <div className="space-y-8">
+                <h3 className={`${typography.metaStrong} mb-3 text-ink`}>{group.date === "날짜 미정" ? group.date : formatDate(group.date)}</h3>
+                <div className="divide-y divide-line border-t border-line">
                   {group.items.map((item) => (
-                    <article key={item.recordPerformanceId} className="grid gap-4 border-l-2 border-line-strong pl-5 sm:grid-cols-[90px_1fr] sm:pl-7">
-                      <p className="font-mono text-lg font-bold text-festival-purple">{item.performanceTime?.slice(0, 5) || "시간 미정"}</p>
+                    <article key={item.recordPerformanceId} className="py-5 pl-5 sm:pl-7">
+                      <div className="flex flex-wrap items-start justify-between gap-x-5 gap-y-2">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <Link href={`/artist/${item.artistId}`} className="text-xl font-bold text-ink hover:underline">{item.artistName}</Link>
+                          {item.experienceStatus && <span className="inline-flex rounded-full bg-surface-muted px-3 py-1 text-xs font-semibold text-ink-secondary">{STATUS_LABELS[item.experienceStatus]}</span>}
+                          {item.rating && <span className="text-sm text-amber-500">{"★".repeat(item.rating)}</span>}
+                        </div>
+                        {(item.performanceTime || item.stageName) && (
+                          <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-1 text-sm text-ink-tertiary">
+                            {item.performanceTime && <p className="font-mono font-semibold text-festival-purple">{item.performanceTime.slice(0, 5)}{item.performanceEndTime ? ` ~ ${item.performanceEndTime.slice(0, 5)}` : ""}</p>}
+                            {item.stageName && <p>{item.stageName}</p>}
+                          </div>
+                        )}
+                      </div>
                       <div>
-                        <Link href={`/artist/${item.artistId}`} className="text-xl font-bold text-ink hover:underline">{item.artistName}</Link>
-                        <p className="mt-1 text-sm text-ink-tertiary">{item.stageName || "무대 미정"}</p>
-                        {item.experienceStatus && <p className="mt-3 inline-flex rounded-full bg-surface-muted px-3 py-1 text-xs font-semibold text-ink-secondary">{STATUS_LABELS[item.experienceStatus]}</p>}
-                        {item.songs.map((song) => <p key={song.id} className="mt-4 flex items-center gap-2 text-sm font-semibold text-ink-secondary"><Music2 className="h-4 w-4" />{song.songName}</p>)}
                         {item.memo && <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-ink-secondary">“{item.memo}”</p>}
-                        {item.rating && <p className="mt-3 text-sm text-amber-500">{"★".repeat(item.rating)}</p>}
+                        {item.songs.map((song) => <p key={song.id} className="mt-4 flex items-center gap-2 text-sm font-semibold text-ink-secondary"><Music2 className="h-4 w-4" />{song.songName}</p>)}
                       </div>
                     </article>
                   ))}

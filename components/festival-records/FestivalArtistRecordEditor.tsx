@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 
 import FestivalArtistRecordCard from "@/components/festival-records/FestivalArtistRecordCard";
 import { useFestivalRecordDetail } from "@/lib/hooks/useFestivalRecordDetail";
+import { useFavoriteArtistList } from "@/lib/hooks/useFavoriteArtistList";
 import { typography } from "@/lib/typography";
 
 function formatDate(date: string) {
@@ -14,7 +15,9 @@ function formatDate(date: string) {
 
 export default function FestivalArtistRecordEditor({ recordId }: { recordId: number }) {
   const state = useFestivalRecordDetail(recordId);
+  const favoriteArtists = useFavoriteArtistList();
   const [openId, setOpenId] = useState<number | null | undefined>(undefined);
+  const [savedIds, setSavedIds] = useState<Set<number> | null>(null);
   const performances = state.record?.performances;
   const firstId = performances?.[0]?.recordPerformanceId ?? null;
   const activeOpenId = openId === undefined ? firstId : openId;
@@ -26,9 +29,27 @@ export default function FestivalArtistRecordEditor({ recordId }: { recordId: num
     else result.push({ date, items: [item] });
     return result;
   }, []), [performances]);
-  const indexById = useMemo(() => new Map(
-    (performances ?? []).map((item, index) => [item.recordPerformanceId, index + 1]),
-  ), [performances]);
+  const favoriteArtistIds = useMemo(
+    () => new Set(favoriteArtists.items.map((artist) => artist.id)),
+    [favoriteArtists.items],
+  );
+  const effectiveSavedIds = savedIds ?? new Set(
+    (performances ?? [])
+      .filter((item) => Boolean(item.experienceStatus))
+      .map((item) => item.recordPerformanceId),
+  );
+
+  function handleSaved(recordPerformanceId: number) {
+    const nextSavedIds = new Set(effectiveSavedIds);
+    nextSavedIds.add(recordPerformanceId);
+    setSavedIds(nextSavedIds);
+
+    const currentIndex = (performances ?? []).findIndex((item) => item.recordPerformanceId === recordPerformanceId);
+    const nextItem = (performances ?? [])
+      .slice(currentIndex + 1)
+      .find((item) => !nextSavedIds.has(item.recordPerformanceId));
+    setOpenId(nextItem?.recordPerformanceId ?? null);
+  }
 
   if (state.isLoading) return <p className="text-sm text-ink-muted">아티스트 기록을 불러오는 중...</p>;
   if (!state.isAuthenticated) return <p className="text-sm text-ink-tertiary">로그인이 필요합니다.</p>;
@@ -52,16 +73,16 @@ export default function FestivalArtistRecordEditor({ recordId }: { recordId: num
             <section key={group.date}>
               <h3 className={`${typography.sectionTitle} mb-3 text-ink`}>{group.date === "날짜 미정" ? group.date : formatDate(group.date)}</h3>
               <div className="space-y-3">
-                {group.items.map((item) => <FestivalArtistRecordCard key={item.recordPerformanceId} item={item} index={indexById.get(item.recordPerformanceId) ?? 0} isOpen={activeOpenId === item.recordPerformanceId} onToggle={() => setOpenId(activeOpenId === item.recordPerformanceId ? null : item.recordPerformanceId)} />)}
+                {group.items.map((item) => <FestivalArtistRecordCard key={item.recordPerformanceId} item={item} isFavorite={favoriteArtistIds.has(item.artistId)} isOpen={activeOpenId === item.recordPerformanceId} onToggle={() => setOpenId(activeOpenId === item.recordPerformanceId ? null : item.recordPerformanceId)} onSaved={() => handleSaved(item.recordPerformanceId)} />)}
               </div>
             </section>
           ))}
         </div>
       )}
 
-      <div className="mt-8 flex flex-wrap gap-2">
+      <div className="mt-8 flex items-center justify-between gap-2">
         <Link href={`/mypage/festival-records/${recordId}/edit`} className={`${typography.button} rounded-xl border border-line-strong px-4 py-3 text-ink-secondary`}>이전 단계</Link>
-        <Link href={`/mypage/festival-records/${recordId}`} className={`${typography.button} rounded-xl bg-surface-dark px-4 py-3 text-white`}>기록 상세보기</Link>
+        <Link href={`/mypage/festival-records/${recordId}`} className={`${typography.button} rounded-xl bg-ink-secondary px-4 py-3 text-white`}>기록 상세보기</Link>
       </div>
     </div>
   );

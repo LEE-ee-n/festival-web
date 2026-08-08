@@ -30,10 +30,14 @@ function ExternalIconLink({
       target="_blank"
       rel="noreferrer"
       aria-label={ariaLabel}
-      className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-xl border border-line-strong bg-surface text-ink-secondary transition-colors hover:text-ink sm:h-[42px] sm:w-[42px]"
+      className="inline-flex h-[38px] w-[38px] items-center justify-start text-ink-secondary transition-colors hover:text-ink sm:h-[42px] sm:w-[42px]"
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={iconPath} alt="" className="h-5 w-5" />
+      <img
+        src={iconPath}
+        alt=""
+        className={`h-6 w-6 origin-left ${iconPath.endsWith("/youtube.svg") ? "scale-x-90" : ""}`}
+      />
     </a>
   );
 }
@@ -43,13 +47,13 @@ function ArtistProfileImage({
   imageUrl,
 }: Pick<ArtistProfileHeaderProps, "name" | "imageUrl">) {
   return (
-    <div className="relative flex aspect-square w-24 shrink-0 items-center justify-center overflow-hidden rounded-[28px] border border-line bg-surface shadow-sm sm:w-[152px]">
+    <div className="relative flex aspect-square w-24 shrink-0 items-center justify-center overflow-hidden rounded-3xl border border-line bg-surface shadow-sm sm:w-28">
       {imageUrl ? (
         <Image
           src={imageUrl}
           alt={`${name} 아티스트 로고`}
           fill
-          sizes="(max-width: 640px) 96px, 152px"
+          sizes="(max-width: 640px) 96px, 112px"
           className="object-contain p-3"
           unoptimized
         />
@@ -68,11 +72,13 @@ export default function ArtistProfileHeader({
   featuredPlaylistUrl,
 }: ArtistProfileHeaderProps) {
   return (
-    <header className="mt-5 flex min-h-44 flex-wrap items-center gap-5 rounded-3xl border border-line bg-surface p-6 shadow-sm sm:min-h-52 sm:gap-8 sm:p-9">
+    <header className="mt-5 flex items-center gap-5 px-5 py-4 sm:gap-6 sm:px-6 sm:py-5">
+      <ArtistProfileImage name={name} imageUrl={imageUrl} />
+
       <div className="flex min-w-0 flex-col">
         <h1 className={`${typography.pageTitle} break-keep text-ink`}>{name}</h1>
 
-        <div className="mt-5 flex flex-wrap gap-2">
+        <div className="mt-3 ml-1 flex flex-wrap gap-2">
           <ExternalIconLink
             href={getArtistYoutubeSearchUrl(name)}
             ariaLabel={`${name} YouTube에서 검색하기`}
@@ -98,8 +104,6 @@ export default function ArtistProfileHeader({
           <FavoriteArtistButton artistId={artistId} artistName={name} />
         </div>
       </div>
-
-      <ArtistProfileImage name={name} imageUrl={imageUrl} />
     </header>
   );
 }
