@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import type { ArtistSearchResult } from "@/lib/artists/searchArtists";
-import { getPerformanceDateRangeError } from "@/lib/festivals/festivalDataQuality";
+import { validateLineupSchedule } from "@/lib/festivals/lineupScheduleValidation";
 
 type Props = {
   festivalStartDate: string;
@@ -37,11 +37,13 @@ export default function ArtistAddSection(props: Props) {
     props.artistSearchQuery.trim() &&
     props.artistSearchResults.length === 0 &&
     !props.selectedArtist;
-  const newDateRangeError = getPerformanceDateRangeError(
-    props.newPerformanceDate || null,
-    props.festivalStartDate || null,
-    props.festivalEndDate || null,
-  );
+  const newScheduleError = validateLineupSchedule({
+    performanceDate: props.newPerformanceDate || null,
+    performanceTime: props.newPerformanceTime || null,
+    performanceEndTime: props.newPerformanceEndTime || null,
+    festivalStartDate: props.festivalStartDate || null,
+    festivalEndDate: props.festivalEndDate || null,
+  });
 
   return (
     <section className="mt-8 rounded-3xl border border-line bg-surface p-6 shadow-sm">
@@ -143,9 +145,9 @@ export default function ArtistAddSection(props: Props) {
             }
             className={inputClass}
           />
-          {newDateRangeError && (
+          {newScheduleError && (
             <span className="mt-1 block text-xs font-semibold text-red-600">
-              {newDateRangeError}
+              {newScheduleError}
             </span>
           )}
         </label>

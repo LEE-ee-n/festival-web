@@ -253,6 +253,7 @@ test("sitemap은 정적 페이지와 공개 데이터를 중복 없이 묶는다
 
   assert.ok(urls.includes("https://festibom.com"));
   assert.ok(urls.includes("https://festibom.com/festivals"));
+  assert.ok(urls.includes("https://festibom.com/artists"));
   assert.equal(urls.length, new Set(urls).size);
   assert.equal(
     urls.filter((url) => url.endsWith("/festival/76")).length,

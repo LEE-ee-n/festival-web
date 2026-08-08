@@ -9,6 +9,7 @@ import {
   type LineupWorkType,
 } from "@/lib/audit/lineupWork";
 import { applyLineupWork } from "@/lib/festivals/applyLineupWork";
+import { validateLineupSchedule } from "@/lib/festivals/lineupScheduleValidation";
 import {
   searchArtists,
   type ArtistSearchResult,
@@ -35,7 +36,12 @@ function prepareRows(lineup: FestivalArtist[]) {
   });
 }
 
-export function useFestivalArtists(festivalId: number, setErrorMessage: SetErrorMessage) {
+export function useFestivalArtists(
+  festivalId: number,
+  setErrorMessage: SetErrorMessage,
+  festivalStartDate: string,
+  festivalEndDate: string,
+) {
   const [rows, setRows] = useState<FestivalArtist[]>([]);
   const [originalRows, setOriginalRows] = useState<FestivalArtist[]>([]);
   const [savingArtistId, setSavingArtistId] = useState<number | null>(null);
@@ -115,7 +121,18 @@ export function useFestivalArtists(festivalId: number, setErrorMessage: SetError
       setErrorMessage("추가할 기존 아티스트를 검색해서 선택해 주세요.");
       return;
     }
-    if (!newPerformanceDate) {
+    const scheduleError = validateLineupSchedule({
+      performanceDate: newPerformanceDate || null,
+      performanceTime: newPerformanceTime || null,
+      performanceEndTime: newPerformanceEndTime || null,
+      festivalStartDate: festivalStartDate || null,
+      festivalEndDate: festivalEndDate || null,
+    });
+    if (scheduleError) {
+      setErrorMessage(scheduleError);
+      return;
+    }
+    if (!newPerformanceDate && (newPerformanceTime || newPerformanceEndTime)) {
       setErrorMessage("공연 날짜를 입력해 주세요.");
       return;
     }
@@ -173,6 +190,17 @@ export function useFestivalArtists(festivalId: number, setErrorMessage: SetError
   }
 
   async function saveRow(row: FestivalArtist) {
+    const scheduleError = validateLineupSchedule({
+      performanceDate: row.performance_date,
+      performanceTime: row.performance_time,
+      performanceEndTime: row.performance_end_time,
+      festivalStartDate: festivalStartDate || null,
+      festivalEndDate: festivalEndDate || null,
+    });
+    if (scheduleError) {
+      setErrorMessage(scheduleError);
+      return;
+    }
     if (row.performance_time && row.performance_end_time && row.performance_end_time <= row.performance_time) {
       setErrorMessage("종료 시간은 시작 시간보다 늦어야 합니다.");
       return;

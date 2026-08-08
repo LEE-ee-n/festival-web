@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -624,11 +624,268 @@ export type Database = {
         }
         Relationships: []
       }
+      user_favorite_artists: {
+        Row: {
+          artist_id: number
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          artist_id: number
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          artist_id?: number
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_favorite_artists_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_favorite_festivals: {
+        Row: {
+          created_at: string
+          festival_id: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          festival_id: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          festival_id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_favorite_festivals_festival_id_fkey"
+            columns: ["festival_id"]
+            isOneToOne: false
+            referencedRelation: "festivals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_festival_diaries: {
+        Row: {
+          attended_date: string
+          attended_dates: string[]
+          content: string
+          cover_image_url: string | null
+          created_at: string
+          favorite_performance_id: number | null
+          festival_id: number
+          id: number
+          summary: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attended_date: string
+          attended_dates: string[]
+          content: string
+          cover_image_url?: string | null
+          created_at?: string
+          favorite_performance_id?: number | null
+          festival_id: number
+          id?: number
+          summary?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attended_date?: string
+          attended_dates?: string[]
+          content?: string
+          cover_image_url?: string | null
+          created_at?: string
+          favorite_performance_id?: number | null
+          festival_id?: number
+          id?: number
+          summary?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_festival_diaries_favorite_performance_fkey"
+            columns: ["favorite_performance_id", "id"]
+            isOneToOne: false
+            referencedRelation: "user_festival_performances"
+            referencedColumns: ["id", "user_festival_diary_id"]
+          },
+          {
+            foreignKeyName: "user_festival_diaries_festival_id_fkey"
+            columns: ["festival_id"]
+            isOneToOne: false
+            referencedRelation: "festivals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_festival_media: {
+        Row: {
+          created_at: string
+          external_file_id: string | null
+          file_type: string
+          id: number
+          preview_url: string | null
+          provider: string
+          user_festival_performance_id: number
+        }
+        Insert: {
+          created_at?: string
+          external_file_id?: string | null
+          file_type: string
+          id?: number
+          preview_url?: string | null
+          provider: string
+          user_festival_performance_id: number
+        }
+        Update: {
+          created_at?: string
+          external_file_id?: string | null
+          file_type?: string
+          id?: number
+          preview_url?: string | null
+          provider?: string
+          user_festival_performance_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_festival_media_user_festival_performance_id_fkey"
+            columns: ["user_festival_performance_id"]
+            isOneToOne: false
+            referencedRelation: "user_festival_performances"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_festival_performances: {
+        Row: {
+          created_at: string
+          experience_status: string | null
+          festival_artist_id: number
+          id: number
+          memo: string | null
+          rating: number | null
+          updated_at: string
+          user_festival_diary_id: number
+        }
+        Insert: {
+          created_at?: string
+          experience_status?: string | null
+          festival_artist_id: number
+          id?: number
+          memo?: string | null
+          rating?: number | null
+          updated_at?: string
+          user_festival_diary_id: number
+        }
+        Update: {
+          created_at?: string
+          experience_status?: string | null
+          festival_artist_id?: number
+          id?: number
+          memo?: string | null
+          rating?: number | null
+          updated_at?: string
+          user_festival_diary_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_festival_performances_festival_artist_id_fkey"
+            columns: ["festival_artist_id"]
+            isOneToOne: false
+            referencedRelation: "festival_artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_festival_performances_user_festival_diary_id_fkey"
+            columns: ["user_festival_diary_id"]
+            isOneToOne: false
+            referencedRelation: "user_festival_diaries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_festival_songs: {
+        Row: {
+          created_at: string
+          id: number
+          song_name: string
+          user_festival_performance_id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          song_name: string
+          user_festival_performance_id: number
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          song_name?: string
+          user_festival_performance_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_festival_songs_user_festival_performance_id_fkey"
+            columns: ["user_festival_performance_id"]
+            isOneToOne: false
+            referencedRelation: "user_festival_performances"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_schedule_items: {
+        Row: {
+          created_at: string
+          festival_artist_id: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          festival_artist_id: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          festival_artist_id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_schedule_items_festival_artist_id_fkey"
+            columns: ["festival_artist_id"]
+            isOneToOne: false
+            referencedRelation: "festival_artists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      admin_import_festival_lineup: {
+        Args: { p_artists: Json; p_festival_id: number }
+        Returns: Json
+      }
       apply_festival_json_update_with_audit: {
         Args: {
           p_announcement_date?: string
@@ -944,6 +1201,27 @@ export type Database = {
       replace_pending_discord_source_drafts: {
         Args: { p_source_url: string }
         Returns: Json
+      }
+      save_user_festival_artist_record: {
+        Args: {
+          p_experience_status: string
+          p_memo: string
+          p_rating: number
+          p_record_performance_id: number
+          p_song_names: string[]
+        }
+        Returns: number
+      }
+      save_user_festival_record: {
+        Args: {
+          p_attended_dates: string[]
+          p_cover_image_url: string
+          p_festival_artist_ids: number[]
+          p_festival_id: number
+          p_record_id: number
+          p_summary: string
+        }
+        Returns: number
       }
       search_similar_artists: {
         Args: { input_name: string }

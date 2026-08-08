@@ -52,7 +52,12 @@ export default function FestivalLineupAdminPage() {
     festivalId,
     setErrorMessage,
   );
-  const artists = useFestivalArtists(festivalId, setErrorMessage);
+  const artists = useFestivalArtists(
+    festivalId,
+    setErrorMessage,
+    basicInfo.startDate,
+    basicInfo.endDate,
+  );
   const tickets = useFestivalTickets(festivalId, setErrorMessage);
 
   const { initializeBasicInfo } = basicInfo;

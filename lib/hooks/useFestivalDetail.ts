@@ -113,7 +113,7 @@ export function useFestivalDetail(
         const { data, error } = await supabase
           .from("festival_artists")
           .select(`
-            artist_id, performance_date, performance_time,
+            id, artist_id, performance_date, performance_time,
             performance_end_time, stage_name, status, artists (id, name)
           `)
           .eq("festival_id", databaseFestivalId)

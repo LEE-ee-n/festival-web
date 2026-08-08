@@ -30,6 +30,22 @@ export const getPublicArtistDetail = cache(
       return null;
     }
 
+    const { data, error } = await supabase
+      .from("artists")
+      .select(`
+        id, name, image_url, instagram_url, featured_playlist_url
+      `)
+      .eq("id", artistId)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data) {
+      return null;
+    }
+
     const { data: festivalRows, error: festivalRowsError } = await supabase
       .from("festival_artists")
       .select(`
@@ -52,29 +68,9 @@ export const getPublicArtistDetail = cache(
       throw festivalRowsError;
     }
 
-    if (!festivalRows?.length) {
-      return null;
-    }
-
-    const { data, error } = await supabase
-      .from("artists")
-      .select(`
-        id, name, image_url, instagram_url, featured_playlist_url
-      `)
-      .eq("id", artistId)
-      .maybeSingle();
-
-    if (error) {
-      throw error;
-    }
-
-    if (!data) {
-      return null;
-    }
-
     return {
       artist: data,
-      festivalRows: festivalRows as PublicArtistFestivalAppearance[],
+      festivalRows: (festivalRows ?? []) as PublicArtistFestivalAppearance[],
     };
   },
 );

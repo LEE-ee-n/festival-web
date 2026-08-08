@@ -10,6 +10,7 @@ RLS 정책은 2026-07-17 운영 DB 조회 결과를 기준으로 정리했다.
 - `profiles.role = 'admin'`: 관리자
 - 그 외의 값: 일반 사용자
 - 애플리케이션은 `public.is_admin()` RPC만 호출한다.
+- `profiles_single_admin_unique` 부분 고유 인덱스로 `admin` 역할은 최대 1명만 허용한다.
 
 `admin_users` 테이블은 사용하지 않는다.
 
@@ -25,9 +26,24 @@ RLS 정책은 2026-07-17 운영 DB 조회 결과를 기준으로 정리했다.
 ## 애플리케이션 보호
 
 - `/admin/login`을 제외한 `/admin` 하위 경로는 공통 관리자 레이아웃이 보호한다.
+- 일반 회원이 `/admin` 하위 경로에 접근하면 홈으로 이동하며 관리자 화면은 렌더링하지 않는다.
+- 로그인된 일반 회원이 `/admin/login`을 직접 열어도 홈으로 이동한다.
+- localhost 일반 Google 회원으로 `/admin`과 `/admin/login`의 홈 이동을 실제 확인했다.
 - 사용자 검증은 `supabase.auth.getUser()`를 사용한다.
 - 관리자 판별은 `public.is_admin()`을 사용한다.
 - 화면 가드는 편의 기능이며 실제 데이터 보호의 최종 책임은 RLS에 있다.
+
+## 공개 사용자 Google 로그인
+
+- 공개 사용자는 `/login`에서 Google OAuth로만 로그인한다.
+- Google Client Secret은 Supabase Provider 설정에만 저장하고 브라우저 코드나 저장소에 넣지 않는다.
+- OAuth 반환 경로는 운영 홈페이지와 localhost 개발 주소만 허용한다.
+- 공개 회원은 `profiles.role`을 생성·수정할 권한이 없으며 관리자 여부는 기존 `public.is_admin()`으로만 판정한다.
+- 관리자 역할은 운영 DB에서 최대 1명만 존재할 수 있다.
+- 관심 아티스트와 개인 일정은 본인의 `auth.uid()`와 일치하는 행만 조회·추가·삭제할 수 있다.
+- 개인 일정에는 공개된 예정·진행 중 축제의 시간 확정 공연만 추가할 수 있다.
+- Google provider token은 저장하거나 Google API 호출에 사용하지 않는다.
+- 레거시 `import_festival_lineup` RPC의 일반 인증 사용자 실행 권한을 제거하고, `public.is_admin()`을 확인하는 `admin_import_festival_lineup`만 관리자 화면에서 호출한다.
 
 ## RLS 쓰기 정책
 

@@ -49,6 +49,7 @@ session.json
 **/work/
 **/instagram-chrome-profile/
 /.scratch/
+/supabase/.temp/
 
 # generated archives and backups
 *.zip

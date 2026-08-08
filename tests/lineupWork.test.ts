@@ -51,3 +51,9 @@ test("같은 아티스트와 같은 공연 날짜만 중복으로 판단한다",
     false,
   );
 });
+
+test("날짜 미정인 같은 아티스트도 중복으로 판단한다", () => {
+  const undated = { ...row(1, 10, "A"), performance_date: null };
+  assert.equal(hasLineupArtistDateDuplicate([undated], 10, null), true);
+  assert.equal(hasLineupArtistDateDuplicate([undated], 11, null), false);
+});

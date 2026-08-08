@@ -1,8 +1,11 @@
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
+
 import type { FestivalPanelSummary } from "@/lib/types";
 import { typography } from "@/lib/typography";
 
 type FestivalDetailSummaryProps = {
-  festival: FestivalPanelSummary;
+  festival: FestivalPanelSummary & { id: number };
   periodText: string;
 };
 
@@ -16,8 +19,11 @@ export default function FestivalDetailSummary({
     return (
     <>
       <header className="pt-6">
-        <h1 className={`${typography.panelTitle} text-center text-ink-secondary`}>
-          {festival.name}
+        <h1 className={`${typography.panelTitle} text-center text-ink`}>
+          <Link href={`/festival/${festival.id}`} className="inline-flex max-w-full items-center justify-center gap-1 transition-colors hover:text-ink-secondary" title="독립 상세페이지 보기">
+            <span className="min-w-0">{festival.name}</span>
+            <ChevronRight className="h-5 w-5 shrink-0" aria-hidden="true" />
+          </Link>
         </h1>
       </header>
 

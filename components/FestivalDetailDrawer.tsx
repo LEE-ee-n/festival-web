@@ -2,10 +2,10 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { ListMusic } from "lucide-react";
+import { Heart, ListMusic } from "lucide-react";
 
 import FestivalDetailSummary from "@/components/festival/FestivalDetailSummary";
-import FestivalOfficialLink from "@/components/festival/FestivalOfficialLink";
+import FestivalExternalLinkGroup from "@/components/festival/FestivalExternalLinkGroup";
 import FestivalTicketSection from "@/components/festival/FestivalTicketSection";
 import FestivalTimetable from "@/components/festival/FestivalTimetable";
 import FestivalDetailSkeleton from "@/components/festival/loading/FestivalDetailSkeleton";
@@ -14,6 +14,7 @@ import FestivalTimetableSkeleton from "@/components/festival/loading/FestivalTim
 import { formatFestivalPeriod } from "@/lib/calendar";
 import { getLatestTicketRoundGroup } from "@/lib/festivals/ticketDisplay";
 import { useFestivalDetail } from "@/lib/hooks/useFestivalDetail";
+import { useFavoriteArtistList } from "@/lib/hooks/useFavoriteArtistList";
 import { typography } from "@/lib/typography";
 
 type FestivalDetailDrawerProps = {
@@ -21,19 +22,6 @@ type FestivalDetailDrawerProps = {
   isOpen: boolean;
   onClose: () => void;
 };
-
-function formatTicketOpenAt(openAt: string) {
-  return new Intl.DateTimeFormat("ko-KR", {
-    timeZone: "Asia/Seoul",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    weekday: "short",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  }).format(new Date(openAt));
-}
 
 export default function FestivalDetailDrawer({
   festivalId,
@@ -50,6 +38,8 @@ export default function FestivalDetailDrawer({
     isTicketsLoading,
     errorMessage,
   } = useFestivalDetail(festivalId, isOpen);
+  const favoriteArtists = useFavoriteArtistList();
+  const favoriteArtistIds = new Set(favoriteArtists.items.map((artist) => artist.id));
 
   useEffect(() => {
     if (!isOpen) return;
@@ -112,7 +102,10 @@ export default function FestivalDetailDrawer({
                     href={`/artist/${artist.id}`}
                     className={`${typography.label} rounded-full border border-line bg-surface px-3 py-2 text-ink`}
                   >
-                    {artist.name}
+                    <span className="inline-flex items-center gap-1.5">
+                      {artist.name}
+                      {favoriteArtistIds.has(artist.id) && <Heart className="h-3.5 w-3.5 fill-red-500 text-red-500" aria-label="좋아하는 아티스트" />}
+                    </span>
                   </Link>
                 ) : null)}
               </div>
@@ -121,6 +114,9 @@ export default function FestivalDetailDrawer({
             <FestivalTimetable
               artistsByDateAndStage={artistsByDateAndStage}
               artistCount={festivalArtists.length}
+              festivalId={festival.id}
+              festivalStatus={festival.status}
+              favoriteArtistIds={favoriteArtistIds}
             />
           )}
 
@@ -139,20 +135,19 @@ export default function FestivalDetailDrawer({
 
           {isTicketsLoading ? (
             <FestivalTicketSkeleton />
-          ) : (
+          ) : latestTicketRounds.length > 0 ? (
             <FestivalTicketSection
               ticketRounds={latestTicketRounds}
               latestOpenAt={latestOpenAt}
-              openAtText={
-                latestOpenAt ? formatTicketOpenAt(latestOpenAt) : null
-              }
+              officialUrl={festival.official_url}
+              instagramUrl={festival.instagram_url}
+            />
+          ) : (
+            <FestivalExternalLinkGroup
+              officialUrl={festival.official_url}
+              instagramUrl={festival.instagram_url}
             />
           )}
-
-          <FestivalOfficialLink
-            officialUrl={festival.official_url}
-            instagramUrl={festival.instagram_url}
-          />
         </article>
       )}
     </div>

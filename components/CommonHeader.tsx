@@ -6,6 +6,10 @@ import { useEffect, useState } from "react";
 
 import { supabase } from "@/lib/supabase/client";
 import { getCurrentAdminAccess } from "@/lib/auth/getCurrentAdminAccess";
+import {
+  AUTH_RETURN_PATH_KEY,
+  normalizeAuthReturnPath,
+} from "@/lib/auth/authReturnPath";
 import { typography } from "@/lib/typography";
 
 export default function CommonHeader() {
@@ -21,6 +25,22 @@ export default function CommonHeader() {
 
         setUserEmail(user?.email ?? null);
         setIsAdmin(hasAdminAccess);
+
+        if (user) {
+          const returnPath = normalizeAuthReturnPath(
+            window.sessionStorage.getItem(AUTH_RETURN_PATH_KEY),
+          );
+
+          window.sessionStorage.removeItem(AUTH_RETURN_PATH_KEY);
+
+          if (
+            returnPath &&
+            returnPath !== `${window.location.pathname}${window.location.search}`
+          ) {
+            window.location.replace(returnPath);
+            return;
+          }
+        }
       } catch (error) {
         console.error("Failed to load authentication state", error);
         setUserEmail(null);
@@ -84,6 +104,13 @@ export default function CommonHeader() {
               {isAdmin ? "관리자" : "회원"} · {userEmail}
             </span>
 
+            <Link
+              href="/mypage"
+              className={`${typography.metaStrong} rounded-full border border-line px-4 py-1.5 text-ink-secondary hover:bg-surface-muted`}
+            >
+              마이페이지
+            </Link>
+
             {isAdmin && (
               <Link
                 href="/admin"
@@ -103,7 +130,7 @@ export default function CommonHeader() {
           </>
         ) : (
           <Link
-            href="/admin/login"
+            href="/login"
             className={`${typography.metaStrong} rounded-full border border-line px-4 py-1.5 text-ink-secondary hover:bg-surface-muted`}
           >
             로그인

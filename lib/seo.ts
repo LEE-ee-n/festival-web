@@ -289,6 +289,11 @@ export function buildSitemapRoutes(
       priority: 0.7,
     },
     {
+      url: `${SITE_URL}/artists`,
+      changeFrequency: "weekly",
+      priority: 0.7,
+    },
+    {
       url: `${SITE_URL}/notices`,
       changeFrequency: "monthly",
       priority: 0.5,

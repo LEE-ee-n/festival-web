@@ -1,10 +1,12 @@
 import Image from "next/image";
 import { Music2 } from "lucide-react";
 
+import FavoriteArtistButton from "@/components/artist/FavoriteArtistButton";
 import { getArtistYoutubeSearchUrl } from "@/lib/artists/profileLinks";
 import { typography } from "@/lib/typography";
 
 type ArtistProfileHeaderProps = {
+  artistId: number;
   name: string;
   imageUrl: string | null;
   instagramUrl: string | null;
@@ -59,6 +61,7 @@ function ArtistProfileImage({
 }
 
 export default function ArtistProfileHeader({
+  artistId,
   name,
   imageUrl,
   instagramUrl,
@@ -92,6 +95,7 @@ export default function ArtistProfileHeader({
               추천 플레이리스트
             </a>
           )}
+          <FavoriteArtistButton artistId={artistId} artistName={name} />
         </div>
       </div>
 

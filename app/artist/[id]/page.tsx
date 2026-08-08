@@ -35,6 +35,7 @@ export default async function ArtistDetailPage({
         </Link>
 
         <ArtistProfileHeader
+          artistId={artist.id}
           name={artist.name}
           imageUrl={artist.image_url}
           instagramUrl={artist.instagram_url}

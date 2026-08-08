@@ -1,5 +1,6 @@
 import type { User } from "@supabase/supabase-js";
 
+import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { supabase } from "@/lib/supabase/client";
 
 export type CurrentAdminAccess = {
@@ -8,22 +9,7 @@ export type CurrentAdminAccess = {
 };
 
 export async function getCurrentAdminAccess(): Promise<CurrentAdminAccess> {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (!session) {
-    return { user: null, isAdmin: false };
-  }
-
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError) {
-    throw userError;
-  }
+  const user = await getCurrentUser();
 
   if (!user) {
     return { user: null, isAdmin: false };

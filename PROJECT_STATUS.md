@@ -8,7 +8,10 @@
 
 - 전체 완성도 추정: **약 75%**
 - 제한적 공개 준비도 추정: **약 85%**
-- 현재 핵심 작업: 신규·기존 페스티벌의 5단계 등록 흐름 완성 및 실사용 검증
+- 현재 핵심 작업: 공개 Google 로그인·좋아하는 아티스트·개인 공연 일정·배경화면 MVP
+- 진행 중 계획: [2026-08-06 공개 사용자 로그인·개인 일정 MVP](plans/2026-08-06-public-auth-personal-services.md)
+- 로그인 완료 필수 검증: Security Advisor, 일반 회원 2계정 RLS, 단일 관리자 MFA, 개인정보처리방침·회원탈퇴, 운영 RPC 전수 점검
+- 구현 완료·화면 확인 대기: 숫자·한글·영문 정렬, 이름 검색, 초성·알파벳, 좋아요 필터를 제공하는 `/artists` 탐색 페이지
 - 구현·운영 DB 적용 완료, 실제 검증 대기 계획: [2026-08-01 Discord 중복 출처 임시 작업 삭제 후 재등록](plans/2026-08-01-discord-duplicate-source-replace.md)
 - 구현·운영 DB 적용 완료, 실제 검증 대기 계획: [2026-08-01 Discord 첨부 이미지 신규 페스티벌 등록](plans/2026-08-01-discord-image-new-festival-registration.md)
 - 완료 계획: [2026-08-01 캘린더 월 이동 안정화](plans/2026-08-01-mobile-calendar-swipe-gesture.md)

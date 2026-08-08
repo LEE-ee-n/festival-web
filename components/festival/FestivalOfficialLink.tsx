@@ -20,7 +20,7 @@ export default function FestivalOfficialLink({
           href={instagramUrl}
           target="_blank"
           rel="noreferrer"
-          className={`${typography.button} flex flex-1 items-center justify-center rounded-xl bg-surface-dark px-3 py-3 text-center text-white hover:bg-surface-dark/90`}
+          className={`${typography.button} flex flex-1 items-center justify-center rounded-xl border border-line bg-white px-3 py-3 text-center text-ink-secondary hover:bg-surface-subtle`}
         >
           인스타그램
         </a>
@@ -30,7 +30,7 @@ export default function FestivalOfficialLink({
           href={officialUrl}
           target="_blank"
           rel="noreferrer"
-          className={`${typography.button} flex flex-1 items-center justify-center rounded-xl bg-surface-dark px-3 py-3 text-center text-white hover:bg-surface-dark/90`}
+          className={`${typography.button} flex flex-1 items-center justify-center rounded-xl border border-line bg-white px-3 py-3 text-center text-ink-secondary hover:bg-surface-subtle`}
         >
           공식 홈페이지
         </a>

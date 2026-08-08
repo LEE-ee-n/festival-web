@@ -5,6 +5,18 @@ export type ArtistsByDateAndStage = Record<
   Record<string, FestivalArtist[]>
 >;
 
+export function compareStageNames(left: string, right: string) {
+  const leftPart = left.match(/^(\d+)\s*부$/);
+  const rightPart = right.match(/^(\d+)\s*부$/);
+
+  if (leftPart && rightPart) {
+    return Number(leftPart[1]) - Number(rightPart[1]);
+  }
+  if (leftPart) return -1;
+  if (rightPart) return 1;
+  return 0;
+}
+
 export function groupArtistsByDateAndStage(
   festivalArtists: FestivalArtist[],
 ): ArtistsByDateAndStage {

@@ -409,7 +409,7 @@ export default function FestivalImportPage() {
       }));
 
       const { data, error } = await supabase.rpc(
-        "import_festival_lineup",
+        "admin_import_festival_lineup",
         {
           p_festival_id: selectedFestival.id,
           p_artists: artistsPayload,

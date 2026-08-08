@@ -200,10 +200,6 @@ export const getPublicArtistSeoData = cache(
       throw appearanceResult.error;
     }
 
-    if (!appearanceResult.data?.length) {
-      return null;
-    }
-
     const festivalNames: string[] = [];
     const seenNames = new Set<string>();
 

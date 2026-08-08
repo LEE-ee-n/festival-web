@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { supabase } from "@/lib/supabase/client";
@@ -11,10 +11,38 @@ export default function AdminLoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(
     null,
   );
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function checkExistingSession() {
+      try {
+        const { user, isAdmin } = await getCurrentAdminAccess();
+
+        if (isCancelled) return;
+
+        if (user) {
+          router.replace(isAdmin ? "/admin" : "/");
+          return;
+        }
+      } catch (error) {
+        console.error("Failed to check existing session", error);
+      }
+
+      if (!isCancelled) setIsCheckingSession(false);
+    }
+
+    void checkExistingSession();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [router]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -58,6 +86,14 @@ export default function AdminLoginPage() {
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  if (isCheckingSession) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-surface-subtle px-4">
+        <p className="text-sm text-ink-muted">접근 권한 확인 중...</p>
+      </main>
+    );
   }
 
   return (

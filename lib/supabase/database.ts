@@ -41,10 +41,16 @@ type NullableRpcFunctions = {
   };
 };
 
+type AdminRpcFunctions = {
+  admin_import_festival_lineup:
+    GeneratedFunctions["import_festival_lineup"];
+};
+
+type RpcOverrides = NullableRpcFunctions & AdminRpcFunctions;
+
 export type Database = Omit<GeneratedDatabase, "public"> & {
   public: Omit<PublicSchema, "Functions"> & {
-    Functions: Omit<GeneratedFunctions, keyof NullableRpcFunctions> &
-      NullableRpcFunctions;
+    Functions: Omit<GeneratedFunctions, keyof RpcOverrides> & RpcOverrides;
   };
 };
 

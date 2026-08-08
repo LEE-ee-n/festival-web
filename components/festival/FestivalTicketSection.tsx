@@ -1,26 +1,27 @@
 import { Tag, Ticket } from "lucide-react";
 
-import { useCurrentTimeAt } from "@/lib/hooks/useCurrentTimeAt";
+import FestivalExternalLinkGroup from "@/components/festival/FestivalExternalLinkGroup";
 import { getOpenTicketLinks } from "@/lib/festivals/ticketDisplay";
+import { useCurrentTimeAt } from "@/lib/hooks/useCurrentTimeAt";
 import type { FestivalTicketRound } from "@/lib/types";
 import { typography } from "@/lib/typography";
 
 type FestivalTicketSectionProps = {
   ticketRounds: FestivalTicketRound[];
   latestOpenAt: string | null;
-  openAtText: string | null;
+  officialUrl?: string | null;
+  instagramUrl?: string | null;
 };
 
 export default function FestivalTicketSection({
   ticketRounds,
   latestOpenAt,
-  openAtText,
+  officialUrl,
+  instagramUrl,
 }: FestivalTicketSectionProps) {
   const currentTime = useCurrentTimeAt(latestOpenAt);
 
-  if (ticketRounds.length === 0) {
-    return null;
-  }
+  if (ticketRounds.length === 0) return null;
 
   const ticketLinks = getOpenTicketLinks(
     ticketRounds,
@@ -31,56 +32,36 @@ export default function FestivalTicketSection({
 
   return (
     <section>
-
-      <h2 className={`${typography.panelSectionTitle} flex items-center justify-center gap-2 pt-6 text-ink-secondary`}>
+      <h2
+        className={`${typography.panelSectionTitle} flex items-center justify-center gap-2 pt-6 text-ink-secondary`}
+      >
         <Ticket size={16} />
         <span>티켓 안내</span>
       </h2>
 
-      <div className="pt-3">
-        <div className="pt-3">
-          <h3 className={`${typography.panelSectionTitle} flex items-center gap-2 overflow-hidden rounded-xl bg-teal-100 px-3 py-3 text-ink-secondary`}>
-            <Tag size={16} />
-            <span>{ticketInfo.round_name}</span>
-          </h3>
+      <div className="pt-6">
+        <h3
+          className={`${typography.panelSectionTitle} inline-flex w-fit items-center gap-2 rounded-lg bg-teal-50 px-3 py-2 text-ink-secondary`}
+        >
+          <Tag size={16} />
+          <span>{ticketInfo.round_name}</span>
+        </h3>
 
-          {openAtText && (
-            <p className={`${typography.label} px-6 pt-2 text-ink-secondary`}>
-              {openAtText}
-            </p>
-          )}
+        {ticketInfo.price_info && (
+          <p
+            className={`${typography.bodyCompact} whitespace-pre-line px-6 pt-2 text-ink-secondary`}
+          >
+            {ticketInfo.price_info}
+          </p>
+        )}
 
-          {ticketInfo.price_info && (
-            <p className={`${typography.bodyCompact} whitespace-pre-line px-6 pt-2 text-ink-secondary`}>
-              {ticketInfo.price_info}
-            </p>
-          )}
+        <div className="mt-6 border-b border-line" />
 
-          {ticketLinks.length > 0 && (
-            <div
-              className={[
-                "mt-3 grid gap-3",
-                ticketLinks.length === 1
-                  ? "grid-cols-1"
-                  : ticketLinks.length === 2
-                    ? "grid-cols-2"
-                    : "grid-cols-3",
-              ].join(" ")}
-            >
-              {ticketLinks.map((round) => (
-                <a
-                  key={round.id}
-                  href={round.ticket_url || "#"}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={`${typography.button} flex w-full items-center justify-center rounded-xl bg-surface-dark py-3 text-center text-white hover:bg-surface-dark/90`}
-                >
-                  {round.ticket_platform || "예매하기"}
-                </a>
-              ))}
-            </div>
-          )}
-        </div>
+        <FestivalExternalLinkGroup
+          ticketLinks={ticketLinks}
+          officialUrl={officialUrl}
+          instagramUrl={instagramUrl}
+        />
       </div>
     </section>
   );
