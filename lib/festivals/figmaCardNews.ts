@@ -38,11 +38,11 @@ export type FigmaCardNewsDraft = {
 };
 
 const CARD_NEWS_COLORS: Record<FestivalCalendarColor, string> = {
-  pink: "#FFC8D4",
+  pink: "#FFD8E1",
   blue: "#C0E6F4",
   green: "#DEF4C5",
   purple: "#DCC2EE",
-  orange: "#FFCFB5",
+  orange: "#FFE7A3",
 };
 
 function formatMonthPeriod(year: number, month: number): string {

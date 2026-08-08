@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function MyPage() {
   return (
-    <main className="min-h-screen bg-surface-subtle px-4 py-8 sm:px-6 sm:py-12">
+    <main className="min-h-screen bg-surface px-4 py-8 sm:px-6 sm:py-12">
       <div className="mx-auto w-full max-w-3xl">
         <h1 className={`${typography.pageTitle} text-ink`}>마이페이지</h1>
         <p className={`${typography.meta} mt-2 text-ink-tertiary`}>

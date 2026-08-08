@@ -1,4 +1,8 @@
 import type { ScheduleImageItem } from "@/lib/schedule/scheduleImageLayout";
+import {
+  SCHEDULE_IMAGE_TYPOGRAPHY,
+  type ScheduleImageTheme,
+} from "@/lib/schedule/scheduleImageTheme";
 
 type ScheduleImageUntimedLineupProps = {
   items: ScheduleImageItem[];
@@ -6,6 +10,7 @@ type ScheduleImageUntimedLineupProps = {
   y: number;
   width: number;
   height: number;
+  theme: ScheduleImageTheme;
 };
 
 const SELECTED_WEIGHT = 1.5;
@@ -23,6 +28,7 @@ export default function ScheduleImageUntimedLineup({
   y,
   width,
   height,
+  theme,
 }: ScheduleImageUntimedLineupProps) {
   const totalWeight = items.reduce(
     (sum, item) => sum + (item.isSelected ? SELECTED_WEIGHT : DEFAULT_WEIGHT),
@@ -47,9 +53,12 @@ export default function ScheduleImageUntimedLineup({
         const cardX = x + horizontalInset;
         const cardWidth = width - horizontalInset * 2;
         const cardY = y + precedingWeight * unitHeight;
-        const fontSize = Math.min(
-          item.isSelected ? 30 : 22,
-          Math.max(10, cardHeight * 0.38),
+        const fontSize = item.isSelected
+          ? SCHEDULE_IMAGE_TYPOGRAPHY.selectedArtistFontSize
+          : SCHEDULE_IMAGE_TYPOGRAPHY.defaultArtistFontSize;
+        const maxCharacters = Math.max(
+          5,
+          Math.floor((cardWidth - 52) / (fontSize * 0.58)),
         );
         const result = (
           <g key={item.id}>
@@ -59,18 +68,18 @@ export default function ScheduleImageUntimedLineup({
               width={cardWidth}
               height={cardHeight}
               rx={item.isSelected ? 18 : 12}
-              fill={item.isSelected ? "#EDE9FE" : "#191B2A"}
-              stroke={item.isSelected ? "#7C3AED" : "#34374A"}
+              fill={item.isSelected ? theme.accentFill : theme.surface}
+              stroke={item.isSelected ? theme.accentStroke : theme.strongLine}
               strokeWidth={item.isSelected ? 4 : 2}
             />
             <text
-              x={cardX + 20}
+              x={cardX + SCHEDULE_IMAGE_TYPOGRAPHY.artistTextInset}
               y={cardY + cardHeight / 2 + fontSize * 0.35}
-              fill={item.isSelected ? "#312E81" : "#A4A8B8"}
+              fill={item.isSelected ? theme.accentText : theme.secondaryText}
               fontSize={fontSize}
               fontWeight={item.isSelected ? "800" : "600"}
             >
-              {truncateText(item.artistName, item.isSelected ? 34 : 42)}
+              {truncateText(item.artistName, maxCharacters)}
             </text>
           </g>
         );

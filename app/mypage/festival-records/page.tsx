@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "나의 페스티벌 기록", robots:
 
 export default function FestivalRecordsPage() {
   return (
-    <main className="min-h-screen bg-surface-subtle px-4 py-8 sm:px-6 sm:py-12">
+    <main className="min-h-screen bg-surface px-4 py-8 sm:px-6 sm:py-12">
       <div className="mx-auto max-w-5xl">
         <Link href="/mypage" className={`${typography.metaStrong} text-ink-tertiary hover:underline`}>← 마이페이지</Link>
         <h1 className={`${typography.pageTitle} mt-5 text-ink`}>나의 페스티벌 기록</h1>

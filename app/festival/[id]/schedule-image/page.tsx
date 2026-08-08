@@ -18,7 +18,7 @@ export default async function FestivalScheduleImagePage({
   if (!detail) notFound();
 
   return (
-    <main className="min-h-screen bg-surface-subtle px-4 py-8 sm:py-12">
+    <main className="min-h-screen bg-surface px-4 py-8 sm:py-12">
       <div className="mx-auto max-w-6xl">
         <Link
           href={`/festival/${detail.festival.id}`}

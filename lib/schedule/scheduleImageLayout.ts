@@ -31,60 +31,8 @@ export type ScheduleImageCardPosition = {
   height: number;
 };
 
-type StageFlow = {
-  items: ScheduleImageItem[];
-  topWeight: number;
-  bottomWeight: number;
-  cardWeights: number[];
-  gapWeights: number[];
-  totalWeight: number;
-};
-
-const SELECTED_CARD_WEIGHT = 1.5;
-const UNSELECTED_CARD_WEIGHT = 1;
-const MINUTES_PER_GAP_WEIGHT = 50;
 const CARD_VISUAL_GAP = 7;
-
-function buildStageFlow(
-  items: ScheduleImageItem[],
-  timelineStart: number,
-  timelineEnd: number,
-): StageFlow {
-  const sortedItems = items
-    .filter((item) => item.startMinutes !== null && item.endMinutes !== null)
-    .sort((left, right) => left.startMinutes! - right.startMinutes!);
-  const topWeight = sortedItems.length > 0
-    ? Math.max(0, sortedItems[0].startMinutes! - timelineStart) /
-      MINUTES_PER_GAP_WEIGHT
-    : 0;
-  const cardWeights = sortedItems.map((item) =>
-    item.isSelected ? SELECTED_CARD_WEIGHT : UNSELECTED_CARD_WEIGHT,
-  );
-  const gapWeights = sortedItems.slice(1).map((item, index) => {
-    const previous = sortedItems[index];
-    const gapMinutes = Math.max(0, item.startMinutes! - previous.endMinutes!);
-    return gapMinutes / MINUTES_PER_GAP_WEIGHT;
-  });
-  const lastItem = sortedItems.at(-1);
-  const bottomWeight = lastItem
-    ? Math.max(0, timelineEnd - lastItem.endMinutes!) /
-      MINUTES_PER_GAP_WEIGHT
-    : 0;
-  const totalWeight =
-    topWeight +
-    bottomWeight +
-    cardWeights.reduce((sum, weight) => sum + weight, 0) +
-    gapWeights.reduce((sum, weight) => sum + weight, 0);
-
-  return {
-    items: sortedItems,
-    topWeight,
-    bottomWeight,
-    cardWeights,
-    gapWeights,
-    totalWeight,
-  };
-}
+const SELECTED_HEIGHT_SCALE = 1.35;
 
 export function buildScheduleImageCardPositions(
   items: ScheduleImageItem[],
@@ -94,31 +42,45 @@ export function buildScheduleImageCardPositions(
   timelineTop: number,
   timelineHeight: number,
 ): Map<number, ScheduleImageCardPosition> {
-  const flows = stages.map((stage) =>
-    buildStageFlow(
-      items.filter((item) => item.stageName === stage),
-      timelineStart,
-      timelineEnd,
-    ),
-  );
-  const maxWeight = Math.max(1, ...flows.map((flow) => flow.totalWeight));
-  const pixelsPerWeight = timelineHeight / maxWeight;
+  const minutesRange = Math.max(1, timelineEnd - timelineStart);
+  const pixelsPerMinute = timelineHeight / minutesRange;
+  const timelineBottom = timelineTop + timelineHeight;
   const positions = new Map<number, ScheduleImageCardPosition>();
 
-  flows.forEach((flow) => {
-    let y = timelineTop + flow.topWeight * pixelsPerWeight;
+  stages.forEach((stage) => {
+    const stageItems = items
+      .filter(
+        (item) =>
+          item.stageName === stage &&
+          item.startMinutes !== null &&
+          item.endMinutes !== null,
+      )
+      .sort((left, right) => left.startMinutes! - right.startMinutes!);
 
-    flow.items.forEach((item, index) => {
-      const allocatedHeight = flow.cardWeights[index] * pixelsPerWeight;
+    stageItems.forEach((item, index) => {
+      const y = timelineTop +
+        (item.startMinutes! - timelineStart) * pixelsPerMinute;
+      const durationHeight = Math.max(
+        1,
+        (item.endMinutes! - item.startMinutes!) * pixelsPerMinute -
+          CARD_VISUAL_GAP,
+      );
+      const desiredHeight = item.isSelected
+        ? durationHeight * SELECTED_HEIGHT_SCALE
+        : durationHeight;
+      const nextItem = stageItems[index + 1];
+      const availableHeight = nextItem
+        ? (nextItem.startMinutes! - item.startMinutes!) * pixelsPerMinute -
+          CARD_VISUAL_GAP
+        : timelineBottom - y;
+
       positions.set(item.id, {
         y,
-        height: Math.max(1, allocatedHeight - CARD_VISUAL_GAP),
+        height: Math.max(
+          1,
+          Math.min(desiredHeight, availableHeight, timelineBottom - y),
+        ),
       });
-      y += allocatedHeight;
-
-      if (index < flow.gapWeights.length) {
-        y += flow.gapWeights[index] * pixelsPerWeight;
-      }
     });
   });
 

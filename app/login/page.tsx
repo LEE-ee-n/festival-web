@@ -31,7 +31,7 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-start justify-center bg-surface-subtle px-4 pt-20">
+    <main className="flex min-h-screen items-start justify-center bg-surface px-4 pt-20">
       <div className="w-full max-w-md rounded-3xl border border-line bg-surface p-8 shadow-sm">
         <Link href="/" className="text-sm text-ink-secondary hover:text-ink">
           ← 홈으로 돌아가기

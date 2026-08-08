@@ -12,9 +12,45 @@ function canvasToBlob(canvas: HTMLCanvasElement) {
   });
 }
 
-function loadSvgImage(svg: SVGSVGElement) {
+function blobToDataUrl(blob: Blob) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function prepareSvgForDownload(svg: SVGSVGElement) {
+  const clone = svg.cloneNode(true) as SVGSVGElement;
+
+  clone
+    .querySelectorAll(
+      '[data-sticker-control="true"], [data-export-exclude="true"]',
+    )
+    .forEach((control) => control.remove());
+
+  await Promise.all(
+    [...clone.querySelectorAll("image")].map(async (image) => {
+      const href = image.getAttribute("href");
+      if (!href || href.startsWith("data:")) return;
+
+      const response = await fetch(new URL(href, window.location.origin));
+      if (!response.ok) {
+        throw new Error("스티커 이미지를 불러오지 못했습니다.");
+      }
+
+      image.setAttribute("href", await blobToDataUrl(await response.blob()));
+    }),
+  );
+
+  return new XMLSerializer().serializeToString(clone);
+}
+
+async function loadSvgImage(svg: SVGSVGElement) {
+  const serializedSvg = await prepareSvgForDownload(svg);
+
   return new Promise<HTMLImageElement>((resolve, reject) => {
-    const serializedSvg = new XMLSerializer().serializeToString(svg);
     const svgBlob = new Blob([serializedSvg], {
       type: "image/svg+xml;charset=utf-8",
     });

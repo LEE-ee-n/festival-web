@@ -5,6 +5,8 @@ import { Download, LogIn, TriangleAlert } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 
 import ScheduleImageCanvas from "@/components/schedule-image/ScheduleImageCanvas";
+import ScheduleImageColorSelector from "@/components/schedule-image/ScheduleImageColorSelector";
+import ScheduleImageStickerControls from "@/components/schedule-image/ScheduleImageStickerControls";
 import { saveScheduleImage } from "@/components/schedule-image/downloadScheduleImage";
 import {
   AUTH_RETURN_PATH_KEY,
@@ -12,7 +14,12 @@ import {
 } from "@/lib/auth/authReturnPath";
 import { useScheduleSelection } from "@/lib/hooks/useScheduleSelection";
 import { buildScheduleImagePages } from "@/lib/schedule/scheduleImageLayout";
+import {
+  createRockCatSticker,
+  type ScheduleImageSticker,
+} from "@/lib/schedule/scheduleImageSticker";
 import type { Festival, FestivalArtist } from "@/lib/types";
+import type { FestivalCalendarColor } from "@/lib/types";
 import { typography } from "@/lib/typography";
 
 type ScheduleImageMakerProps = {
@@ -45,6 +52,13 @@ export default function ScheduleImageMaker({
   const [activePageKey, setActivePageKey] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [accentColor, setAccentColor] = useState<FestivalCalendarColor>(
+    festival.calendar_color ?? "purple",
+  );
+  const [stickersByPage, setStickersByPage] = useState<
+    Record<string, ScheduleImageSticker[]>
+  >({});
+  const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
 
   const selectedIds = useMemo(
     () =>
@@ -74,6 +88,45 @@ export default function ScheduleImageMaker({
   const datePages = pages.filter((page) => page.performanceDate === resolvedDate);
   const activePage =
     datePages.find((page) => page.key === activePageKey) ?? datePages[0];
+  const activeStickers = activePage
+    ? (stickersByPage[activePage.key] ?? [])
+    : [];
+  const selectedSticker =
+    activeStickers.find((sticker) => sticker.id === selectedStickerId) ?? null;
+
+  function addSticker() {
+    if (!activePage) return;
+
+    const sticker = createRockCatSticker(crypto.randomUUID());
+    setStickersByPage((current) => ({
+      ...current,
+      [activePage.key]: [...(current[activePage.key] ?? []), sticker],
+    }));
+    setSelectedStickerId(sticker.id);
+  }
+
+  function updateSticker(sticker: ScheduleImageSticker) {
+    if (!activePage) return;
+
+    setStickersByPage((current) => ({
+      ...current,
+      [activePage.key]: (current[activePage.key] ?? []).map((item) =>
+        item.id === sticker.id ? sticker : item,
+      ),
+    }));
+  }
+
+  function deleteSelectedSticker() {
+    if (!activePage || !selectedStickerId) return;
+
+    setStickersByPage((current) => ({
+      ...current,
+      [activePage.key]: (current[activePage.key] ?? []).filter(
+        (item) => item.id !== selectedStickerId,
+      ),
+    }));
+    setSelectedStickerId(null);
+  }
 
   function requestLogin() {
     const returnPath = normalizeAuthReturnPath(
@@ -156,6 +209,7 @@ export default function ScheduleImageMaker({
                   onClick={() => {
                     setActiveDate(date);
                     setActivePageKey(null);
+                    setSelectedStickerId(null);
                   }}
                   className={`${typography.button} rounded-full border px-4 py-2 ${resolvedDate === date ? "border-festival-purple bg-purple-50 text-festival-purple" : "border-line text-ink-secondary"}`}
                 >
@@ -173,7 +227,10 @@ export default function ScheduleImageMaker({
                   <button
                     key={page.key}
                     type="button"
-                    onClick={() => setActivePageKey(page.key)}
+                    onClick={() => {
+                      setActivePageKey(page.key);
+                      setSelectedStickerId(null);
+                    }}
                     className={`${typography.button} rounded-full border px-4 py-2 ${activePage.key === page.key ? "border-festival-purple bg-purple-50 text-festival-purple" : "border-line text-ink-secondary"}`}
                   >
                     {page.pageIndex + 1}/{page.pageCount} · {page.stages.join(" · ")}
@@ -183,10 +240,26 @@ export default function ScheduleImageMaker({
             </div>
           )}
 
+          <ScheduleImageColorSelector
+            value={accentColor}
+            onChange={setAccentColor}
+          />
+
+          <ScheduleImageStickerControls
+            stickerCount={activeStickers.length}
+            selectedSticker={selectedSticker}
+            onAdd={addSticker}
+            onDelete={deleteSelectedSticker}
+          />
+
           {conflictCount > 0 && (
             <div className="mt-5 flex gap-3 rounded-xl bg-orange-50 p-4 text-orange-800">
               <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
-              <p className={typography.bodyCompact}>겹치는 선택 일정 {conflictCount}개를 이미지에 표시했습니다.</p>
+              <p className={typography.bodyCompact}>
+                겹치는 일정이 {conflictCount}개 있습니다.
+                <br />
+                사진을 저장할 때는 느낌표가 표시되지 않습니다.
+              </p>
             </div>
           )}
 
@@ -194,7 +267,7 @@ export default function ScheduleImageMaker({
             type="button"
             onClick={() => void handleSave()}
             disabled={isSaving}
-            className={`${typography.button} mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-surface-dark px-5 py-3.5 text-white disabled:opacity-50`}
+            className={`${typography.button} mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-line bg-surface px-5 py-3.5 text-ink-secondary hover:bg-surface-subtle disabled:opacity-50`}
           >
             <Download className="h-4 w-4" aria-hidden="true" />
             {isSaving ? "이미지 만드는 중" : "현재 이미지 저장"}
@@ -204,12 +277,17 @@ export default function ScheduleImageMaker({
       </aside>
 
       <section>
-        <div className="mx-auto w-full max-w-[540px] overflow-hidden rounded-[28px] border border-line bg-surface-dark shadow-xl">
+        <div className="mx-auto w-full max-w-[540px] overflow-hidden rounded-[42px] border-[10px] border-ink bg-surface shadow-xl">
           <ScheduleImageCanvas
             ref={svgRef}
             festivalName={festival.name}
             location={festival.location}
             page={activePage}
+            accentColor={accentColor}
+            stickers={activeStickers}
+            selectedStickerId={selectedStickerId}
+            onStickerSelect={setSelectedStickerId}
+            onStickerChange={updateSticker}
           />
         </div>
         <p className={`${typography.meta} mt-3 text-center text-ink-tertiary`}>미리보기와 동일한 1080 × 1920 PNG로 저장됩니다.</p>

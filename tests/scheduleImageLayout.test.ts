@@ -8,6 +8,19 @@ import {
 } from "../lib/schedule/scheduleImageLayout.ts";
 import type { ScheduleImageItem } from "../lib/schedule/scheduleImageLayout.ts";
 import type { FestivalArtist } from "../lib/types.ts";
+import { SCHEDULE_IMAGE_TYPOGRAPHY } from "../lib/schedule/scheduleImageTheme.ts";
+
+test("일정 이미지 글자 크기와 간격은 공통 상수로 고정한다", () => {
+  assert.deepEqual(SCHEDULE_IMAGE_TYPOGRAPHY, {
+    timeFontSize: 16,
+    defaultArtistFontSize: 22,
+    selectedArtistFontSize: 32,
+    timeBaseline: 22,
+    timeToArtistGap: 12,
+    artistTextInset: 30,
+    cardBottomPadding: 8,
+  });
+});
 
 test("무대를 페이지당 최대 3개로 균등하게 나눈다", () => {
   assert.deepEqual(distributeStages(["A", "B", "C"]), [["A", "B", "C"]]);
@@ -51,7 +64,7 @@ test("날짜별 페이지를 만들고 겹치는 선택 일정을 표시한다",
   assert.equal(pages[0].items.every((item) => item.hasConflict), true);
 });
 
-test("같은 무대의 카드는 겹치지 않고 선택 카드는 더 크게 배치한다", () => {
+test("카드는 실제 시작 시각에 맞추고 선택 카드는 다음 공연 전까지만 확대한다", () => {
   const items: ScheduleImageItem[] = [
     {
       id: 1,
@@ -68,8 +81,8 @@ test("같은 무대의 카드는 겹치지 않고 선택 카드는 더 크게 �
       artistName: "일반 공연",
       stageName: "A",
       performanceDate: "2026-08-08",
-      startMinutes: 14 * 60 + 10,
-      endMinutes: 15 * 60,
+      startMinutes: 15 * 60,
+      endMinutes: 15 * 60 + 40,
       isSelected: false,
       hasConflict: false,
     },
@@ -86,6 +99,31 @@ test("같은 무대의 카드는 겹치지 않고 선택 카드는 더 크게 �
   const unselected = positions.get(2)!;
 
   assert.ok(selected.height > unselected.height);
+  assert.equal(selected.y, 100);
+  assert.equal(unselected.y, 300);
   assert.ok(selected.y + selected.height < unselected.y);
   assert.ok(unselected.y + unselected.height <= 900);
+});
+
+test("15시 40분 공연은 15시와 16시 선 사이의 40분 위치에 놓인다", () => {
+  const item: ScheduleImageItem = {
+    id: 1,
+    artistName: "15시 40분 공연",
+    stageName: "A",
+    performanceDate: "2026-08-08",
+    startMinutes: 15 * 60 + 40,
+    endMinutes: 16 * 60 + 10,
+    isSelected: false,
+    hasConflict: false,
+  };
+  const positions = buildScheduleImageCardPositions(
+    [item],
+    ["A"],
+    15 * 60,
+    17 * 60,
+    100,
+    600,
+  );
+
+  assert.equal(positions.get(1)?.y, 300);
 });

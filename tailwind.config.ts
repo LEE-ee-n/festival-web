@@ -19,11 +19,11 @@ const config: Config = {
           purple: "#7C3AED",
           indigo: "#312E81",
           night: "#090A1A",
-          "bar-pink": "#FFC8D4",
+          "bar-pink": "#FFD8E1",
           "bar-blue": "#C0E6F4",
           "bar-green": "#DEF4C5",
           "bar-purple": "#DCC2EE",
-          "bar-orange": "#FFCFB5",
+          "bar-orange": "#FFE7A3",
         },
         ink: {
           DEFAULT: "#111111",

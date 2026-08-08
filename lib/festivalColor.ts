@@ -1,11 +1,11 @@
 import type { FestivalCalendarColor } from "@/lib/types";
 
 export const FESTIVAL_COLOR_OPTIONS = [
-  { value: "pink", className: "bg-festival-bar-pink", label: "분홍" },
-  { value: "blue", className: "bg-festival-bar-blue", label: "하늘" },
-  { value: "green", className: "bg-festival-bar-green", label: "연두" },
-  { value: "purple", className: "bg-festival-bar-purple", label: "보라" },
-  { value: "orange", className: "bg-festival-bar-orange", label: "살구" },
+  { value: "pink", className: "bg-festival-bar-pink", hex: "#FFD8E1", label: "분홍" },
+  { value: "blue", className: "bg-festival-bar-blue", hex: "#C0E6F4", label: "하늘" },
+  { value: "green", className: "bg-festival-bar-green", hex: "#DEF4C5", label: "연두" },
+  { value: "purple", className: "bg-festival-bar-purple", hex: "#DCC2EE", label: "보라" },
+  { value: "orange", className: "bg-festival-bar-orange", hex: "#FFE7A3", label: "노랑" },
 ] as const;
 
 export const FESTIVAL_COLOR_CLASSES = FESTIVAL_COLOR_OPTIONS.map(
