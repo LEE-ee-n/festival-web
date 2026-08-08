@@ -73,11 +73,12 @@ export default function ScheduleImageUntimedLineup({
               strokeWidth={item.isSelected ? 4 : 2}
             />
             <text
-              x={cardX + SCHEDULE_IMAGE_TYPOGRAPHY.artistTextInset}
+              x={cardX + cardWidth / 2}
               y={cardY + cardHeight / 2 + fontSize * 0.35}
-              fill={item.isSelected ? theme.accentText : theme.secondaryText}
+              fill={item.isSelected ? theme.text : theme.secondaryText}
               fontSize={fontSize}
               fontWeight={item.isSelected ? "800" : "600"}
+              textAnchor="middle"
             >
               {truncateText(item.artistName, maxCharacters)}
             </text>

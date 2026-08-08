@@ -90,8 +90,8 @@ const ScheduleImageCanvas = forwardRef<SVGSVGElement, ScheduleImageCanvasProps>(
       page.stages.length;
     const untimedItems = page.items.filter((item) => item.startMinutes === null);
     const isUntimedOnly = page.items.every((item) => item.startMinutes === null);
-    const timelineTop = 354;
-    const timelineBottom = !isUntimedOnly && untimedItems.length > 0 ? 1622 : 1728;
+    const timelineTop = 304;
+    const timelineBottom = !isUntimedOnly && untimedItems.length > 0 ? 1622 : 1788;
     const timelineHeight = timelineBottom - timelineTop;
     const minutesRange = Math.max(60, page.timelineEnd - page.timelineStart);
     const minuteHeight = timelineHeight / minutesRange;
@@ -130,27 +130,24 @@ const ScheduleImageCanvas = forwardRef<SVGSVGElement, ScheduleImageCanvasProps>(
       >
         <rect width={canvasWidth} height={canvasHeight} fill={theme.background} />
 
-        <text x="68" y="122" fill={theme.accentText} fontSize="24" fontWeight="700" letterSpacing="2">
-          FESTIBOM · MY SCHEDULE
-        </text>
-        <text x="68" y="182" fill={theme.text} fontSize="42" fontWeight="800">
+        <text x="68" y="132" fill={theme.text} fontSize="48" fontWeight="800">
           {truncateText(festivalName, 25)}
         </text>
-        <text x="68" y="228" fill={theme.secondaryText} fontSize="24" fontWeight="600">
+        <text x="68" y="178" fill={theme.secondaryText} fontSize="27" fontWeight="600">
           {formatDate(page.performanceDate)}
           {location ? ` · ${truncateText(location, 22)}` : ""}
         </text>
-        <text x="1012" y="122" fill={theme.mutedText} fontSize="20" textAnchor="end">
+        <text x="1012" y="122" fill={theme.mutedText} fontSize="22" textAnchor="end">
           {page.pageCount > 1 ? `${page.pageIndex + 1} / ${page.pageCount}` : ""}
         </text>
-        <line x1="68" y1="276" x2="1012" y2="276" stroke={theme.line} strokeWidth="2" />
+        <line x1="68" y1="226" x2="1012" y2="226" stroke={theme.line} strokeWidth="2" />
 
         {isUntimedOnly ? (
           <text
             x="540"
-            y="326"
+            y="276"
             fill={theme.accentText}
-            fontSize="22"
+            fontSize="25"
             fontWeight="800"
             textAnchor="middle"
           >
@@ -162,9 +159,9 @@ const ScheduleImageCanvas = forwardRef<SVGSVGElement, ScheduleImageCanvasProps>(
             <text
               key={stage}
               x={centerX}
-              y="326"
+              y="276"
               fill={theme.accentText}
-              fontSize="22"
+              fontSize="25"
               fontWeight="800"
               textAnchor="middle"
             >
@@ -173,17 +170,12 @@ const ScheduleImageCanvas = forwardRef<SVGSVGElement, ScheduleImageCanvasProps>(
           );
         })}
 
-        {!isUntimedOnly && page.stages.slice(1).map((stage, index) => {
-          const x = gridLeft + (index + 1) * stageWidth + index * stageGap + stageGap / 2;
-          return <line key={stage} x1={x} y1={timelineTop} x2={x} y2={timelineBottom} stroke={theme.line} strokeWidth="2" />;
-        })}
-
         {!isUntimedOnly && hourMarkers.map((marker) => {
           const y = timelineTop + (marker - page.timelineStart) * minuteHeight;
           return (
             <g key={marker}>
               <line x1={gridLeft} y1={y} x2={gridRight} y2={y} stroke={theme.line} strokeWidth="2" />
-              <text x={leftAxisWidth} y={y + 8} fill={theme.mutedText} fontSize="22" fontWeight="700" textAnchor="end">
+              <text x={leftAxisWidth} y={y + 8} fill={theme.mutedText} fontSize="24" fontWeight="700" textAnchor="end">
                 {String(Math.floor((marker % (24 * 60)) / 60)).padStart(2, "0")}
               </text>
             </g>
@@ -201,21 +193,43 @@ const ScheduleImageCanvas = forwardRef<SVGSVGElement, ScheduleImageCanvasProps>(
           const cardY = cardPosition.y;
           const cardWidth = stageWidth - horizontalInset * 2;
           const cardHeight = cardPosition.height;
-          const fontSize = item.isSelected
+          const baseArtistFontSize = item.isSelected
             ? SCHEDULE_IMAGE_TYPOGRAPHY.selectedArtistFontSize
             : SCHEDULE_IMAGE_TYPOGRAPHY.defaultArtistFontSize;
-          const artistTextInset = SCHEDULE_IMAGE_TYPOGRAPHY.artistTextInset;
-          const timedContentHeight =
-            SCHEDULE_IMAGE_TYPOGRAPHY.timeBaseline +
-            SCHEDULE_IMAGE_TYPOGRAPHY.timeToArtistGap +
-            fontSize * 0.8 +
-            SCHEDULE_IMAGE_TYPOGRAPHY.cardBottomPadding;
-          const showTime = cardHeight >= timedContentHeight;
+          const performanceDuration =
+            item.endMinutes! - item.startMinutes!;
+          const isCompactTimedCard = performanceDuration < 20;
+          const showTime = true;
+          const timeFontSize = isCompactTimedCard
+            ? 18
+            : SCHEDULE_IMAGE_TYPOGRAPHY.timeFontSize;
+          const minimumGap = 2;
+          const availableArtistHeight = showTime
+            ? cardHeight - timeFontSize - minimumGap * 3
+            : cardHeight - minimumGap * 2;
+          const artistFontSize = Math.min(
+            baseArtistFontSize,
+            Math.max(16, availableArtistHeight),
+          );
+          const verticalGap = showTime
+            ? Math.max(
+                minimumGap,
+                (cardHeight - timeFontSize - artistFontSize) / 3,
+              )
+            : Math.max(minimumGap, (cardHeight - artistFontSize) / 2);
+          const timeY = cardY + verticalGap + timeFontSize * 0.8;
+          const artistY = showTime
+            ? cardY +
+              verticalGap +
+              timeFontSize +
+              verticalGap +
+              artistFontSize * 0.8
+            : cardY + verticalGap + artistFontSize * 0.8;
           const artistText = item.artistName;
           const artistMaxWidth =
-            cardWidth - artistTextInset - (item.hasConflict ? 48 : 14);
+            cardWidth - (item.hasConflict ? 70 : 28);
           const compressArtistText =
-            getEstimatedTextWidth(artistText, fontSize) > artistMaxWidth;
+            getEstimatedTextWidth(artistText, artistFontSize) > artistMaxWidth;
           const cardFill = item.isSelected ? theme.accentFill : theme.surface;
           const cardStroke = item.isSelected
             ? theme.accentStroke
@@ -235,21 +249,17 @@ const ScheduleImageCanvas = forwardRef<SVGSVGElement, ScheduleImageCanvasProps>(
                 strokeWidth={item.isSelected ? 4 : 2}
               />
               {showTime && (
-                <text x={cardX + artistTextInset} y={cardY + SCHEDULE_IMAGE_TYPOGRAPHY.timeBaseline} fill={item.isSelected ? theme.text : theme.mutedText} fontSize={SCHEDULE_IMAGE_TYPOGRAPHY.timeFontSize} fontWeight="600">
+                <text x={cardX + cardWidth / 2} y={timeY} fill={item.isSelected ? theme.text : theme.mutedText} fontSize={timeFontSize} fontWeight="600" textAnchor="middle">
                   {formatMinutes(item.startMinutes!)}–{formatMinutes(item.endMinutes!)}
                 </text>
               )}
               <text
-                x={cardX + artistTextInset}
-                y={showTime
-                  ? cardY +
-                    SCHEDULE_IMAGE_TYPOGRAPHY.timeBaseline +
-                    SCHEDULE_IMAGE_TYPOGRAPHY.timeToArtistGap +
-                    fontSize * 0.8
-                  : cardY + cardHeight / 2 + fontSize * 0.35}
+                x={cardX + cardWidth / 2}
+                y={artistY}
                 fill={primaryText}
-                fontSize={fontSize}
+                fontSize={artistFontSize}
                 fontWeight={item.isSelected ? "800" : "600"}
+                textAnchor="middle"
                 textLength={compressArtistText ? artistMaxWidth : undefined}
                 lengthAdjust={compressArtistText ? "spacingAndGlyphs" : undefined}
               >
@@ -278,15 +288,14 @@ const ScheduleImageCanvas = forwardRef<SVGSVGElement, ScheduleImageCanvasProps>(
 
         {!isUntimedOnly && untimedItems.length > 0 && (
           <g>
-            <text x="68" y="1678" fill={theme.accentText} fontSize="20" fontWeight="800">시간 미정</text>
-            <text x="68" y="1718" fill={theme.secondaryText} fontSize="22">
+            <text x="68" y="1678" fill={theme.accentText} fontSize="23" fontWeight="800">시간 미정</text>
+            <text x="68" y="1718" fill={theme.secondaryText} fontSize="25">
               {truncateText(untimedItems.map((item) => item.artistName).join(" · "), 58)}
             </text>
           </g>
         )}
 
-        <line x1="68" y1="1788" x2="1012" y2="1788" stroke={theme.line} strokeWidth="2" />
-        <text x="1012" y="1838" fill={theme.accentText} fontSize="20" fontWeight="800" textAnchor="end">Festibom</text>
+        <text x="1012" y="1838" fill={theme.accentText} fontSize="22" fontWeight="800" textAnchor="end">Festibom</text>
 
         <ScheduleImageStickerLayer
           stickers={stickers}

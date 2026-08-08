@@ -12,13 +12,10 @@ import { SCHEDULE_IMAGE_TYPOGRAPHY } from "../lib/schedule/scheduleImageTheme.ts
 
 test("일정 이미지 글자 크기와 간격은 공통 상수로 고정한다", () => {
   assert.deepEqual(SCHEDULE_IMAGE_TYPOGRAPHY, {
-    timeFontSize: 16,
-    defaultArtistFontSize: 22,
-    selectedArtistFontSize: 32,
-    timeBaseline: 22,
-    timeToArtistGap: 12,
+    timeFontSize: 20,
+    defaultArtistFontSize: 25,
+    selectedArtistFontSize: 36,
     artistTextInset: 30,
-    cardBottomPadding: 8,
   });
 });
 
@@ -62,6 +59,7 @@ test("날짜별 페이지를 만들고 겹치는 선택 일정을 표시한다",
 
   assert.equal(pages.length, 1);
   assert.equal(pages[0].items.every((item) => item.hasConflict), true);
+  assert.equal(pages[0].timelineEnd, 18 * 60 + 30);
 });
 
 test("카드는 실제 시작 시각에 맞추고 선택 카드는 다음 공연 전까지만 확대한다", () => {

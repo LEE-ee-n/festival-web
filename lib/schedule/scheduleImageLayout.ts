@@ -170,11 +170,10 @@ function getTimelineRange(items: ScheduleImageItem[]) {
   const earliest = Math.min(...timedItems.map((item) => item.startMinutes!));
   const latest = Math.max(...timedItems.map((item) => item.endMinutes!));
   const timelineStart = Math.floor(earliest / 60) * 60;
-  const roundedEnd = Math.ceil(latest / 60) * 60;
 
   return {
     timelineStart,
-    timelineEnd: Math.max(roundedEnd, timelineStart + 4 * 60),
+    timelineEnd: Math.max(latest, timelineStart + 60),
   };
 }
 

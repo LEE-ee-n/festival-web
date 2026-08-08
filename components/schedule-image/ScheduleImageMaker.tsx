@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Download, LogIn, TriangleAlert } from "lucide-react";
+import { LogIn, TriangleAlert } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 
 import ScheduleImageCanvas from "@/components/schedule-image/ScheduleImageCanvas";
 import ScheduleImageColorSelector from "@/components/schedule-image/ScheduleImageColorSelector";
+import ScheduleImageSaveControls from "@/components/schedule-image/ScheduleImageSaveControls";
 import ScheduleImageStickerControls from "@/components/schedule-image/ScheduleImageStickerControls";
 import { saveScheduleImage } from "@/components/schedule-image/downloadScheduleImage";
 import {
@@ -263,16 +264,13 @@ export default function ScheduleImageMaker({
             </div>
           )}
 
-          <button
-            type="button"
-            onClick={() => void handleSave()}
-            disabled={isSaving}
-            className={`${typography.button} mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-line bg-surface px-5 py-3.5 text-ink-secondary hover:bg-surface-subtle disabled:opacity-50`}
-          >
-            <Download className="h-4 w-4" aria-hidden="true" />
-            {isSaving ? "이미지 만드는 중" : "현재 이미지 저장"}
-          </button>
-          {saveMessage && <p className={`${typography.meta} mt-3 text-center text-ink-tertiary`}>{saveMessage}</p>}
+          <div className="mt-6 hidden lg:block">
+            <ScheduleImageSaveControls
+              isSaving={isSaving}
+              message={saveMessage}
+              onSave={() => void handleSave()}
+            />
+          </div>
         </section>
       </aside>
 
@@ -291,6 +289,13 @@ export default function ScheduleImageMaker({
           />
         </div>
         <p className={`${typography.meta} mt-3 text-center text-ink-tertiary`}>미리보기와 동일한 1080 × 1920 PNG로 저장됩니다.</p>
+        <div className="mt-5 lg:hidden">
+          <ScheduleImageSaveControls
+            isSaving={isSaving}
+            message={saveMessage}
+            onSave={() => void handleSave()}
+          />
+        </div>
       </section>
     </div>
   );

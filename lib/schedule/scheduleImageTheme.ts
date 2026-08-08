@@ -2,13 +2,10 @@ import { FESTIVAL_COLOR_OPTIONS } from "../festivalColor.ts";
 import type { FestivalCalendarColor } from "../types.ts";
 
 export const SCHEDULE_IMAGE_TYPOGRAPHY = {
-  timeFontSize: 16,
-  defaultArtistFontSize: 22,
-  selectedArtistFontSize: 32,
-  timeBaseline: 22,
-  timeToArtistGap: 12,
+  timeFontSize: 20,
+  defaultArtistFontSize: 25,
+  selectedArtistFontSize: 36,
   artistTextInset: 30,
-  cardBottomPadding: 8,
 } as const;
 
 const ACCENT_DETAILS: Record<
