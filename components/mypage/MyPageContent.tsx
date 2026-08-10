@@ -1,6 +1,7 @@
 "use client";
 
 import FavoriteArtistList from "@/components/mypage/FavoriteArtistList";
+import PersonalFeatureNotice from "@/components/access/PersonalFeatureNotice";
 import FestivalRecordSlider from "@/components/festival-records/FestivalRecordSlider";
 import ScheduleList from "@/components/mypage/ScheduleList";
 import {
@@ -61,6 +62,8 @@ export default function MyPageContent() {
 
   return (
     <div className="space-y-6">
+      <PersonalFeatureNotice />
+
       {festivalDiaries.errorMessage ? (
           <section className="rounded-3xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
             <p>{festivalDiaries.errorMessage}</p>
@@ -76,7 +79,7 @@ export default function MyPageContent() {
           <FestivalRecordSlider items={festivalDiaries.items} />
         )}
 
-      <section className="px-6 py-2 sm:px-8">
+      <section className="rounded-3xl border border-line bg-surface p-6 shadow-sm sm:p-8">
         <div className="mb-5 flex items-end justify-between gap-4">
           <div>
             <h2 className={`${typography.sectionTitle} text-ink`}>

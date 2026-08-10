@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { useServiceAccess } from "@/components/access/ServiceAccessProvider";
 import {
   addFavoriteArtist,
   getIsFavoriteArtist,
@@ -20,6 +21,7 @@ export type FavoriteArtistState = {
 };
 
 export function useFavoriteArtist(artistId: number): FavoriteArtistState {
+  const access = useServiceAccess();
   const [userId, setUserId] = useState<string | null>(null);
   const [isFavorite, setIsFavorite] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -72,7 +74,7 @@ export function useFavoriteArtist(artistId: number): FavoriteArtistState {
   }, [loadState]);
 
   const toggle = useCallback(async () => {
-    if (!userId || isSaving) return;
+    if (!userId || isSaving || !access.hasPersonalServiceAccess) return;
 
     setIsSaving(true);
     setErrorMessage(null);
@@ -91,7 +93,7 @@ export function useFavoriteArtist(artistId: number): FavoriteArtistState {
     } finally {
       setIsSaving(false);
     }
-  }, [artistId, isFavorite, isSaving, userId]);
+  }, [access.hasPersonalServiceAccess, artistId, isFavorite, isSaving, userId]);
 
   return {
     isAuthenticated: Boolean(userId),

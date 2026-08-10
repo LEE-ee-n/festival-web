@@ -3,6 +3,7 @@ import {
   SCHEDULE_IMAGE_TYPOGRAPHY,
   type ScheduleImageTheme,
 } from "@/lib/schedule/scheduleImageTheme";
+import { buildScheduleImageUntimedCardLayouts } from "@/lib/schedule/scheduleImageUntimedLayout";
 
 type ScheduleImageUntimedLineupProps = {
   items: ScheduleImageItem[];
@@ -12,10 +13,6 @@ type ScheduleImageUntimedLineupProps = {
   height: number;
   theme: ScheduleImageTheme;
 };
-
-const SELECTED_WEIGHT = 1.5;
-const DEFAULT_WEIGHT = 1;
-const CARD_GAP = 8;
 
 function truncateText(value: string, maxLength: number) {
   if (value.length <= maxLength) return value;
@@ -30,29 +27,17 @@ export default function ScheduleImageUntimedLineup({
   height,
   theme,
 }: ScheduleImageUntimedLineupProps) {
-  const totalWeight = items.reduce(
-    (sum, item) => sum + (item.isSelected ? SELECTED_WEIGHT : DEFAULT_WEIGHT),
-    0,
-  );
-  const unitHeight = totalWeight > 0 ? height / totalWeight : height;
+  const cardLayouts = buildScheduleImageUntimedCardLayouts(items, height);
+
   return (
     <g>
       {items.map((item, index) => {
-        const precedingWeight = items
-          .slice(0, index)
-          .reduce(
-            (sum, precedingItem) =>
-              sum +
-              (precedingItem.isSelected ? SELECTED_WEIGHT : DEFAULT_WEIGHT),
-            0,
-          );
-        const allocatedHeight =
-          unitHeight * (item.isSelected ? SELECTED_WEIGHT : DEFAULT_WEIGHT);
-        const cardHeight = Math.max(1, allocatedHeight - CARD_GAP);
+        const cardLayout = cardLayouts[index];
+        const cardHeight = cardLayout.height;
         const horizontalInset = item.isSelected ? 0 : 12;
         const cardX = x + horizontalInset;
         const cardWidth = width - horizontalInset * 2;
-        const cardY = y + precedingWeight * unitHeight;
+        const cardY = y + cardLayout.offsetY;
         const fontSize = item.isSelected
           ? SCHEDULE_IMAGE_TYPOGRAPHY.selectedArtistFontSize
           : SCHEDULE_IMAGE_TYPOGRAPHY.defaultArtistFontSize;

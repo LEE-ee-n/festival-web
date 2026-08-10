@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import PersonalFeatureLink from "@/components/access/PersonalFeatureLink";
 import FestivalRecordCard from "@/components/festival-records/FestivalRecordCard";
 import type { FestivalDiaryListItem } from "@/lib/diaries/festivalDiaries";
 import { typography } from "@/lib/typography";
@@ -12,9 +13,9 @@ export default function FestivalRecordSlider({ items }: FestivalRecordSliderProp
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <h2 className={`${typography.sectionTitle} text-ink`}>페스티봄 일기</h2>
-          <Link href="/mypage/festival-records/new" className={`${typography.button} inline-flex rounded-xl border border-line-strong px-3 py-2 text-ink-secondary`}>
+          <PersonalFeatureLink href="/mypage/festival-records/new" className={`${typography.button} inline-flex rounded-xl border border-line-strong px-3 py-2 text-ink-secondary`}>
             기록 추가
-          </Link>
+          </PersonalFeatureLink>
         </div>
         <Link href="/mypage/festival-records" className={`${typography.metaStrong} shrink-0 text-ink-secondary hover:underline`}>
           전체보기 →
@@ -24,9 +25,9 @@ export default function FestivalRecordSlider({ items }: FestivalRecordSliderProp
       {items.length === 0 ? (
         <div className="mt-5 rounded-2xl border border-dashed border-line-strong px-5 py-10 text-center">
           <p className="text-sm text-ink-tertiary">아직 기록한 페스티벌이 없습니다.</p>
-          <Link href="/mypage/festival-records/new" className={`${typography.button} mt-4 inline-flex rounded-xl bg-surface-dark px-4 py-2.5 text-white`}>
+          <PersonalFeatureLink href="/mypage/festival-records/new" className={`${typography.button} mt-4 inline-flex rounded-xl bg-surface-dark px-4 py-2.5 text-white`}>
             첫 기록 남기기
-          </Link>
+          </PersonalFeatureLink>
         </div>
       ) : (
         <>

@@ -1,5 +1,17 @@
 # Festibom 운영 DB 명세
 
+## 베타 서비스 이용권 (migration 066, 운영 DB 적용 완료·검증 대기)
+
+- `service_access_entitlements`: 회원별 개인 기능 이용권과 부여 출처·상태·기간·부여 관리자를 저장한다.
+- `service_access_settings`: 초기 베타 활성 인원 상한 20명을 저장한다.
+- `has_personal_service_access()`: 현재 로그인 회원의 활성 이용권을 판정하는 단일 기준이다.
+- `enforce_personal_service_access()` 트리거는 관심 축제·아티스트, 공연 일정, 일기·공연·곡·미디어 테이블의 INSERT·UPDATE·DELETE를 중앙 차단한다. 기존 SELECT 정책은 유지한다.
+- `admin_list_service_users()`: 관리자에게만 가입 순번, 가입자 정보와 베타 이용권 상태를 반환한다.
+- `admin_set_beta_access(uuid, boolean)`: 관리자만 베타 이용권을 부여·회수하며 트랜잭션 잠금으로 20명 상한을 지킨다.
+- 운영 관리자 계정에는 기존 개인 기능 유지를 위해 베타 이용권을 최초 1회 자동 부여하고 회수를 금지한다.
+- 2026-08-10 사용자가 Supabase SQL Editor에서 실행해 `Success. No rows returned` 결과를 확인했다.
+- 실제 관리자 회원 목록 조회와 이용권 부여·회수, 일반 회원 변경 차단 동작은 검증 대기다.
+
 기준일: 2026-08-05
 기준: 운영 Supabase `information_schema.columns` 실측 결과 + 저장소 코드 사용처 + 적용된 migration 004~053
 

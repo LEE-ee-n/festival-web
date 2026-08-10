@@ -93,6 +93,8 @@ const ScheduleImageCanvas = forwardRef<SVGSVGElement, ScheduleImageCanvasProps>(
     const timelineTop = 304;
     const timelineBottom = !isUntimedOnly && untimedItems.length > 0 ? 1622 : 1788;
     const timelineHeight = timelineBottom - timelineTop;
+    const mixedUntimedTop = 1644;
+    const mixedUntimedHeight = 132;
     const minutesRange = Math.max(60, page.timelineEnd - page.timelineStart);
     const minuteHeight = timelineHeight / minutesRange;
     const cardPositions = buildScheduleImageCardPositions(
@@ -127,6 +129,7 @@ const ScheduleImageCanvas = forwardRef<SVGSVGElement, ScheduleImageCanvasProps>(
         role="img"
         aria-label={`${festivalName} 내 일정 이미지 미리보기`}
         style={{ fontFamily: "Arial, 'Noto Sans KR', sans-serif" }}
+        onPointerDown={() => onStickerSelect(null)}
       >
         <rect width={canvasWidth} height={canvasHeight} fill={theme.background} />
 
@@ -288,10 +291,35 @@ const ScheduleImageCanvas = forwardRef<SVGSVGElement, ScheduleImageCanvasProps>(
 
         {!isUntimedOnly && untimedItems.length > 0 && (
           <g>
-            <text x="68" y="1678" fill={theme.accentText} fontSize="23" fontWeight="800">시간 미정</text>
-            <text x="68" y="1718" fill={theme.secondaryText} fontSize="25">
-              {truncateText(untimedItems.map((item) => item.artistName).join(" · "), 58)}
+            <text
+              x={leftAxisWidth}
+              y={mixedUntimedTop + mixedUntimedHeight / 2 - 10}
+              fill={theme.mutedText}
+              fontSize="24"
+              fontWeight="700"
+              textAnchor="end"
+            >
+              <tspan x={leftAxisWidth}>시간</tspan>
+              <tspan x={leftAxisWidth} dy="30">미정</tspan>
             </text>
+            {page.stages.map((stage, index) => {
+              const stageUntimedItems = untimedItems.filter(
+                (item) => item.stageName === stage,
+              );
+              if (stageUntimedItems.length === 0) return null;
+
+              return (
+                <ScheduleImageUntimedLineup
+                  key={stage}
+                  items={stageUntimedItems}
+                  x={gridLeft + index * (stageWidth + stageGap)}
+                  y={mixedUntimedTop}
+                  width={stageWidth}
+                  height={mixedUntimedHeight}
+                  theme={theme}
+                />
+              );
+            })}
           </g>
         )}
 

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import FestivalRecordsPageContent from "@/components/festival-records/FestivalRecordsPageContent";
+import PersonalFeatureLink from "@/components/access/PersonalFeatureLink";
 import { typography } from "@/lib/typography";
 
 export const metadata: Metadata = { title: "페스티봄 일기", robots: { index: false, follow: false } };
@@ -13,9 +14,9 @@ export default function FestivalRecordsPage() {
         <Link href="/mypage" className={`${typography.metaStrong} text-ink-tertiary hover:underline`}>← 마이페이지</Link>
         <div className="mt-5 flex items-center gap-3">
           <h1 className={`${typography.pageTitle} text-ink`}>페스티봄 일기</h1>
-          <Link href="/mypage/festival-records/new" className={`${typography.button} rounded-xl border border-line-strong bg-surface px-3 py-2 text-ink-secondary`}>
+          <PersonalFeatureLink href="/mypage/festival-records/new" className={`${typography.button} rounded-xl border border-line-strong bg-surface px-3 py-2 text-ink-secondary`}>
             기록 추가
-          </Link>
+          </PersonalFeatureLink>
         </div>
         <div className="mt-8"><FestivalRecordsPageContent /></div>
       </div>

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { useServiceAccess } from "@/components/access/ServiceAccessProvider";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import {
   addScheduleItem,
@@ -13,6 +14,7 @@ import { supabase } from "@/lib/supabase/client";
 export type ScheduleSelectionState = {
   isAuthenticated: boolean;
   isLoading: boolean;
+  hasPersonalServiceAccess: boolean;
   errorMessage: string | null;
   isSelected: (festivalArtistId: number) => boolean;
   isSaving: (festivalArtistId: number) => boolean;
@@ -22,6 +24,7 @@ export type ScheduleSelectionState = {
 export function useScheduleSelection(
   festivalArtistIds: number[],
 ): ScheduleSelectionState {
+  const access = useServiceAccess();
   const idsKey = [...new Set(festivalArtistIds)].sort((a, b) => a - b).join(",");
   const normalizedIds = useMemo(
     () => (idsKey ? idsKey.split(",").map(Number) : []),
@@ -80,7 +83,7 @@ export function useScheduleSelection(
 
   const toggle = useCallback(
     async (festivalArtistId: number) => {
-      if (!userId || savingIds.has(festivalArtistId)) return;
+      if (!userId || !access.hasPersonalServiceAccess || savingIds.has(festivalArtistId)) return;
 
       setSavingIds((current) => new Set(current).add(festivalArtistId));
       setErrorMessage(null);
@@ -108,12 +111,13 @@ export function useScheduleSelection(
         });
       }
     },
-    [savingIds, selectedIds, userId],
+    [access.hasPersonalServiceAccess, savingIds, selectedIds, userId],
   );
 
   return {
     isAuthenticated: Boolean(userId),
     isLoading,
+    hasPersonalServiceAccess: access.hasPersonalServiceAccess,
     errorMessage,
     isSelected: (festivalArtistId) => selectedIds.has(festivalArtistId),
     isSaving: (festivalArtistId) => savingIds.has(festivalArtistId),

@@ -1,6 +1,7 @@
 "use client";
 
 import FavoriteToggleButton from "@/components/favorites/FavoriteToggleButton";
+import { useServiceAccess } from "@/components/access/ServiceAccessProvider";
 import {
   AUTH_RETURN_PATH_KEY,
   normalizeAuthReturnPath,
@@ -17,6 +18,8 @@ export default function FavoriteArtistButton({
   artistName,
 }: FavoriteArtistButtonProps) {
   const favorite = useFavoriteArtist(artistId);
+  const access = useServiceAccess();
+  const isAccessLocked = access.isAuthenticated && !access.isLoading && !access.hasPersonalServiceAccess;
 
   function requestLogin() {
     const returnPath = normalizeAuthReturnPath(
@@ -39,6 +42,7 @@ export default function FavoriteArtistButton({
         activeLabel="좋아하는 아티스트"
         inactiveLabel="좋아하는 아티스트"
         ariaLabel={`${artistName} ${favorite.isFavorite ? "좋아하는 아티스트에서 삭제" : "좋아하는 아티스트로 추가"}`}
+        isDisabled={isAccessLocked}
         onClick={() => {
           if (!favorite.isAuthenticated) {
             requestLogin();
@@ -48,6 +52,10 @@ export default function FavoriteArtistButton({
           void favorite.toggle();
         }}
       />
+
+      {isAccessLocked && (
+        <p className="mt-1 text-xs font-medium text-amber-700">베타 이용권 필요</p>
+      )}
 
       {favorite.errorMessage && (
         <p className="mt-2 text-xs font-medium text-red-600" role="alert">

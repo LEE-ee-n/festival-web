@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Heart } from "lucide-react";
+import PersonalFeatureLink from "@/components/access/PersonalFeatureLink";
 
 import { getCurrentAdminAccess } from "@/lib/auth/getCurrentAdminAccess";
 import { formatFestivalPeriod } from "@/lib/calendar";
@@ -261,9 +262,9 @@ export default function FestivalDetailContent({
               <section>
                 <h2 className={`${typography.sectionTitle} text-ink`}>페스티봄 일기</h2>
                 <p className={`${typography.meta} mt-2 text-ink-tertiary`}>다녀온 페스티벌과 실제로 본 공연을 개인 기록으로 남겨보세요.</p>
-                <Link href={`/mypage/festival-records/new?festivalId=${festival.id}`} className={`${typography.button} mt-4 inline-flex rounded-xl border border-line-strong px-4 py-2.5 text-ink-secondary`}>
+                <PersonalFeatureLink href={`/mypage/festival-records/new?festivalId=${festival.id}`} className={`${typography.button} mt-4 inline-flex rounded-xl border border-line-strong px-4 py-2.5 text-ink-secondary`}>
                   페스티봄 일기 쓰기
-                </Link>
+                </PersonalFeatureLink>
               </section>
             )}
 

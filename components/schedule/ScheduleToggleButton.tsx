@@ -6,6 +6,7 @@ type ScheduleToggleButtonProps = {
   isSelected: boolean;
   isLoading: boolean;
   isSaving: boolean;
+  isDisabled?: boolean;
   artistName: string;
   onClick: () => void;
 };
@@ -14,6 +15,7 @@ export default function ScheduleToggleButton({
   isSelected,
   isLoading,
   isSaving,
+  isDisabled = false,
   artistName,
   onClick,
 }: ScheduleToggleButtonProps) {
@@ -23,10 +25,10 @@ export default function ScheduleToggleButton({
     <button
       type="button"
       onClick={onClick}
-      disabled={isLoading || isSaving}
+      disabled={isLoading || isSaving || isDisabled}
       aria-pressed={isSelected}
       aria-label={`${artistName} 공연 ${isSelected ? "내 일정에서 삭제" : "내 일정에 추가"}`}
-      title={`${artistName} 공연 ${isSelected ? "내 일정에서 삭제" : "내 일정에 추가"}`}
+      title={isDisabled ? "베타 이용권이 필요한 기능입니다." : `${artistName} 공연 ${isSelected ? "내 일정에서 삭제" : "내 일정에 추가"}`}
       className={`inline-flex h-8 w-8 shrink-0 items-center justify-center transition-colors disabled:opacity-40 ${
         isSelected
           ? "text-blue-600"

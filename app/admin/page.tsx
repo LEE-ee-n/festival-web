@@ -17,6 +17,19 @@ export default function AdminPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Link
+          href="/admin/users"
+          className="rounded-2xl border border-line bg-surface p-6 shadow-sm transition hover:border-line-strong hover:shadow-md"
+        >
+          <h2 className="text-lg font-bold text-ink">
+            가입자·베타 이용권
+          </h2>
+
+          <p className="mt-2 text-sm text-ink-tertiary">
+            가입 순번과 이용권 상태를 확인하고 베타 권한을 부여·회수합니다.
+          </p>
+        </Link>
+
+        <Link
           href="/admin/festival-candidates"
           className="rounded-2xl border border-line bg-surface p-6 shadow-sm transition hover:border-line-strong hover:shadow-md"
         >

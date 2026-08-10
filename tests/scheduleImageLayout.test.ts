@@ -9,6 +9,11 @@ import {
 import type { ScheduleImageItem } from "../lib/schedule/scheduleImageLayout.ts";
 import type { FestivalArtist } from "../lib/types.ts";
 import { SCHEDULE_IMAGE_TYPOGRAPHY } from "../lib/schedule/scheduleImageTheme.ts";
+import {
+  buildScheduleImageUntimedCardLayouts,
+  SCHEDULE_IMAGE_UNTIMED_DEFAULT_MAX_HEIGHT,
+  SCHEDULE_IMAGE_UNTIMED_SELECTED_MAX_HEIGHT,
+} from "../lib/schedule/scheduleImageUntimedLayout.ts";
 
 test("일정 이미지 글자 크기와 간격은 공통 상수로 고정한다", () => {
   assert.deepEqual(SCHEDULE_IMAGE_TYPOGRAPHY, {
@@ -124,4 +129,29 @@ test("15시 40분 공연은 15시와 16시 선 사이의 40분 위치에 놓인�
   );
 
   assert.equal(positions.get(1)?.y, 300);
+});
+
+test("적은 시간 미정 출연진은 카드 최대 높이로 위에서부터 배치한다", () => {
+  const layouts = buildScheduleImageUntimedCardLayouts(
+    [{ isSelected: true }, { isSelected: true }],
+    1484,
+  );
+
+  assert.equal(layouts[0].height, SCHEDULE_IMAGE_UNTIMED_SELECTED_MAX_HEIGHT);
+  assert.equal(layouts[0].offsetY, 0);
+  assert.equal(layouts[1].height, SCHEDULE_IMAGE_UNTIMED_SELECTED_MAX_HEIGHT);
+  assert.equal(layouts[1].offsetY, 180);
+});
+
+test("시간 미정 카드가 영역을 넘으면 선택 비율을 유지해 축소한다", () => {
+  const layouts = buildScheduleImageUntimedCardLayouts(
+    [{ isSelected: true }, { isSelected: false }],
+    300,
+  );
+
+  assert.ok(Math.abs(layouts[0].height - 172.8) < 0.001);
+  assert.ok(Math.abs(layouts[1].height - 115.2) < 0.001);
+  assert.ok(Math.abs(layouts[1].offsetY - 184.8) < 0.001);
+  assert.ok(Math.abs(layouts[1].offsetY + layouts[1].height - 300) < 0.001);
+  assert.ok(layouts[1].height < SCHEDULE_IMAGE_UNTIMED_DEFAULT_MAX_HEIGHT);
 });

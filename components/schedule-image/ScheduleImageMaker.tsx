@@ -4,6 +4,8 @@ import Link from "next/link";
 import { LogIn, TriangleAlert } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 
+import PersonalFeatureNotice from "@/components/access/PersonalFeatureNotice";
+import { useServiceAccess } from "@/components/access/ServiceAccessProvider";
 import ScheduleImageCanvas from "@/components/schedule-image/ScheduleImageCanvas";
 import ScheduleImageColorSelector from "@/components/schedule-image/ScheduleImageColorSelector";
 import ScheduleImageSaveControls from "@/components/schedule-image/ScheduleImageSaveControls";
@@ -45,6 +47,7 @@ export default function ScheduleImageMaker({
   festival,
   festivalArtists,
 }: ScheduleImageMakerProps) {
+  const access = useServiceAccess();
   const svgRef = useRef<SVGSVGElement>(null);
   const scheduleSelection = useScheduleSelection(
     festivalArtists.map((item) => item.id),
@@ -164,6 +167,10 @@ export default function ScheduleImageMaker({
 
   if (scheduleSelection.isLoading) {
     return <p className="py-20 text-center text-sm text-ink-tertiary">내 일정을 불러오는 중입니다.</p>;
+  }
+
+  if (access.isAuthenticated && !access.isLoading && !access.hasPersonalServiceAccess) {
+    return <PersonalFeatureNotice />;
   }
 
   if (!scheduleSelection.isAuthenticated) {

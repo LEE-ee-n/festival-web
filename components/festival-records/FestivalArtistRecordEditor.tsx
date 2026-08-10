@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
+import PersonalFeatureNotice from "@/components/access/PersonalFeatureNotice";
+import { useServiceAccess } from "@/components/access/ServiceAccessProvider";
 import FestivalArtistRecordCard from "@/components/festival-records/FestivalArtistRecordCard";
 import { useFestivalRecordDetail } from "@/lib/hooks/useFestivalRecordDetail";
 import { useFavoriteArtistList } from "@/lib/hooks/useFavoriteArtistList";
@@ -14,6 +16,7 @@ function formatDate(date: string) {
 }
 
 export default function FestivalArtistRecordEditor({ recordId }: { recordId: number }) {
+  const access = useServiceAccess();
   const state = useFestivalRecordDetail(recordId);
   const favoriteArtists = useFavoriteArtistList();
   const [openId, setOpenId] = useState<number | null | undefined>(undefined);
@@ -53,6 +56,8 @@ export default function FestivalArtistRecordEditor({ recordId }: { recordId: num
 
   if (state.isLoading) return <p className="text-sm text-ink-muted">아티스트 기록을 불러오는 중...</p>;
   if (!state.isAuthenticated) return <p className="text-sm text-ink-tertiary">로그인이 필요합니다.</p>;
+  if (access.isLoading) return <p className="text-sm text-ink-muted">베타 이용권을 확인하는 중...</p>;
+  if (!access.hasPersonalServiceAccess) return <PersonalFeatureNotice />;
   if (state.errorMessage || !state.record) return <p className="text-sm text-red-600">{state.errorMessage || "기록을 찾을 수 없습니다."}</p>;
 
   return (

@@ -16,6 +16,9 @@ const STATUS_OPTIONS: Array<{ value: FestivalExperienceStatus; label: string }> 
   { value: "missed", label: "못 봐서 아쉬워요" },
 ];
 
+const MEMO_MAX_LENGTH = 2000;
+const SONG_NAME_MAX_LENGTH = 200;
+
 function statusLabel(status: FestivalExperienceStatus | null) {
   return STATUS_OPTIONS.find((option) => option.value === status)?.label ?? "미작성";
 }
@@ -45,6 +48,22 @@ export default function FestivalArtistRecordCard({ item, isFavorite, isOpen, onT
 
   async function save() {
     if (!experienceStatus || isSaving) return;
+
+    const parsedSongNames = songNames
+      .split(",")
+      .map((song) => song.trim())
+      .filter(Boolean);
+
+    if (memo.length > MEMO_MAX_LENGTH) {
+      setErrorMessage(`기록은 ${MEMO_MAX_LENGTH.toLocaleString()}자까지 입력할 수 있습니다.`);
+      return;
+    }
+
+    if (parsedSongNames.some((song) => song.length > SONG_NAME_MAX_LENGTH)) {
+      setErrorMessage(`기억에 남는 곡은 곡명 하나당 ${SONG_NAME_MAX_LENGTH}자까지 입력할 수 있습니다. 곡이 여러 개라면 쉼표로 구분해주세요.`);
+      return;
+    }
+
     setIsSaving(true);
     setErrorMessage(null);
     try {
@@ -53,7 +72,7 @@ export default function FestivalArtistRecordCard({ item, isFavorite, isOpen, onT
         experienceStatus,
         rating,
         memo,
-        songNames: songNames.split(",").map((song) => song.trim()).filter(Boolean),
+        songNames: parsedSongNames,
       });
       setIsSaved(true);
       onSaved();
@@ -105,7 +124,7 @@ export default function FestivalArtistRecordCard({ item, isFavorite, isOpen, onT
 
           <label className={`${typography.metaStrong} block text-ink-secondary`}>
             기록
-            <textarea value={memo} onChange={(event) => { setMemo(event.target.value); setIsSaved(false); }} rows={4} maxLength={2000} placeholder="좋았던 순간이나 놓쳐서 아쉬웠던 기억을 남겨보세요." className="mt-2 w-full resize-y rounded-xl border border-line-strong px-4 py-3 text-sm outline-none focus:border-ink-muted" />
+            <textarea value={memo} onChange={(event) => { setMemo(event.target.value); setIsSaved(false); }} rows={4} maxLength={MEMO_MAX_LENGTH} placeholder="좋았던 순간이나 놓쳐서 아쉬웠던 기억을 남겨보세요." className="mt-2 w-full resize-y rounded-xl border border-line-strong px-4 py-3 text-sm outline-none focus:border-ink-muted" />
           </label>
 
           <label className={`${typography.metaStrong} block text-ink-secondary`}>

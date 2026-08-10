@@ -9,6 +9,12 @@
 - 전체 완성도 추정: **약 75%**
 - 제한적 공개 준비도 추정: **약 85%**
 - 현재 핵심 작업: 공개 Google 로그인·좋아하는 아티스트·개인 공연 일정·배경화면 MVP
+- 구현 완료·화면 확인 대기 계획: [[완료] 2026-08-10 일정 이미지 LINEUP 카드 최대 높이](plans/2026-08-10-schedule-image-lineup-card-max-height.md)
+- 구현 완료·화면 확인 대기 계획: [[완료] 2026-08-10 일정 이미지 시간 미정 라벨 정리](plans/2026-08-10-schedule-image-untimed-label-style.md)
+- 구현 완료·화면 확인 대기 계획: [[완료] 2026-08-10 일정 이미지 시간 미정 무대별 배치](plans/2026-08-10-schedule-image-untimed-stage-row.md)
+- 구현 완료·화면 확인 대기 계획: [[완료] 2026-08-10 일정 이미지 스티커 선택 해제](plans/2026-08-10-schedule-image-sticker-deselect.md)
+- 운영 DB 적용 완료·화면 검증 대기 계획: [2026-08-10 베타 이용권·가입자 관리](plans/2026-08-10-beta-access-entitlement.md)
+- 구현 완료·화면 확인 대기 계획: [[완료] 2026-08-10 마이페이지 내 공연 일정 박스 정렬](plans/2026-08-10-mypage-schedule-card.md)
 - 진행 중 계획: [2026-08-06 공개 사용자 로그인·개인 일정 MVP](plans/2026-08-06-public-auth-personal-services.md)
 - 로그인 완료 필수 검증: Security Advisor, 일반 회원 2계정 RLS, 단일 관리자 MFA, 개인정보처리방침·회원탈퇴, 운영 RPC 전수 점검
 - 구현 완료·화면 확인 대기: 숫자·한글·영문 정렬, 이름 검색, 초성·알파벳, 좋아요 필터를 제공하는 `/artists` 탐색 페이지

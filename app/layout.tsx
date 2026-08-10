@@ -5,6 +5,7 @@ import "./globals.css";
 import AnalyticsScripts from "../components/analytics/AnalyticsScripts";
 import CommonHeader from "../components/CommonHeader";
 import PublicFooter from "../components/PublicFooter";
+import ServiceAccessProvider from "@/components/access/ServiceAccessProvider";
 import {
   HOME_DESCRIPTION,
   HOME_TITLE,
@@ -38,9 +39,11 @@ export default function RootLayout({
     <html lang="ko">
       <body>
         <AnalyticsScripts />
-        <CommonHeader />
-        {children}
-        <PublicFooter />
+        <ServiceAccessProvider>
+          <CommonHeader />
+          {children}
+          <PublicFooter />
+        </ServiceAccessProvider>
       </body>
     </html>
   );

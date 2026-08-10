@@ -78,6 +78,7 @@ export default function ArtistScheduleRow({
             isSelected={scheduleSelection.isSelected(item.id)}
             isLoading={scheduleSelection.isLoading}
             isSaving={scheduleSelection.isSaving(item.id)}
+            hasPersonalServiceAccess={scheduleSelection.hasPersonalServiceAccess}
             onToggle={scheduleSelection.toggle}
           />
         )}

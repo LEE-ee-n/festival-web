@@ -624,6 +624,69 @@ export type Database = {
         }
         Relationships: []
       }
+      service_access_entitlements: {
+        Row: {
+          created_at: string
+          ends_at: string | null
+          entitlement_key: string
+          granted_at: string
+          granted_by: string | null
+          id: number
+          revoked_at: string | null
+          source: string
+          starts_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          ends_at?: string | null
+          entitlement_key?: string
+          granted_at?: string
+          granted_by?: string | null
+          id?: never
+          revoked_at?: string | null
+          source: string
+          starts_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          ends_at?: string | null
+          entitlement_key?: string
+          granted_at?: string
+          granted_by?: string | null
+          id?: never
+          revoked_at?: string | null
+          source?: string
+          starts_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      service_access_settings: {
+        Row: {
+          beta_limit: number
+          id: boolean
+          updated_at: string
+        }
+        Insert: {
+          beta_limit?: number
+          id?: boolean
+          updated_at?: string
+        }
+        Update: {
+          beta_limit?: number
+          id?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_favorite_artists: {
         Row: {
           artist_id: number
@@ -1189,6 +1252,28 @@ export type Database = {
         Args: { p_artists: Json; p_festival_id: number }
         Returns: Json
       }
+      admin_list_service_users: {
+        Args: never
+        Returns: {
+          access_status: string | null
+          beta_access_number: number | null
+          beta_limit: number
+          display_name: string
+          email: string | null
+          granted_at: string | null
+          has_beta_access: boolean
+          is_admin: boolean
+          joined_at: string
+          revoked_at: string | null
+          signup_number: number
+          user_id: string
+        }[]
+      }
+      admin_set_beta_access: {
+        Args: { p_enabled: boolean; p_user_id: string }
+        Returns: boolean
+      }
+      has_personal_service_access: { Args: never; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
       is_festival_bot: { Args: never; Returns: boolean }
       is_valid_festival_region: { Args: { p_region: string }; Returns: boolean }

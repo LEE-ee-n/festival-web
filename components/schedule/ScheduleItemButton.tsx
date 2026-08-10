@@ -14,6 +14,7 @@ type ScheduleItemButtonProps = {
   isSelected: boolean;
   isLoading: boolean;
   isSaving: boolean;
+  hasPersonalServiceAccess: boolean;
   onToggle: (festivalArtistId: number) => Promise<void>;
 };
 
@@ -25,6 +26,7 @@ export default function ScheduleItemButton({
   isSelected,
   isLoading,
   isSaving,
+  hasPersonalServiceAccess,
   onToggle,
 }: ScheduleItemButtonProps) {
   function requestLogin() {
@@ -43,6 +45,7 @@ export default function ScheduleItemButton({
       isSelected={isSelected}
       isLoading={isLoading}
       isSaving={isSaving}
+      isDisabled={isAuthenticated && !hasPersonalServiceAccess}
       onClick={() => {
         if (!isAuthenticated) {
           requestLogin();

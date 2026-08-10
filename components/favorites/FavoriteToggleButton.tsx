@@ -9,6 +9,7 @@ type FavoriteToggleButtonProps = {
   activeLabel: string;
   inactiveLabel: string;
   ariaLabel: string;
+  isDisabled?: boolean;
   onClick: () => void;
 };
 
@@ -19,13 +20,14 @@ export default function FavoriteToggleButton({
   activeLabel,
   inactiveLabel,
   ariaLabel,
+  isDisabled = false,
   onClick,
 }: FavoriteToggleButtonProps) {
   return (
     <button
       type="button"
       onClick={onClick}
-      disabled={isLoading || isSaving}
+      disabled={isLoading || isSaving || isDisabled}
       aria-pressed={isActive}
       aria-label={ariaLabel}
       className={`inline-flex h-[38px] w-[38px] items-center justify-start transition-colors disabled:opacity-50 sm:h-[42px] sm:w-[42px] ${

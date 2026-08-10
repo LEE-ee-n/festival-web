@@ -3,6 +3,8 @@
 import { Heart } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+import PersonalFeatureNotice from "@/components/access/PersonalFeatureNotice";
+import { useServiceAccess } from "@/components/access/ServiceAccessProvider";
 import FestivalRecordFestivalPicker from "@/components/festival-records/FestivalRecordFestivalPicker";
 import { AUTH_RETURN_PATH_KEY, normalizeAuthReturnPath } from "@/lib/auth/authReturnPath";
 import { getFestivalDateOptions } from "@/lib/diaries/diaryDates";
@@ -38,6 +40,7 @@ function groupLineupByDate(lineup: FestivalLineupOption[]) {
 
 export default function FestivalRecordForm({ recordId = null, initialFestivalId = null }: FestivalRecordFormProps) {
   const router = useRouter();
+  const access = useServiceAccess();
   const form = useFestivalRecordForm(recordId, initialFestivalId);
   const favoriteArtists = useFavoriteArtistList();
   const favoriteArtistIds = new Set(
@@ -74,6 +77,8 @@ export default function FestivalRecordForm({ recordId = null, initialFestivalId 
 
   if (form.isLoading) return <p className="text-sm text-ink-muted">기록 정보를 불러오는 중...</p>;
   if (!form.isAuthenticated) return <button type="button" onClick={requestLogin} className={`${typography.button} rounded-xl bg-surface-dark px-4 py-2.5 text-white`}>로그인하고 기록하기</button>;
+  if (access.isLoading) return <p className="text-sm text-ink-muted">베타 이용권을 확인하는 중...</p>;
+  if (!access.hasPersonalServiceAccess) return <PersonalFeatureNotice />;
   if (!recordId && form.options.length === 0) return <p className="rounded-2xl border border-line p-6 text-sm text-ink-tertiary">새로 기록할 수 있는 종료·진행 중 페스티벌이 없습니다.</p>;
 
   return (
@@ -155,7 +160,7 @@ export default function FestivalRecordForm({ recordId = null, initialFestivalId 
           {nextBlockedReason && <p id="festival-record-next-reason" className="truncate whitespace-nowrap text-sm font-medium text-amber-700">다음으로 이동하려면 {nextBlockedReason}</p>}
         </div>
         <div className="flex shrink-0 gap-2">
-          {recordId && <button type="button" onClick={() => void remove()} disabled={form.isSaving} className={`${typography.button} rounded-xl border border-red-200 px-5 py-3 text-red-700 disabled:opacity-50`}>기록 삭제</button>}
+          {recordId && <button type="button" onClick={() => void remove()} disabled={form.isSaving} className={`${typography.button} rounded-xl border border-red-200 px-5 py-3 text-red-700 disabled:opacity-50`}>일기 삭제</button>}
           <button type="submit" disabled={form.isSaving || Boolean(nextBlockedReason)} aria-describedby={nextBlockedReason ? "festival-record-next-reason" : undefined} className={`${typography.button} rounded-xl bg-surface-dark px-5 py-3 text-white disabled:cursor-not-allowed disabled:opacity-50`}>{form.isSaving ? "저장 중" : "다음"}</button>
         </div>
       </div>
