@@ -42,6 +42,24 @@ export function parseFestivalDraftValue(
     : parseFestivalDraftJsonForEditing(JSON.stringify(value));
 }
 
+export function createInitialFestivalCandidateDraft(
+  candidate: FestivalCandidate,
+): FestivalDraftJson {
+  return {
+    workflow: { step: "artist_review", confirmed_steps: [] },
+    festival: {
+      name: candidate.festival_name ?? "",
+      normalized_name: "",
+      start_date: candidate.start_date ?? "",
+      end_date: candidate.end_date ?? "",
+      location: candidate.location ?? undefined,
+      category: candidate.category ?? undefined,
+    },
+    artists: [],
+    tickets: [],
+  };
+}
+
 export function parseCandidateSourceAssets(
   value: Json,
 ): CandidateSourceAsset[] {

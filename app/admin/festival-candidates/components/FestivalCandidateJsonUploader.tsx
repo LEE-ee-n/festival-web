@@ -6,12 +6,22 @@ import { useMemo, useRef, useState } from "react";
 import { parseFestivalDraftJson } from "@/lib/festivals/festivalDraft";
 import { parseFestivalDraftValue } from "@/lib/festivals/festivalCandidateRecord";
 import {
+  createCandidateDraft,
+  FESTIVAL_DRAFT_SECTION_LABEL,
+  festivalDraftDiffChoiceKey,
+  hasExactFestivalIdentity,
+  hasSameFestivalDates,
+  unresolvedFestivalDraftReviewNotes,
+  type DiffChoice,
+  type MergePreview,
+  type PendingCandidate,
+  type RegisteredFestival,
+} from "@/lib/festivals/festivalCandidateImport";
+import {
   getFestivalDraftTicketKey,
   mergeFestivalDrafts,
-  type DraftMergeDiff,
   type DraftMergeSection,
   type DraftMergeStatus,
-  type FestivalDraftMergeResult,
 } from "@/lib/festivals/festivalDraftMerge";
 import { supabase } from "@/lib/supabase/client";
 import type { FestivalDraftJson } from "@/lib/types";
@@ -21,34 +31,6 @@ const MAX_JSON_SIZE = 1024 * 1024;
 type Props = {
   onCreated: () => void;
 };
-
-type PendingCandidate = {
-  id: number;
-  title: string;
-  source_url: string | null;
-  festival_name: string | null;
-  start_date: string | null;
-  end_date: string | null;
-  location: string | null;
-  category: string | null;
-  draft_json: FestivalDraftJson | null;
-  review_notes: string | null;
-};
-
-type MergePreview = {
-  candidate: PendingCandidate;
-  result: FestivalDraftMergeResult;
-};
-
-type RegisteredFestival = {
-  id: number;
-  name: string;
-  normalized_name: string;
-  start_date: string;
-  end_date: string;
-};
-
-type DiffChoice = "current" | "incoming";
 
 const STATUS_META: Record<
   DraftMergeStatus,
@@ -75,78 +57,6 @@ const STATUS_META: Record<
     className: "bg-red-50 text-red-700",
   },
 };
-
-const SECTION_META: Record<DraftMergeSection, string> = {
-  basic: "기본정보",
-  lineup: "라인업",
-  ticket: "티켓",
-};
-
-function createCandidateDraft(candidate: PendingCandidate): FestivalDraftJson {
-  return {
-    festival: {
-      name: candidate.festival_name ?? "",
-      normalized_name: "",
-      start_date: candidate.start_date ?? "",
-      end_date: candidate.end_date ?? "",
-      location: candidate.location ?? undefined,
-      category: candidate.category ?? undefined,
-      source_url: candidate.source_url ?? undefined,
-    },
-    artists: [],
-    tickets: [],
-  };
-}
-
-function hasExactFestivalIdentity(
-  current: FestivalDraftJson,
-  incoming: FestivalDraftJson,
-) {
-  return Boolean(
-    current.festival.normalized_name
-    && incoming.festival.normalized_name
-    && current.festival.normalized_name === incoming.festival.normalized_name
-    && current.festival.start_date === incoming.festival.start_date
-    && current.festival.end_date === incoming.festival.end_date
-  );
-}
-
-function hasSameFestivalDates(
-  current: FestivalDraftJson,
-  incoming: FestivalDraftJson,
-) {
-  return Boolean(
-    current.festival.start_date
-    && current.festival.end_date
-    && current.festival.start_date === incoming.festival.start_date
-    && current.festival.end_date === incoming.festival.end_date
-  );
-}
-
-function diffChoiceKey(diff: DraftMergeDiff) {
-  return `${diff.section}:${diff.key}`;
-}
-
-function unresolvedReviewNotes(
-  diffs: DraftMergeDiff[],
-  choices: Record<string, DiffChoice>,
-) {
-  const unresolved = diffs.filter(
-    (diff) =>
-      (diff.status === "change" || diff.status === "expression")
-      && choices[diffChoiceKey(diff)] !== "incoming",
-  );
-
-  if (unresolved.length === 0) return "";
-
-  return [
-    "JSON 병합 후 확인 필요",
-    ...unresolved.map(
-      (diff) =>
-        `- ${SECTION_META[diff.section]} / ${diff.label}: 현재 [${diff.current || "-"}] · 신규 [${diff.incoming || "-"}]`,
-    ),
-  ].join("\n");
-}
 
 export default function FestivalCandidateJsonUploader({ onCreated }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -367,7 +277,7 @@ export default function FestivalCandidateJsonUploader({ onCreated }: Props) {
         const merged = structuredClone(mergePreview.result.mergedDraft);
 
         mergePreview.result.diffs.forEach((diff) => {
-          if (diffChoices[diffChoiceKey(diff)] !== "incoming") return;
+          if (diffChoices[festivalDraftDiffChoiceKey(diff)] !== "incoming") return;
 
           if (diff.section === "basic") {
             (merged.festival as Record<string, unknown>)[diff.key] = diff.incoming;
@@ -411,7 +321,7 @@ export default function FestivalCandidateJsonUploader({ onCreated }: Props) {
           });
         });
 
-        const newNotes = unresolvedReviewNotes(
+        const newNotes = unresolvedFestivalDraftReviewNotes(
           mergePreview.result.diffs,
           diffChoices,
         );
@@ -638,11 +548,11 @@ export default function FestivalCandidateJsonUploader({ onCreated }: Props) {
           </p>
 
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            {(Object.keys(SECTION_META) as DraftMergeSection[]).map((section) => {
+            {(Object.keys(FESTIVAL_DRAFT_SECTION_LABEL) as DraftMergeSection[]).map((section) => {
               const diffs = sectionDiffs(section);
               return (
                 <div key={section} className="rounded-xl border border-line p-3">
-                  <p className="font-bold text-ink">{SECTION_META[section]}</p>
+                  <p className="font-bold text-ink">{FESTIVAL_DRAFT_SECTION_LABEL[section]}</p>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {(Object.keys(STATUS_META) as DraftMergeStatus[]).map((status) => {
                       const count = diffs.filter((diff) => diff.status === status).length;
@@ -673,13 +583,13 @@ export default function FestivalCandidateJsonUploader({ onCreated }: Props) {
                   .filter((diff) => diff.status !== "add")
                   .map((diff) => {
                     const meta = STATUS_META[diff.status];
-                    const choice = diffChoices[diffChoiceKey(diff)] ?? "current";
+                    const choice = diffChoices[festivalDraftDiffChoiceKey(diff)] ?? "current";
                     const needsChoice = diff.status === "change"
                       || diff.status === "expression";
                     return (
                       <div key={`${diff.section}-${diff.key}`} className="rounded-lg bg-surface-subtle p-3 text-sm">
                         <p className="font-bold text-ink">
-                          {meta.icon} {SECTION_META[diff.section]} · {diff.label}
+                          {meta.icon} {FESTIVAL_DRAFT_SECTION_LABEL[diff.section]} · {diff.label}
                         </p>
                         <p className="mt-1 text-ink-secondary">
                           현재 DB 값: {diff.current || "-"}
@@ -693,7 +603,7 @@ export default function FestivalCandidateJsonUploader({ onCreated }: Props) {
                               type="button"
                               onClick={() => setDiffChoices((current) => ({
                                 ...current,
-                                [diffChoiceKey(diff)]: "current",
+                                [festivalDraftDiffChoiceKey(diff)]: "current",
                               }))}
                               className={`rounded-lg border px-3 py-2 text-xs font-bold ${
                                 choice === "current"
@@ -707,7 +617,7 @@ export default function FestivalCandidateJsonUploader({ onCreated }: Props) {
                               type="button"
                               onClick={() => setDiffChoices((current) => ({
                                 ...current,
-                                [diffChoiceKey(diff)]: "incoming",
+                                [festivalDraftDiffChoiceKey(diff)]: "incoming",
                               }))}
                               className={`rounded-lg border px-3 py-2 text-xs font-bold ${
                                 choice === "incoming"

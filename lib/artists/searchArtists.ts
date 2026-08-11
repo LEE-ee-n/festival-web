@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase/client";
+import { firstRelation } from "@/lib/supabase/relations";
 
 export type ArtistSearchResult = {
   id: number;
@@ -23,12 +24,6 @@ type SimilarArtistRow = {
 };
 function getArtistAliases(artist: ArtistRelation) {
   return (artist.artist_aliases ?? []).map((alias) => alias.alias_name);
-}
-
-function firstArtistRelation(
-  value: ArtistRelation | ArtistRelation[] | null,
-) {
-  return Array.isArray(value) ? value[0] ?? null : value;
 }
 
 async function addAliasesToSimilarResults(
@@ -147,7 +142,7 @@ export async function searchArtists(
     })),
 
     ...(aliasMatches ?? []).flatMap((row) => {
-      const artist = firstArtistRelation(row.artists);
+      const artist = firstRelation(row.artists);
 
       return artist
         ? [

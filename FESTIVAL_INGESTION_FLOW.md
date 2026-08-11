@@ -9,9 +9,10 @@ Instagram URL
 → 게시물 이미지·캡션 추출
 → OCR·JSON 임시자료 생성
 → 축제 식별
-   ├─ 완전 일치 없음: 신규 페스티벌 등록
    ├─ 완전 일치 1개: 기존 페스티벌 수정
-   └─ 값 누락·오류·복수 일치: 판별 확인 필요
+   ├─ 같은 연도·유사 이름: 관리자 중복 검토
+   ├─ 유사 후보 없음: 신규 페스티벌 등록
+   └─ 값 누락·오류·복수 완전 일치: 판별 확인 필요
 → 관리자 5단계 검토
 → 마지막 확정에서 운영 DB에 한 번만 반영
 ```
@@ -47,8 +48,10 @@ festivals.normalized_name
 + festivals.end_date
 ```
 
-- 축제 표시명과 `search_aliases`는 검색 보조값이며 자동 판정 기준이 아니다.
-- 같은 이름이라도 날짜가 다르면 다른 연도의 신규 축제다.
+- 완전 일치가 없으면 시작 연도가 같은 승인 축제의 표시명·`normalized_name`·`search_aliases`와 이름을 비교한다.
+- 정리된 이름이 서로 포함되거나 Dice 유사도가 50% 이상이면 유사 후보로 표시한다.
+- 유사 후보는 자동 병합하지 않으며, 관리자가 기존 수정 전환 또는 별도 신규 등록을 선택해야 한다.
+- 시작 연도가 다르면 이름이 같아도 이번 유사 후보에서 제외한다.
 - 값이 누락되거나 날짜 형식이 잘못되거나 종료일이 시작일보다 빠르면 자동 판정하지 않는다.
 - 같은 식별값이 복수로 탐지되면 자동 선택하지 않는다.
 - 정확히 일치하지 않는 유사 축제를 자동 병합하지 않는다.
@@ -206,10 +209,12 @@ festivals.normalized_name
 |---|---|
 | 공통 단계·검증 | `lib/festivals/festivalDraft.ts` |
 | 축제 식별·빈 값·시간 규칙 | `lib/festivals/ingestionRules.ts` |
+| 유사 축제 검토·확인 상태 | `lib/festivals/festivalDuplicateReview.ts` |
 | 아티스트 정확 일치 | `lib/artists/applyNormalizedArtistMatches.ts` |
 | 아티스트 1·2단계 UI | `app/admin/festival-candidates/components/CandidateLineupTab.tsx` |
 | 아티스트 검색·DB 별칭 | `lib/artists/searchArtists.ts`, `lib/artists/matchFestivalDraftArtists.ts` |
-| 신규 작업함 상태·최종 승인 | `app/admin/festival-candidates/hooks/useFestivalCandidates.ts` |
+| 신규 작업함 화면 controller | `app/admin/festival-candidates/hooks/useFestivalCandidateController.ts` |
+| 신규 작업함 DB 처리 | `app/admin/festival-candidates/hooks/useFestivalCandidates.ts` |
 | 기존 수정 비교 | `lib/festivals/festivalUpdatePreview.ts` |
 | 기존 수정 단계 화면 | `app/admin/festivals/import-json/StagedFestivalUpdate.tsx` |
 | 기존 수정 작업함 | `app/admin/festival-updates/page.tsx` |
@@ -230,6 +235,8 @@ DB 칼럼과 RPC 상세는 `DATABASE.md`, 실제 구현·검증 상태는 `PROJE
 - 같은 `normalized_name`이라도 날짜가 다르면 다른 축제다.
 - 세 축제 식별값이 모두 같을 때만 기존 축제다.
 - 식별값이 빠지면 신규로 자동 판정하지 않는다.
+- 같은 연도의 이름 포함 또는 50% 이상 유사 후보는 관리자 확인 전 신규 승인하지 않는다.
+- 승인 직전 최신 승인 축제로 유사 후보를 다시 검사한다.
 - 기존 축제가 신규 등록 작업함으로 들어가지 않는다.
 - 아티스트 자동 연결은 `normalized_name` 100% 일치만 허용한다.
 - 기존 아티스트 정보는 등록 단계에서 수정할 수 없다.

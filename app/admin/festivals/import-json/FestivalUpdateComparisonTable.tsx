@@ -3,6 +3,7 @@ import {
   type FestivalUpdateItem,
   type FestivalUpdateSection,
 } from "@/lib/festivals/festivalUpdatePreview";
+import MobileTableLabel from "@/components/admin/MobileTableLabel";
 
 type Props = {
   items: FestivalUpdateItem[];
@@ -41,14 +42,6 @@ function ComparisonValue({ value }: { value: string }) {
         {text}
       </p>
     </details>
-  );
-}
-
-function MobileLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="mb-1 block text-[11px] font-bold text-ink-muted lg:hidden">
-      {children}
-    </span>
   );
 }
 
@@ -187,19 +180,19 @@ export default function FestivalUpdateComparisonTable({
                     )}
                   </td>
                   <td className="block pb-3 lg:table-cell lg:border-b lg:border-line lg:px-3 lg:py-3">
-                    <MobileLabel>
+                    <MobileTableLabel tone="muted">
                       {variant === "lineup" ? "새 일정" : "새 값"}
-                    </MobileLabel>
+                    </MobileTableLabel>
                     <ComparisonValue value={item.incoming} />
                   </td>
                   <td className="block pb-3 lg:table-cell lg:border-b lg:border-line lg:px-3 lg:py-3">
-                    <MobileLabel>
+                    <MobileTableLabel tone="muted">
                       {variant === "lineup" ? "현재 일정" : "현재 값"}
-                    </MobileLabel>
+                    </MobileTableLabel>
                     <ComparisonValue value={item.current} />
                   </td>
                   <td className="block lg:table-cell lg:border-b lg:border-line lg:px-3 lg:py-3 lg:text-center">
-                    <MobileLabel>선택</MobileLabel>
+                    <MobileTableLabel tone="muted">선택</MobileTableLabel>
                     <DecisionButton
                       item={item}
                       selected={selected}

@@ -1,38 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 
 import CandidateBasicInfoTab from "@/app/admin/festival-candidates/components/CandidateBasicInfoTab";
-import { normalizeFestivalRegion } from "@/lib/festivals/regionValidation.ts";
 import CandidateLineupTab from "@/app/admin/festival-candidates/components/CandidateLineupTab";
 import CandidateTicketTab from "@/app/admin/festival-candidates/components/CandidateTicketTab";
 import CandidateSourcePreview from "@/app/admin/festival-candidates/components/CandidateSourcePreview";
 import FestivalCandidateJsonUploader from "@/app/admin/festival-candidates/components/FestivalCandidateJsonUploader";
+import FestivalDuplicateReview from "@/app/admin/festival-candidates/components/FestivalDuplicateReview";
 import TicketDiscoveryUploader from "@/app/admin/festival-candidates/components/TicketDiscoveryUploader";
-import { useFestivalCandidateDraft } from "@/app/admin/festival-candidates/hooks/useFestivalCandidateDraft";
-import { useFestivalCandidates } from "@/app/admin/festival-candidates/hooks/useFestivalCandidates";
+import { useFestivalCandidateController } from "@/app/admin/festival-candidates/hooks/useFestivalCandidateController";
 import AdminBackLink from "@/components/admin/AdminBackLink";
 import AdminNotice from "@/components/admin/AdminNotice";
 import TimetableVisibilityToggle from "@/components/admin/TimetableVisibilityToggle";
-import { matchFestivalDraftArtists } from "@/lib/artists/matchFestivalDraftArtists";
 import {
   FESTIVAL_REGISTRATION_STEPS,
   FESTIVAL_REGISTRATION_STEP_LABELS,
   getActiveDraftArtists,
-  getRegistrationStep,
-  moveRegistrationStep,
-  normalizeFestivalDraft,
-  parseFestivalDraftJsonForEditing,
-  validateFestivalDraftForApproval,
 } from "@/lib/festivals/festivalDraft";
-import { removeCandidateSourceAssets } from "@/lib/festivals/candidateSourceAssets";
-import { isValidNormalizedName } from "@/lib/normalizedName";
-import type {
-  FestivalCandidate,
-  FestivalDraftJson,
-  FestivalRegistrationStep,
-} from "@/lib/types";
 
 const STATUS_OPTIONS = [
   { value: "pending", label: "검토 대기" },
@@ -46,22 +31,6 @@ const STATUS_LABELS = {
   rejected: "거절",
 };
 
-function createInitialDraft(candidate: FestivalCandidate): FestivalDraftJson {
-  return {
-    workflow: { step: "artist_review", confirmed_steps: [] },
-    festival: {
-      name: candidate.festival_name ?? "",
-      normalized_name: "",
-      start_date: candidate.start_date ?? "",
-      end_date: candidate.end_date ?? "",
-      location: candidate.location ?? undefined,
-      category: candidate.category ?? undefined,
-    },
-    artists: [],
-    tickets: [],
-  };
-}
-
 function formatDateTime(value: string | null) {
   if (!value) return "-";
   return new Intl.DateTimeFormat("ko-KR", {
@@ -71,29 +40,26 @@ function formatDateTime(value: string | null) {
 }
 
 export default function FestivalCandidatesPage() {
-  const [statusFilter, setStatusFilter] =
-    useState<(typeof STATUS_OPTIONS)[number]["value"]>("pending");
-  const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [reviewNotes, setReviewNotes] = useState("");
-  const [notice, setNotice] = useState<string | null>(null);
-  const [editorError, setEditorError] = useState<string | null>(null);
-  const [isMatchingArtists, setIsMatchingArtists] = useState(false);
   const {
+    statusFilter,
+    setStatusFilter,
+    selectedId,
+    reviewNotes,
+    setReviewNotes,
+    notice,
+    editorError,
+    setEditorError,
+    isMatchingArtists,
+    selectedCandidate,
+    currentStep,
+    currentStepIndex,
+    duplicateReview,
+    isSeparateFestivalConfirmed,
     candidates,
     isLoading,
     isMutating,
     errorMessage,
-    loadCandidates,
-    createManualCandidate,
-    saveDraft,
-    approveAndImportCandidate,
-    deleteCandidate,
-  } = useFestivalCandidates(statusFilter);
-
-  const {
     draft,
-    initializeDraft,
-    clearDraft,
     updateFestival,
     updateWorkflow,
     addArtist,
@@ -104,283 +70,18 @@ export default function FestivalCandidatesPage() {
     addTicket,
     updateTicket,
     deleteTicket,
-  } = useFestivalCandidateDraft();
-
-  const selectedCandidate =
-    candidates.find((candidate) => candidate.id === selectedId) ?? null;
-  const currentStep = draft ? getRegistrationStep(draft) : "artist_review";
-  const currentStepIndex = FESTIVAL_REGISTRATION_STEPS.indexOf(currentStep);
-  async function selectCandidate(candidate: FestivalCandidate) {
-    setSelectedId(candidate.id);
-    setReviewNotes(candidate.review_notes ?? candidate.reject_reason ?? "");
-    setNotice(null);
-    setEditorError(null);
-
-    if (candidate.status === "approved") {
-      clearDraft();
-      return;
-    }
-
-    const initialDraft = normalizeFestivalDraft(
-      candidate.draft_json ?? createInitialDraft(candidate),
-    );
-    initializeDraft(initialDraft);
-
-    if (!initialDraft.artists.some((artist) => artist.normalized_name.trim())) {
-      return;
-    }
-
-    try {
-      setIsMatchingArtists(true);
-      initializeDraft(await matchFestivalDraftArtists(initialDraft));
-    } catch (error) {
-      setEditorError(
-        error instanceof Error
-          ? error.message
-          : "아티스트 자동 중복 확인에 실패했습니다.",
-      );
-    } finally {
-      setIsMatchingArtists(false);
-    }
-  }
-
-  function readDraft() {
-    if (!draft) {
-      setEditorError("검토할 초안이 없습니다.");
-      return null;
-    }
-
-    const normalizedName = draft.festival.normalized_name.trim();
-    if (
-      normalizedName
-      && !isValidNormalizedName(normalizedName)
-    ) {
-      setEditorError(
-        "축제 normalized_name은 영문 소문자와 숫자로 입력해 주세요.",
-      );
-      window.setTimeout(() => {
-        const input = document.querySelector<HTMLInputElement>(
-          '[data-approval-field="festival-normalized-name"]',
-        );
-        input?.scrollIntoView({ block: "center", behavior: "auto" });
-        input?.focus({ preventScroll: true });
-      }, 0);
-      return null;
-    }
-
-    try {
-      const validatedDraft = parseFestivalDraftJsonForEditing(
-        JSON.stringify(draft),
-      );
-      setEditorError(null);
-      return validatedDraft;
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "JSON 형식이 잘못되었습니다.";
-      setEditorError(message);
-      return null;
-    }
-  }
-
-  async function handleMatchArtists() {
-    if (!draft) return;
-    try {
-      setIsMatchingArtists(true);
-      setEditorError(null);
-      initializeDraft(await matchFestivalDraftArtists(draft));
-      setNotice("normalized_name 기준 중복 확인을 완료했습니다.");
-    } catch (error) {
-      setEditorError(
-        error instanceof Error
-          ? error.message
-          : "아티스트 중복 확인에 실패했습니다.",
-      );
-    } finally {
-      setIsMatchingArtists(false);
-    }
-  }
-
-  async function handleSave() {
-    if (!selectedCandidate) return;
-    const draft = readDraft();
-    if (!draft) return;
-
-    try {
-      await saveDraft(selectedCandidate.id, draft, reviewNotes);
-      setNotice("수정 내용을 저장했습니다. 검토 대기 상태가 유지됩니다.");
-    } catch {
-      // 훅의 오류 메시지를 화면에 표시한다.
-    }
-  }
-
-  function moveToApprovalError(currentDraft: FestivalDraftJson) {
-    let selector = "";
-
-    try {
-      normalizeFestivalRegion(currentDraft.festival.region ?? "");
-    } catch {
-      selector = '[data-approval-field="festival-region"]';
-    }
-
-    if (selector) {
-      // 지역 오류를 먼저 해결해야 다음 단계로 이동할 수 있다.
-    } else if (!/^[a-z0-9]+$/.test(currentDraft.festival.normalized_name)) {
-      selector = '[data-approval-field="festival-normalized-name"]';
-    } else {
-      const unnamedIndex = currentDraft.artists.findIndex(
-        (artist) =>
-          !artist.display_name?.trim()
-          && !artist.input_name?.trim(),
-      );
-      const unresolvedIndex = currentDraft.artists.findIndex(
-        (artist) =>
-          artist.match_status !== "new"
-          && !(
-            artist.match_status === "matched"
-            && Number.isInteger(artist.matched_artist_id)
-          ),
-      );
-      const invalidNewIndex = currentDraft.artists.findIndex(
-        (artist) =>
-          artist.match_status === "new"
-          && !/^[a-z0-9]+$/.test(artist.normalized_name),
-      );
-      const seenNormalizedNames = new Set<string>();
-      const duplicateIndex = currentDraft.artists.findIndex((artist) => {
-        const normalizedName = artist.normalized_name.trim();
-        if (!normalizedName) return false;
-        if (seenNormalizedNames.has(normalizedName)) return true;
-        seenNormalizedNames.add(normalizedName);
-        return false;
-      });
-      const artistIndex = unnamedIndex >= 0
-        ? unnamedIndex
-        : unresolvedIndex >= 0
-          ? unresolvedIndex
-          : invalidNewIndex >= 0
-            ? invalidNewIndex
-            : duplicateIndex;
-
-      selector = unnamedIndex >= 0
-        ? `[data-approval-artist-name-index="${unnamedIndex}"]`
-        : `[data-approval-artist-index="${Math.max(0, artistIndex)}"]`;
-    }
-
-    window.setTimeout(() => {
-      const target = document.querySelector<HTMLElement>(selector);
-      target?.scrollIntoView({ block: "center", behavior: "auto" });
-      const input = target?.matches("input, select, textarea")
-        ? target
-        : target?.querySelector<HTMLElement>("input, select, textarea, button");
-      input?.focus({ preventScroll: true });
-    }, 0);
-  }
-
-  async function handleMoveStep(nextStep: FestivalRegistrationStep) {
-    if (!selectedCandidate || !draft) return;
-    try {
-      const draftForMove = currentStep === "festival_info"
-        ? {
-            ...draft,
-            festival: {
-              ...draft.festival,
-              region: normalizeFestivalRegion(draft.festival.region ?? ""),
-            },
-          }
-        : draft;
-      const moved = moveRegistrationStep(draftForMove, nextStep);
-      await saveDraft(selectedCandidate.id, moved, reviewNotes);
-      initializeDraft(moved);
-      setEditorError(null);
-      setNotice(`${FESTIVAL_REGISTRATION_STEP_LABELS[nextStep]} 단계로 이동했습니다.`);
-    } catch (error) {
-      setEditorError(
-        error instanceof Error ? error.message : "현재 단계를 먼저 확인해 주세요.",
-      );
-      moveToApprovalError(draft);
-    }
-  }
-
-  async function handleApprove() {
-    if (!selectedCandidate) return;
-    const currentDraft = readDraft();
-    if (!currentDraft) return;
-    let draft: FestivalDraftJson;
-    try {
-      draft = validateFestivalDraftForApproval(currentDraft);
-      setEditorError(null);
-    } catch (error) {
-      setEditorError(
-        error instanceof Error
-          ? error.message
-          : "아티스트 매칭 정보를 확인해 주세요.",
-      );
-      moveToApprovalError(currentDraft);
-      return;
-    }
-    if (
-      !window.confirm(
-        `${draft.festival.name}을(를) 승인하고 정식 축제로 등록하시겠습니까?`,
-      )
-    ) {
-      return;
-    }
-
-    try {
-      const result = await approveAndImportCandidate(
-        selectedCandidate.id,
-        draft,
-        reviewNotes,
-      );
-      setSelectedId(null);
-      clearDraft();
-      setNotice(
-        `승인과 정식 등록을 완료했습니다. 축제 ID: ${result.festival_id}`,
-      );
-      try {
-        await removeCandidateSourceAssets(selectedCandidate.source_assets);
-      } catch (cleanupError) {
-        console.error("임시 수집 이미지 정리에 실패했습니다.", cleanupError);
-      }
-    } catch {
-      // 훅의 오류 메시지를 화면에 표시한다.
-    }
-  }
-
-  async function handleDelete() {
-    if (!selectedCandidate) return;
-    if (selectedCandidate.festival_id !== null) {
-      setEditorError(
-        "이미 정식 등록된 축제입니다. 삭제는 축제 관리 페이지에서 진행해 주세요.",
-      );
-      return;
-    }
-    if (!window.confirm(
-      `${selectedCandidate.title} 임시저장과 작업 내용을 전부 삭제하시겠습니까?`,
-    )) {
-      return;
-    }
-
-    try {
-      await deleteCandidate(selectedCandidate.id);
-      setSelectedId(null);
-      clearDraft();
-      setNotice("임시저장과 작업 내용을 삭제했습니다.");
-    } catch {
-      // 훅의 오류 메시지를 화면에 표시한다.
-    }
-  }
-
-  async function handleCreateManualCandidate() {
-    try {
-      const candidate = await createManualCandidate();
-      setStatusFilter("pending");
-      await selectCandidate(candidate);
-      setNotice("직접 작성 작업을 만들었습니다. 기본정보부터 입력하세요.");
-    } catch {
-      // 훅의 오류 메시지를 화면에 표시한다.
-    }
-  }
+    selectCandidate,
+    handleMatchArtists,
+    handleSave,
+    handleMoveStep,
+    handleApprove,
+    handleDelete,
+    handleUseExistingFestival,
+    handleCreateManualCandidate,
+    handleCreated,
+    resetSelection,
+    confirmSeparateFestival,
+  } = useFestivalCandidateController();
 
   return (
     <main className="min-h-screen bg-surface px-4 py-10">
@@ -410,31 +111,9 @@ export default function FestivalCandidatesPage() {
           </div>
         </div>
 
-        <FestivalCandidateJsonUploader
-          onCreated={() => {
-            setSelectedId(null);
-            clearDraft();
-            setNotice(null);
-            if (statusFilter === "pending") {
-              void loadCandidates();
-            } else {
-              setStatusFilter("pending");
-            }
-          }}
-        />
+        <FestivalCandidateJsonUploader onCreated={handleCreated} />
 
-        <TicketDiscoveryUploader
-          onCreated={() => {
-            setSelectedId(null);
-            clearDraft();
-            setNotice(null);
-            if (statusFilter === "pending") {
-              void loadCandidates();
-            } else {
-              setStatusFilter("pending");
-            }
-          }}
-        />
+        <TicketDiscoveryUploader onCreated={handleCreated} />
 
         <div className="mt-6 flex flex-wrap gap-2">
           {STATUS_OPTIONS.map((option) => (
@@ -443,9 +122,7 @@ export default function FestivalCandidatesPage() {
               type="button"
               onClick={() => {
                 setStatusFilter(option.value);
-                setSelectedId(null);
-                clearDraft();
-                setNotice(null);
+                resetSelection();
               }}
               className={[
                 "rounded-full px-4 py-2 text-sm font-semibold",
@@ -588,6 +265,16 @@ export default function FestivalCandidatesPage() {
                   sourceType={selectedCandidate.source_type}
                   rawText={selectedCandidate.raw_text}
                   sourceAssets={selectedCandidate.source_assets}
+                />
+
+                <AdminNotice message={duplicateReview.errorMessage} />
+                <FestivalDuplicateReview
+                  review={duplicateReview.review}
+                  isLoading={duplicateReview.isLoading}
+                  isConfirmed={isSeparateFestivalConfirmed}
+                  isMutating={isMutating}
+                  onUseExisting={(festivalId) => void handleUseExistingFestival(festivalId)}
+                  onConfirmCreateNew={confirmSeparateFestival}
                 />
 
                 <div>

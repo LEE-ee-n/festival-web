@@ -292,6 +292,79 @@ export function useFestivalCandidates(
     }
   }
 
+  async function convertCandidateToUpdate(
+    candidateId: number,
+    festivalId: number,
+    draft: FestivalDraftJson,
+  ): Promise<number> {
+    const candidate = candidates.find((item) => item.id === candidateId);
+    if (!candidate || candidate.status !== "pending") {
+      throw new Error("전환할 신규 축제 후보를 찾을 수 없습니다.");
+    }
+    if (!candidate.source_url) {
+      throw new Error("기존 수정 작업에 필요한 원본 출처가 없습니다.");
+    }
+
+    let createdDraftId: number | null = null;
+    try {
+      setIsMutating(true);
+      setErrorMessage(null);
+      const { data: created, error: createError } = await supabase
+        .from("festival_update_drafts")
+        .insert({
+          festival_id: festivalId,
+          source_url: candidate.source_url,
+          source_type: candidate.source_type ?? "festival_candidate_review",
+          draft_json: draft,
+          comparison_json: {
+            ...candidate.comparison_json,
+            work_type: "update",
+            existing_festival_id: festivalId,
+          },
+          announcement_round: candidate.announcement_round,
+          version_number: candidate.version_number,
+          created_by: candidate.created_by,
+          workflow_json: draft.workflow ?? {
+            step: "artist_review",
+            confirmed_steps: [],
+          },
+        })
+        .select("id")
+        .single();
+      if (createError) throw createError;
+      createdDraftId = created.id;
+
+      const { data: deleted, error: deleteError } = await supabase
+        .from("festival_candidates")
+        .delete()
+        .eq("id", candidateId)
+        .eq("status", "pending")
+        .select("id")
+        .maybeSingle();
+      if (deleteError) throw deleteError;
+      if (!deleted) throw new Error("후보 상태가 변경되어 기존 수정으로 전환하지 못했습니다.");
+
+      setCandidates((current) => current.filter((item) => item.id !== candidateId));
+      return createdDraftId;
+    } catch (error) {
+      if (createdDraftId !== null) {
+        const { error: rollbackError } = await supabase
+          .from("festival_update_drafts")
+          .delete()
+          .eq("id", createdDraftId)
+          .eq("status", "pending");
+        if (rollbackError) {
+          console.error("실패한 기존 수정 전환 작업을 되돌리지 못했습니다.", rollbackError);
+        }
+      }
+      const message = getErrorMessage(error, "기존 축제 수정 작업으로 전환하지 못했습니다.");
+      setErrorMessage(message);
+      throw new Error(message);
+    } finally {
+      setIsMutating(false);
+    }
+  }
+
   return {
     candidates,
     isLoading,
@@ -301,6 +374,7 @@ export function useFestivalCandidates(
     createManualCandidate,
     saveDraft,
     approveAndImportCandidate,
+    convertCandidateToUpdate,
     deleteCandidate,
   };
 }

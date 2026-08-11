@@ -1,23 +1,37 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { supabase } from "@/lib/supabase/client";
 
 export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get("accountDeleted") === "1") {
+      queueMicrotask(() => setSuccessMessage("회원탈퇴가 완료되었습니다."));
+    }
+  }, []);
 
   async function handleGoogleLogin() {
     setIsSubmitting(true);
     setErrorMessage(null);
 
     try {
+      const shouldReauthenticate =
+        new URLSearchParams(window.location.search).get("reauth") ===
+        "account-deletion";
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: `${window.location.origin}/`,
+          queryParams: shouldReauthenticate
+            ? { prompt: "login" }
+            : undefined,
         },
       });
 
@@ -58,6 +72,11 @@ export default function LoginPage() {
         </button>
 
         {errorMessage && <p className="mt-4 text-sm font-medium text-red-600">{errorMessage}</p>}
+        {successMessage && (
+          <p className="mt-4 rounded-xl border border-green-200 bg-green-50 p-3 text-sm font-medium text-green-700">
+            {successMessage}
+          </p>
+        )}
       </div>
     </main>
   );

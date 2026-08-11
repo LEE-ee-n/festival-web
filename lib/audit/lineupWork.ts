@@ -1,5 +1,6 @@
 import type { FestivalArtist } from "@/lib/types";
 import type { Json } from "@/lib/supabase/database";
+import { firstRelation } from "../supabase/relations.ts";
 
 export type LineupWorkType = "announcement" | "correction";
 export type LineupRound = "unspecified" | "first" | "second" | "third" | "final";
@@ -25,7 +26,7 @@ const lineupFields = [
 ] as const;
 
 function artistOf(row: FestivalArtist) {
-  return Array.isArray(row.artists) ? row.artists[0] : row.artists;
+  return firstRelation(row.artists);
 }
 
 function lineupValues(row: FestivalArtist) {

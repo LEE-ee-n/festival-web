@@ -79,6 +79,19 @@
 - 이미 문서로 확인한 내용은 변경 근거가 없으면 반복 조사하지 않는다.
 - 전체 조사보다 변경 파일과 직접 영향 범위를 먼저 확인한다.
 - 권한·로그인·외부 상태 때문에 반복 실패하면 우회하지 말고 사용자 실행 명령을 즉시 제공한다.
+- GitHub 저장소·PR·이슈 작업은 설치된 GitHub 플러그인 연결을 우선 사용한다.
+- Codex 격리 터미널의 `gh auth status` 실패만으로 사용자에게 GitHub 재로그인을 반복 요청하지 않는다.
+- GitHub 플러그인이 지원하지 않는 `gh` 전용 조회가 필요하고 격리 터미널에서 인증이 보이지 않으면, 마스킹된 사용자 실행 명령을 한 번 제공하고 사용자가 전달한 결과를 기준으로 완료한다.
 - 사용자 명령은 현재 위치에 의존하지 않는 절대경로로 작성한다.
 - 배포·복사 시 이번 작업에서 수정된 파일만 대상으로 하고 `.env`, 생성 파일, 실행 캐시는 제외한다.
 - 완료 보고에는 수정 내용, 검증 결과, 남은 문제만 간결하게 적는다.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

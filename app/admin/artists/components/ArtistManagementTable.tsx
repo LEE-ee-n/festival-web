@@ -1,18 +1,12 @@
 import ArtistEditFields from "./ArtistEditFields";
 import ArtistProfileStatus from "@/components/admin/ArtistProfileStatus";
+import type {
+  ArtistSortKey,
+  ManagedArtistRow,
+  SortDirection,
+} from "@/lib/artists/managedArtistList";
 
-export type ManagedArtistRow = {
-  id: number;
-  name: string;
-  normalized_name: string;
-  aliases: string[];
-  image_url: string | null;
-  instagram_url: string | null;
-  featured_playlist_url: string | null;
-};
-
-export type ArtistSortKey = "id" | "name" | "normalized_name";
-export type SortDirection = "asc" | "desc";
+export type { ArtistSortKey, ManagedArtistRow, SortDirection } from "@/lib/artists/managedArtistList";
 
 type ArtistManagementTableProps = {
   artists: ManagedArtistRow[];

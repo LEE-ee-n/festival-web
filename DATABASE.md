@@ -309,6 +309,10 @@ Migration 050은 `replace_pending_discord_source_drafts` RPC를 추가한다. �
 
 Migration 051은 축제별 공식 Instagram·홈페이지의 `실제로 없음 확인` 상태를 추가한다. 기존 기본정보 감사 RPC가 두 값을 저장하며, URL이 어떤 경로로 새로 저장되더라도 트리거가 해당 확인 상태를 자동으로 해제한다. 코드와 migration 작성은 완료됐고 운영 DB 적용과 실제 저장 검증이 필요하다.
 
+2026-08-11 보안 migration `harden_rpc_execute_privileges`와 `lock_legacy_status_search_path`를 운영 DB에 적용했다. `update_artists_from_excel`은 빈 `search_path`와 `is_admin()` 검사를 사용하며 익명 실행을 차단한다. 축제 상태 갱신 함수는 `service_role`만 직접 실행할 수 있고, 감사·신규 회원·초안 기준값용 트리거 함수 4개는 외부 역할의 직접 실행 권한을 제거했다. 운영 권한 조회, 관리자·일반 회원·Bot 역할 시험과 pg_cron 최근 성공을 확인했다.
+
+2026-08-11 `enforce_admin_aal2` migration을 운영 DB에 적용했다. 공통 `is_admin()`은 단일 관리자 profile과 JWT `aal = 'aal2'`를 함께 요구한다. 관리자 `aal1`과 일반 회원 `aal2`는 거부되고 관리자 `aal2`만 허용되며, Bot 전용 권한과 pg_cron은 영향을 받지 않음을 확인했다.
+
 ## 6-1. festival_update_drafts
 
 기존 페스티벌 수정 전용 임시작업이다. `source_url`과 대상 `festival_id`를 유지하고, `draft_json`, `workflow_json`, `selection_json`에 최종 확정 전 작업을 보관한다. `base_festival_updated_at`과 `base_data_hash`는 시작 당시 기본정보·아티스트 연결·타임테이블·티켓을 묶어 검사한다.
@@ -318,6 +322,7 @@ Migration 051은 축제별 공식 Instagram·홈페이지의 `실제로 없음 �
 - 최종 RPC: `finalize_festival_update_draft`
 - 완료 시 운영 변경과 감사 이벤트를 한 트랜잭션으로 반영하고 JSON·선택 내용을 제거하며 URL만 남긴다.
 - Migration 041은 기존 `festival_candidates.work_type = update` 대기 작업을 이 테이블로 옮기고 이후 혼입을 차단한다. 2026-07-22 운영 적용을 확인했다.
+- Migration `20260811061625_admin_insert_festival_update_drafts.sql`은 유사 신규 후보를 기존 수정 작업으로 전환할 때 관리자 `aal2` 세션만 수정 초안을 INSERT할 수 있게 한다. 2026-08-11 운영 DB 적용 후 `authenticated` INSERT 정책과 `is_admin()` 검사식을 확인했다. localhost에서 신규 후보를 기존 수정 초안으로 전환하고 원본 후보 삭제와 테스트 수정 초안 삭제까지 재검증했다.
 
 ## 7. audit_events
 

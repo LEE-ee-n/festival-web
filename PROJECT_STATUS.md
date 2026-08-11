@@ -9,6 +9,12 @@
 - 전체 완성도 추정: **약 75%**
 - 제한적 공개 준비도 추정: **약 85%**
 - 현재 핵심 작업: 공개 Google 로그인·좋아하는 아티스트·개인 공연 일정·배경화면 MVP
+- 진행 중 계획: [2026-08-11 SaaS 공개·유료화 준비](plans/2026-08-11-saas-launch-readiness.md) — 의존성 감사 0건, 테스트 276개·타입 검사·프로덕션 빌드 통과, ESLint 오류 0개. 다음은 관리자 MFA·`aal2`, 개인정보·회원탈퇴·복구 시험
+- 완료 계획: [[완료] 2026-08-11 Supabase Security Advisor·RPC 권한 보강](plans/2026-08-11-supabase-security-advisor-rpc-hardening.md) — 운영 DB 적용 완료. Advisor 56→41건, 익명 `SECURITY DEFINER` 8→0건, 일반 회원 관리자 RPC 거부와 관리자·Bot·RLS 역할 검증 통과
+- 완료 계획: [[완료] 2026-08-11 단일 관리자 TOTP MFA·aal2 강제](plans/2026-08-11-admin-mfa-aal2-enforcement.md) — Vercel 배포, 관리자 TOTP 등록과 운영 DB `aal2` 강제 완료. 관리자 `aal1`·일반 회원 거부, 관리자 `aal2` 허용과 Bot·cron 회귀 검증 통과
+- 완료 계획: [[완료] 2026-08-11 유사 후보 기존 수정 전환 RLS 오류 수정](plans/2026-08-11-festival-candidate-update-conversion-rls.md) — 관리자 `aal2` 전용 INSERT 정책 적용, 실제 후보→기존 수정 초안 전환·원본 삭제·테스트 초안 삭제 확인, 전체 테스트 282개·타입 검사·린트 오류 0개 통과
+- 구현 완료·관리자 주요 회귀 확인 계획: [[완료] 2026-08-11 코드 구조 1차 정리](plans/2026-08-11-code-structure-cleanup.md) — 티켓 수입 기능 보존, 공통 로직 정리, 신규·기존 수정·아티스트·달력 controller 분리와 기본정보 상태 통합 완료. 기존 수정은 임시저장·새로고침 복원·1~5단계 이동·초안 삭제까지 실제 확인했고 최종 반영만 남음
+- 구현 완료·화면 확인 대기 계획: [[완료] 2026-08-11 신규 축제 controller 분리·유사 중복 검토](plans/2026-08-11-festival-candidate-controller-similar-duplicate-review.md) — 신규 등록 controller 분리, 같은 연도·이름 포함 또는 유사도 50% 이상 관리자 확인, 승인 직전 재검사 구현
 - 구현 완료·화면 확인 대기 계획: [[완료] 2026-08-10 일정 이미지 LINEUP 카드 최대 높이](plans/2026-08-10-schedule-image-lineup-card-max-height.md)
 - 구현 완료·화면 확인 대기 계획: [[완료] 2026-08-10 일정 이미지 시간 미정 라벨 정리](plans/2026-08-10-schedule-image-untimed-label-style.md)
 - 구현 완료·화면 확인 대기 계획: [[완료] 2026-08-10 일정 이미지 시간 미정 무대별 배치](plans/2026-08-10-schedule-image-untimed-stage-row.md)
@@ -16,7 +22,7 @@
 - 운영 DB 적용 완료·화면 검증 대기 계획: [2026-08-10 베타 이용권·가입자 관리](plans/2026-08-10-beta-access-entitlement.md)
 - 구현 완료·화면 확인 대기 계획: [[완료] 2026-08-10 마이페이지 내 공연 일정 박스 정렬](plans/2026-08-10-mypage-schedule-card.md)
 - 진행 중 계획: [2026-08-06 공개 사용자 로그인·개인 일정 MVP](plans/2026-08-06-public-auth-personal-services.md)
-- 로그인 완료 필수 검증: Security Advisor, 일반 회원 2계정 RLS, 단일 관리자 MFA, 개인정보처리방침·회원탈퇴, 운영 RPC 전수 점검
+- 로그인 완료 필수 검증: 단일 관리자 MFA·`aal2`, 일반 회원 2계정 전체 쓰기 RLS, 개인정보처리방침·회원탈퇴, 남은 운영 RPC·Auth 설정 점검
 - 구현 완료·화면 확인 대기: 숫자·한글·영문 정렬, 이름 검색, 초성·알파벳, 좋아요 필터를 제공하는 `/artists` 탐색 페이지
 - 구현·운영 DB 적용 완료, 실제 검증 대기 계획: [2026-08-01 Discord 중복 출처 임시 작업 삭제 후 재등록](plans/2026-08-01-discord-duplicate-source-replace.md)
 - 구현·운영 DB 적용 완료, 실제 검증 대기 계획: [2026-08-01 Discord 첨부 이미지 신규 페스티벌 등록](plans/2026-08-01-discord-image-new-festival-registration.md)
@@ -474,7 +480,7 @@ Migration 파일 작성과 운영 DB 적용은 구분하며, 위 037~041은 사�
 ## 10. 오늘 이후 작업 순서
 
 1. 실제 화면에서 PC 표의 세 구역 순서와 모바일 카드 전환 확인
-2. 기존 수정 2~5단계 회귀와 전체 흐름을 실제 페스티벌로 최종 시험
+2. 기존 수정 최종 원자 반영과 감사 기록을 실제 반영 가능한 작업 1건으로 시험
 3. 다른 신규 페스티벌을 실제 추가하며 전체 흐름 재시험
 4. 2~5단계 디자인과 아티스트 관리 페이지 개편은 각각 별도 계획으로 진행
 

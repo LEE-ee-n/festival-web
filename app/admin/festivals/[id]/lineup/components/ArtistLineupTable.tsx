@@ -1,4 +1,6 @@
+import MobileTableLabel from "@/components/admin/MobileTableLabel";
 import { getPerformanceDateRangeError } from "@/lib/festivals/festivalDataQuality";
+import { firstRelation } from "@/lib/supabase/relations";
 import type { FestivalArtist } from "@/lib/types";
 
 type LineupByDateAndStage = Record<
@@ -30,16 +32,8 @@ type ArtistLineupTableProps = {
 const inputClass =
   "w-full rounded-lg border border-line-strong bg-surface px-2.5 py-2 text-sm text-ink outline-none focus:border-gray-500";
 
-function MobileLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="mb-1 block text-[11px] font-bold text-ink-tertiary lg:hidden">
-      {children}
-    </span>
-  );
-}
-
 function artistOf(row: FestivalArtist) {
-  return Array.isArray(row.artists) ? row.artists[0] : row.artists;
+  return firstRelation(row.artists);
 }
 
 export default function ArtistLineupTable({
@@ -136,7 +130,7 @@ export default function ArtistLineupTable({
                                 className="mb-3 block rounded-xl border border-line bg-surface p-4 shadow-sm lg:mb-0 lg:table-row lg:rounded-none lg:border-0 lg:p-0 lg:shadow-none"
                               >
                                 <td className="block border-line pb-4 lg:table-cell lg:border-b lg:px-3 lg:py-3 lg:align-middle">
-                                  <MobileLabel>아티스트</MobileLabel>
+                                  <MobileTableLabel>아티스트</MobileTableLabel>
                                   <p className="break-words text-sm font-bold text-ink">
                                     {artist?.name || "이름 없음"}
                                   </p>
@@ -155,7 +149,7 @@ export default function ArtistLineupTable({
                                 </td>
 
                                 <td className="block border-line pb-3 lg:table-cell lg:border-b lg:px-3 lg:py-3 lg:align-middle">
-                                  <MobileLabel>공연 날짜</MobileLabel>
+                                  <MobileTableLabel>공연 날짜</MobileTableLabel>
                                   <input
                                     type="date"
                                     value={row.performance_date ?? ""}
@@ -171,7 +165,7 @@ export default function ArtistLineupTable({
                                 </td>
 
                                 <td className="block border-line pb-3 lg:table-cell lg:border-b lg:px-3 lg:py-3 lg:align-middle">
-                                  <MobileLabel>공연 시간</MobileLabel>
+                                  <MobileTableLabel>공연 시간</MobileTableLabel>
                                   <div className="flex items-center gap-1.5">
                                     <input
                                       type="time"
@@ -194,7 +188,7 @@ export default function ArtistLineupTable({
                                 </td>
 
                                 <td className="block border-line pb-3 lg:table-cell lg:border-b lg:px-3 lg:py-3 lg:align-middle">
-                                  <MobileLabel>무대</MobileLabel>
+                                  <MobileTableLabel>무대</MobileTableLabel>
                                   <input
                                     type="text"
                                     value={row.stage_name ?? ""}
@@ -205,7 +199,7 @@ export default function ArtistLineupTable({
                                 </td>
 
                                 <td className="block border-line pb-3 lg:table-cell lg:border-b lg:px-3 lg:py-3 lg:align-middle">
-                                  <MobileLabel>상태</MobileLabel>
+                                  <MobileTableLabel>상태</MobileTableLabel>
                                   <select
                                     value={row.status ?? "confirmed"}
                                     onChange={(event) =>
@@ -219,7 +213,7 @@ export default function ArtistLineupTable({
                                 </td>
 
                                 <td className="block border-line lg:table-cell lg:border-b lg:px-2 lg:py-3 lg:align-middle">
-                                  <MobileLabel>작업</MobileLabel>
+                                  <MobileTableLabel>작업</MobileTableLabel>
                                   <div className="flex justify-end gap-1.5 lg:justify-center">
                                     {row.id > 0 && (
                                       <button

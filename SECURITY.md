@@ -137,15 +137,17 @@ SQL Editor는 일반적으로 `postgres` 권한으로 실행되기 때문에
 ### 우선 보강 항목
 
 1. Next.js 보안 버전 업데이트
-   - 현재 `16.2.10`에서 공식 보안 수정 버전인 `16.2.11` 이상으로 업데이트한다.
-   - 업데이트 후 전체 테스트, 타입 검사, 린트와 프로덕션 빌드를 다시 실행한다.
+   - `16.2.10`에서 `16.3.0`으로 업데이트했고 PostCSS 8.5.26, Sharp 0.35.3, Nanoid 3.3.18을 함께 적용했다.
+   - 운영·개발 의존성 `npm audit` 0건, 테스트 276개, 타입 검사와 ESLint 오류 0개를 확인했다.
+   - 사용자 환경에서 프로덕션 빌드의 컴파일, TypeScript, 페이지 데이터 수집과 정적 페이지 29개 생성을 모두 확인했다.
 2. 관리자 MFA 강제
-   - 관리자 계정에 TOTP MFA를 등록한다.
-   - 화면 인증만 추가하지 않고 관리자 RLS·RPC에서도 `aal2`를 요구한다.
+   - 2026-08-11 단일 관리자 계정에 TOTP MFA를 등록했다.
+   - 공통 `is_admin()`이 관리자 role과 JWT `aal2`를 함께 요구하도록 운영 DB에 적용했다.
+   - 관리자 `aal1`·일반 회원 `aal2` 거부와 관리자 `aal2` 허용을 DB 역할 시험으로 확인했다.
 3. 운영 DB 권한 재검증
-   - Supabase Security Advisor를 다시 실행한다.
-   - 이후 추가된 모든 테이블, 함수와 Storage 버킷의 RLS·실행 권한을 확인한다.
-   - 익명·일반 사용자·관리자·Bot 계정으로 허용 및 거부 동작을 각각 시험한다.
+   - 2026-08-11 운영 Security Advisor와 public 테이블·함수 권한을 확인하고 위험 RPC 권한을 보강했다.
+   - 일반 회원 관리자 RPC 거부, 관리자·Bot 전용 RPC 허용, 두 일반 회원 간 개인 데이터 교차 조회 거부를 확인했다.
+   - Advisor 경고는 56건에서 41건, 익명 실행 가능 `SECURITY DEFINER` 경고는 8건에서 0건으로 줄었다.
 4. HTTP 보안 헤더
    - CSP, `frame-ancestors`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`를 검토해 적용한다.
    - 외부 Pretendard 폰트, Supabase Storage 이미지와 JSON-LD가 CSP에서 정상 동작하는지 확인한다.
@@ -161,13 +163,13 @@ SQL Editor는 일반적으로 `postgres` 권한으로 실행되기 때문에
 
 ### 운영 전 보안 확인표
 
-- [ ] Next.js 보안 수정 버전 적용
+- [x] Next.js 보안 수정 버전 적용, 의존성 감사 0건과 프로덕션 빌드 확인
 - [ ] 웹과 Discord Bot 의존성 보안 감사 통과
-- [ ] 관리자 MFA 등록과 `aal2` 권한 강제
+- [x] 관리자 MFA 등록과 `aal2` 권한 강제
 - [ ] 관리자 로그인 rate limit·CAPTCHA·비밀번호 정책 확인
-- [ ] Supabase Security Advisor 경고 검토
+- [x] Supabase Security Advisor 경고 검토와 고위험 RPC 권한 보강
 - [ ] 익명 사용자의 모든 관리 테이블 쓰기 거부 확인
-- [ ] 일반 로그인 사용자의 관리자 RPC 실행 거부 확인
+- [x] 일반 로그인 사용자의 관리자 Excel 수정 RPC 실행 거부 확인
 - [ ] Bot의 관리자 테이블 및 다른 사용자의 후보·파일 접근 거부 확인
 - [ ] 관리자 계정의 정상 등록·수정·삭제 확인
 - [ ] Storage 파일 형식·크기·경로 제한 확인
@@ -178,8 +180,7 @@ SQL Editor는 일반적으로 `postgres` 권한으로 실행되기 때문에
 
 ### 이번 평가에서 확인하지 못한 사항
 
-- `npm audit`는 npm 보안 API 연결 실패로 결과를 받지 못했다.
-- 운영 Supabase 프로젝트의 실제 RLS·Auth·세션·Security Advisor 설정은 확인하지 않았다.
+- 운영 Security Advisor와 핵심 RPC·RLS는 확인했지만 관리자 MFA·`aal2`, Auth 세션 정책과 개인 데이터 전체 쓰기 격리 시험은 남아 있다.
 - Vercel Firewall과 보안 알림의 실제 설정은 확인하지 않았다.
 - 실제 침투 테스트, 부하 공격과 계정 탈취 시나리오는 실행하지 않았다.
 

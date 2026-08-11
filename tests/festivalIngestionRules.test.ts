@@ -3,6 +3,8 @@ import test from "node:test";
 
 import {
   createFestivalIdentityKey,
+  calculateFestivalNameSimilarity,
+  findSimilarFestivalCandidates,
   findExactFestivalIdentityMatch,
   isSameMinuteTime,
   mergeWithoutBlankOverwrite,
@@ -81,4 +83,38 @@ test("빈 JSON 값은 기존 값을 덮어쓰지 않는다", () => {
     price_info: "120,000원",
     status: "confirmed",
   });
+});
+
+test("같은 연도의 포함 이름은 유사 축제 후보로 분류한다", () => {
+  const matches = findSimilarFestivalCandidates({
+    name: "2026 경기인디 뮤직스트리트",
+    normalized_name: "gyongyindimusicstreet",
+    start_date: "2026-10-01",
+    end_date: "2026-10-01",
+  }, [{
+    id: 3,
+    name: "2026 경기인디",
+    normalized_name: "gyongyindi",
+    start_date: "2026-09-01",
+    end_date: "2026-09-01",
+  }]);
+
+  assert.equal(matches[0]?.id, 3);
+  assert.equal(matches[0]?.similarity_reason, "name_contains");
+  assert.ok(calculateFestivalNameSimilarity("gyongyindi", "gyongyindimusicstreet") > 0.6);
+});
+
+test("50% 미만 이름과 다른 연도 이름은 유사 후보에서 제외한다", () => {
+  const incoming = {
+    name: "경기인디",
+    normalized_name: "gyongyindi",
+    start_date: "2026-10-01",
+    end_date: "2026-10-01",
+  };
+  const matches = findSimilarFestivalCandidates(incoming, [
+    { id: 4, name: "서울재즈", normalized_name: "seouljazz", start_date: "2026-10-01", end_date: "2026-10-01" },
+    { id: 5, name: "경기인디", normalized_name: "gyongyindi", start_date: "2025-10-01", end_date: "2025-10-01" },
+  ]);
+
+  assert.deepEqual(matches, []);
 });

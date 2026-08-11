@@ -1,5 +1,6 @@
 "use client";
 
+import AccountDeletionSection from "@/components/mypage/AccountDeletionSection";
 import FavoriteArtistList from "@/components/mypage/FavoriteArtistList";
 import PersonalFeatureNotice from "@/components/access/PersonalFeatureNotice";
 import FestivalRecordSlider from "@/components/festival-records/FestivalRecordSlider";
@@ -137,6 +138,8 @@ export default function MyPageContent() {
           <FavoriteArtistList items={favoriteArtists.items} />
         )}
       </section>
+
+      <AccountDeletionSection />
     </div>
   );
 }

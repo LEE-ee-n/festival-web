@@ -21,12 +21,17 @@
 - `components/admin/AdminFestivalDataQuality.tsx`: 관리자 메인에서 예정·진행 중 페스티벌의 누락 정보와 축제 기간 밖 아티스트 공연일 요약·필터·관리 이동 표시
 - `app/admin/festivals/page.tsx`: 축제 목록 조회와 삭제
 - `app/admin/festivals/new/page.tsx`: 과거 신규 축제 기본정보 직접 등록 경로
-- `app/admin/festival-candidates/page.tsx`: 신규 등록 작업함. 직접 작성·수집 JSON 초안 수정, 저장, 승인 등록, 삭제
+- `app/admin/festival-candidates/page.tsx`: 신규 등록 작업함의 목록·단계·편집 화면 조립
 - `app/admin/festival-candidates/components/FestivalCandidateJsonUploader.tsx`: 축제 이미지 기반 JSON 검사와 검토 대기 후보 저장
 - `app/admin/festival-candidates/components/TicketDiscoveryUploader.tsx`: 티켓 discovery JSON을 기존 축제·후보·티켓 URL과 비교하고 선택 항목을 검토 대기로 저장
 - `app/admin/festival-candidates/components/Candidate*Tab.tsx`: 후보 기본정보·라인업·티켓 폼과 `normalized_name` 기준 기존 아티스트 매칭
 - `app/admin/festival-candidates/hooks/useFestivalCandidateDraft.ts`: 승인 전 세 탭의 JSON 초안 상태 관리
-- `app/admin/festival-candidates/hooks/useFestivalCandidates.ts`: 후보 조회, 초안 저장, 승인과 정식 등록
+- `app/admin/festival-candidates/hooks/useFestivalCandidateController.ts`: 후보 선택·저장·단계 이동·중복 검토·최종 승인 흐름 조정
+- `app/admin/festival-candidates/hooks/useFestivalCandidates.ts`: 후보 조회, 초안 저장, 승인·기존 수정 전환의 DB 처리
+- `app/admin/festival-candidates/hooks/useFestivalDuplicateReview.ts`: 같은 연도 승인 축제 재조회와 유사 후보 판정
+- `app/admin/festival-candidates/components/FestivalDuplicateReview.tsx`: 완전 일치·유사 후보와 관리자 선택 표시
+- `app/admin/festivals/import-json/hooks/useStagedFestivalUpdateController.ts`: 기존 수정 초안 조회·선택·단계 이동·저장·삭제·최종 반영 조정
+- `app/admin/artists/hooks/useAdminArtistsController.ts`: 관리자 아티스트 검색·목록·편집·이미지 변경 흐름 조정
 - `app/admin/artists/page.tsx`: 신규 아티스트 유사 후보 검색·등록, 전체 아티스트 목록과 표시 이름·normalized_name·별칭 통합 수정
 - `app/admin/festivals/[id]/lineup/page.tsx`: 최초 데이터 로딩, 탭 전환, 관리 화면 조립
 - `app/admin/festivals/[id]/lineup/components/`: 기본정보, 출연진, 티켓 탭 UI
@@ -46,12 +51,14 @@
 - `lib/calendarSwipe.ts`: 모바일 달력 제스처의 축 방향 잠금과 좌우 스와이프 판정
 - `lib/calendarFestivalBar.ts`: 여러 날짜에 걸친 축제 막대 길이와 종료 모양 계산
 - `lib/calendarFestivalLanes.ts`: 월간 축제 겹침을 계산해 축제별 고정 줄 배정
+- `components/calendar/useCalendarController.ts`: 달력 URL·표시 월·축제 조회·선택과 휠·스와이프 상태 관리
 - `lib/publicSearch.ts`, `lib/publicSearchLogic.ts`: 공개 축제·아티스트 검색 쿼리와 정규화·정렬
 - `lib/auth/getCurrentAdminAccess.ts`: 로그인 사용자 관리자 여부 확인
 - `lib/artists/`: 아티스트 이름 정규화, 검색과 normalized_name 기준 후보 중복 매칭
 - `lib/festivals/`: 축제 기본정보, 출연진, 티켓, 썸네일의 조회·추가·수정·삭제
 - `lib/festivals/festivalDataQuality.ts`: 관리자 점검판의 누락 유형 판정과 유형별 집계, `YYYY-MM-DD` 문자열 비교 기반 축제 기간 밖 공연일 판정·축제별 집계
 - `lib/festivals/festivalDraftMerge.ts`: 검토 대기 초안과 신규 JSON의 필드별 동일·표현 차이·추가·변경 분류 및 안전 병합
+- `lib/festivals/festivalDuplicateReview.ts`: 완전 일치·같은 연도 이름 유사 후보 분류와 별도 신규 확인 검증
 - `lib/festivals/ticketDisplay.ts`: 최신 티켓 회차와 표시할 판매처 버튼 결정
 - `lib/festivals/thumbnailValidation.ts`: 썸네일 형식, 실제 파일 내용, 5MB 제한 검사
 - `lib/festivals/festivalDraft.ts`: 축제 초안 JSON 필수값과 편집 표시 순서 검사
@@ -134,3 +141,15 @@
 
 - `npm run check`: 테스트, 린트, 타입 검사, 프로덕션 빌드를 순서대로 실행
 - `npm run dev`: 실제 화면과 Supabase 연결 기능을 localhost에서 확인
+
+## 2026-08-11 구조 정리 기준
+
+- `app/admin/festivals/import-json/page.tsx`: URL 인수를 해석해 직접 JSON 업데이트와 단계형 기존 수정 화면만 선택한다.
+- `app/admin/festivals/import-json/LegacyFestivalJsonUpdate.tsx`: 전체 축제 JSON 파일의 비교·선택 반영 기능을 유지한다.
+- `lib/festivals/festivalCandidateImport.ts`: 신규 후보 JSON 병합의 식별값·선택키·검토 메모 계산을 담당한다.
+- `lib/diaries/festivalDiaries.ts`: 일기 CRUD와 목록 조회만 담당한다.
+- `lib/diaries/festivalRecordOptions.ts`: 기록 작성용 축제·라인업 선택지를 조회한다.
+- `lib/diaries/festivalRecords.ts`: 페스티벌 기록과 아티스트 기록 저장·상세 조회를 담당한다.
+- `lib/diaries/festivalRecordTypes.ts`: 개인 기록 화면에서 공유하는 타입을 제공한다.
+- `lib/supabase/relations.ts`: Supabase 관계가 단일 객체 또는 배열로 반환되는 차이를 정리한다.
+- 티켓 discovery JSON 검토와 `festival_candidates` 저장 흐름은 운영 기능으로 유지하며 기존 축제 `FestivalDraftJson` 업데이트 입력과 합치지 않는다.

@@ -4,6 +4,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { addFestivalTicket } from "@/lib/festivals/addFestivalTicket";
 import { deleteFestivalTicket } from "@/lib/festivals/deleteFestivalTicket";
 import { updateFestivalTicket } from "@/lib/festivals/updateFestivalTicket";
+import { getSupabaseErrorMessage } from "@/lib/supabase/errorMessage";
 import type { FestivalTicketRound } from "@/lib/types";
 
 type SetErrorMessage = Dispatch<SetStateAction<string | null>>;
@@ -14,26 +15,6 @@ type TicketField =
   | "price_info"
   | "ticket_url"
   | "ticket_platform";
-
-function getSupabaseErrorMessage(error: unknown, fallback: string) {
-  const supabaseError = error as {
-    message?: string;
-    details?: string;
-    hint?: string;
-    code?: string;
-  };
-
-  return (
-    [
-      supabaseError.message,
-      supabaseError.details,
-      supabaseError.hint,
-      supabaseError.code,
-    ]
-      .filter(Boolean)
-      .join(" / ") || fallback
-  );
-}
 
 export function useFestivalTickets(
   festivalId: number,

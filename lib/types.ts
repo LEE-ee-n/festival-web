@@ -158,6 +158,11 @@ export type FestivalDraftJson = {
     confirmed_steps?: FestivalRegistrationStep[];
     timetable_visibility?: "published" | "unpublished";
     base_festival_updated_at?: string | null;
+    duplicate_review?: {
+      fingerprint: string;
+      decision: "create_new";
+      reviewed_festival_ids: number[];
+    };
   };
   candidate?: {
     title?: string;

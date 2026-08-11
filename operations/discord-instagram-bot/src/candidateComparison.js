@@ -22,6 +22,10 @@ export function findFestivalConnection(draftFestival, festivals) {
     return { type: "update", festival: match.festival, possible: [match.festival] };
   }
   if (match.status === "new") {
+    const possible = findSimilarFestivalCandidates(draftFestival, festivals);
+    if (possible.length > 0) {
+      return { type: "needs_review", festival: null, possible };
+    }
     return { type: "new", festival: null, possible: [] };
   }
   return { type: "needs_review", festival: null, possible: [] };
@@ -72,4 +76,7 @@ export function normalizeDraftDates(draft) {
   }));
   return { inferredYear, hasCompleteFestivalDates: Boolean(draft.festival.start_date && draft.festival.end_date) };
 }
-import { findExactFestivalIdentityMatch } from "./festivalIdentity.js";
+import {
+  findExactFestivalIdentityMatch,
+  findSimilarFestivalCandidates,
+} from "./festivalIdentity.js";

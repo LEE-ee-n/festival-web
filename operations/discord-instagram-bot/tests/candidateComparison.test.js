@@ -40,7 +40,7 @@ test("festival connection requires normalized name and both dates", () => {
   assert.equal(findFestivalConnection({ normalized_name: "festibom", start_date: "2027-09-01", end_date: "2027-09-02" }, festivals).type, "new");
 });
 
-test("similar display names never replace the exact festival identity", () => {
+test("same-year similar display names require review instead of new registration", () => {
   const festivals = [{
     id: 9,
     name: "2026 ONE UNIVERSE 페스티벌",
@@ -55,8 +55,35 @@ test("similar display names never replace the exact festival identity", () => {
     start_date: "2026-07-25",
     end_date: "2026-07-26",
   }, festivals);
-  assert.equal(result.type, "new");
+  assert.equal(result.type, "needs_review");
   assert.equal(result.festival, null);
+  assert.equal(result.possible[0].id, 9);
+});
+
+test("contained same-year festival names require review even below a later threshold", () => {
+  const festivals = [{
+    id: 10,
+    name: "2026 경기인디",
+    normalized_name: "gyongyindi",
+    start_date: "2026-09-01",
+    end_date: "2026-09-01",
+  }];
+  const result = findFestivalConnection({
+    name: "2026 경기인디 뮤직스트리트",
+    normalized_name: "gyongyindimusicstreet",
+    start_date: "2026-10-01",
+    end_date: "2026-10-01",
+  }, festivals);
+
+  assert.equal(result.type, "needs_review");
+  assert.equal(result.possible[0].similarity_reason, "name_contains");
+});
+
+test("same festival name in another year remains a new festival", () => {
+  const festivals = [{ id: 11, name: "2026 경기인디", normalized_name: "gyongyindi", start_date: "2026-09-01", end_date: "2026-09-01" }];
+  const result = findFestivalConnection({ name: "2027 경기인디", normalized_name: "gyongyindi", start_date: "2027-09-01", end_date: "2027-09-01" }, festivals);
+
+  assert.equal(result.type, "new");
 });
 
 test("incomplete festival identity requires review instead of new registration", () => {

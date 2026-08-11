@@ -14,7 +14,7 @@ export default function PrivacyPage() {
   return (
     <PublicInfoPage
       title="페스티봄 개인정보처리방침"
-      dateLabel="공고일·시행일: 2026년 8월 2일"
+      dateLabel="공고일·시행일: 2026년 8월 11일"
     >
       <section className="space-y-4">
         <p>
@@ -22,14 +22,17 @@ export default function PrivacyPage() {
           보호법」 등 관련 법령을 준수합니다.
         </p>
         <p>
-          본 방침은 festibom.com에 적용됩니다. 현재 일반 이용자를 위한
-          회원가입, 댓글, 개인 기록 및 광고 기능은 제공하지 않습니다. 서비스
-          개선을 위해 방문자 분석 도구를 사용합니다.
+          본 방침은 festibom.com의 공개 정보 조회, Google 로그인, 관심
+          축제·아티스트, 개인 공연 일정과 페스티벌 기록 기능에 적용됩니다.
+          서비스 개선을 위해 방문자 분석 도구를 사용합니다.
         </p>
       </section>
 
       <PublicInfoSection title="1. 개인정보의 처리 목적">
         <ul className="list-disc space-y-2 pl-6">
+          <li>Google 계정 로그인, 회원 식별과 로그인 상태 유지</li>
+          <li>관심 축제·아티스트, 개인 공연 일정과 페스티벌 기록 제공</li>
+          <li>베타 이용 권한 부여와 회원별 서비스 접근 관리</li>
           <li>문의와 정보 수정 제보의 확인, 답변 및 처리 결과 안내</li>
           <li>공식 자료와 제보 내용의 비교 및 잘못된 정보 수정</li>
           <li>권리 침해 신고 처리와 필요한 분쟁 대응</li>
@@ -38,6 +41,37 @@ export default function PrivacyPage() {
       </PublicInfoSection>
 
       <PublicInfoSection title="2. 처리하는 개인정보 항목">
+        <div>
+          <h3 className={`${typography.readingSubheading} text-ink`}>
+            Google 로그인과 회원 계정
+          </h3>
+          <ul className="mt-2 list-disc space-y-2 pl-6">
+            <li>
+              필수: 이메일 주소, Supabase 회원 식별자, Google 로그인 제공자
+              식별정보, 가입·최근 로그인 일시
+            </li>
+            <li>
+              Google이 제공하는 경우: 이름 또는 표시 이름, 프로필 이미지
+            </li>
+          </ul>
+          <p className="mt-2">
+            일반 회원은 Google 로그인을 사용하며 페스티봄이 Google 계정
+            비밀번호를 직접 수집하거나 저장하지 않습니다.
+          </p>
+        </div>
+        <div>
+          <h3 className={`${typography.readingSubheading} text-ink`}>
+            개인 서비스 이용 정보
+          </h3>
+          <ul className="mt-2 list-disc space-y-2 pl-6">
+            <li>관심 축제·아티스트와 선택한 공연 일정</li>
+            <li>
+              페스티벌 관람일, 기록 제목·내용·요약, 공연별 평점·메모,
+              곡명과 이용자가 등록한 외부 미디어 참조정보
+            </li>
+            <li>베타 이용권 상태와 부여·회수 일시</li>
+          </ul>
+        </div>
         <div>
           <h3 className={`${typography.readingSubheading} text-ink`}>이메일 문의·제보</h3>
           <ul className="mt-2 list-disc space-y-2 pl-6">
@@ -65,12 +99,32 @@ export default function PrivacyPage() {
       <PublicInfoSection title="3. 개인정보의 처리 및 보유 기간">
         <ul className="list-disc space-y-2 pl-6">
           <li>
+            회원 계정과 개인 서비스 이용 정보: 회원탈퇴 시까지. 탈퇴가
+            완료되면 활성 서비스 데이터에서 지체 없이 삭제
+          </li>
+          <li>
             이메일 문의와 정보 수정 제보: 답변 또는 처리 완료일부터 최대
             1년
           </li>
           <li>
-            페스티봄이 별도로 저장하지 않는 접속·오류 로그: 서비스
-            제공자의 설정과 정책에 따른 기간
+            페스티봄이 직접 저장하는 접속·오류·보안 로그: 필요한 경우에만
+            최대 90일
+          </li>
+          <li>
+            Google Analytics 사용자·이벤트 수준 데이터: 운영 설정에 따라
+            최대 14개월
+          </li>
+          <li>
+            Microsoft Clarity 재생 데이터: 최대 30일, 클릭·히트맵 및
+            표시된 세션 데이터: 최대 9개월
+          </li>
+          <li>
+            Vercel·Supabase의 접속·오류·인증 로그: 이용 중인 요금제와
+            서비스 제공자의 설정·정책에 따른 기간
+          </li>
+          <li>
+            수동 데이터베이스 백업: 최근 4주분. 정상 서비스에서 분리하여
+            재해 복구 목적으로만 보관
           </li>
           <li>
             관련 법령에 보존 의무가 있는 경우: 해당 법령에서 정한 기간
@@ -109,12 +163,19 @@ export default function PrivacyPage() {
               <tr>
                 <td className="px-3 py-3">Supabase Pte. Ltd.</td>
                 <td className="px-3 py-3">데이터베이스·API·인증·파일 저장</td>
-                <td className="px-3 py-3">API 접속 로그와 운영자 인증정보</td>
+                <td className="px-3 py-3">
+                  회원 계정·인증정보, 개인 서비스 이용 정보, API 접속 로그
+                </td>
               </tr>
               <tr>
                 <td className="px-3 py-3">Google LLC</td>
-                <td className="px-3 py-3">Gmail 문의·제보 수신, 방문자 분석</td>
-                <td className="px-3 py-3">발신 이메일, 본문·첨부자료, 방문·유입·기기 정보</td>
+                <td className="px-3 py-3">
+                  Google 로그인, Gmail 문의·제보 수신, 방문자 분석
+                </td>
+                <td className="px-3 py-3">
+                  로그인 제공자 정보, 발신 이메일, 본문·첨부자료,
+                  방문·유입·기기 정보
+                </td>
               </tr>
               <tr>
                 <td className="px-3 py-3">Microsoft Corporation</td>
@@ -160,6 +221,24 @@ export default function PrivacyPage() {
             전자적 파일과 이메일은 복구하기 어려운 방법으로 삭제합니다.
           </li>
           <li>
+            회원탈퇴 시 활성 세션과 회원 계정, 관심 정보, 일정, 페스티벌
+            기록과 하위 메모·곡·미디어 참조정보, 이용권 정보를 삭제합니다.
+            일반 회원은 마이페이지에서 Google 재인증 후 직접 탈퇴할 수
+            있으며, 직접 처리가 어려운 경우 개인정보 보호책임자 이메일로
+            요청할 수 있습니다.
+          </li>
+          <li>
+            삭제된 정보가 수동 데이터베이스 백업에 남아 있는 경우 최대
+            4주 안에 백업 교체 주기에 따라 삭제되며, 해당 백업은 재해 복구
+            외 목적으로 사용하지 않습니다. 백업을 복원하면 이미 탈퇴한
+            회원의 정보를 다시 삭제합니다.
+          </li>
+          <li>
+            외부 미디어 참조를 삭제해도 이용자의 Google 계정 등 원본
+            제공자에 저장된 파일은 삭제되지 않으며 이용자가 해당
+            제공자에서 직접 관리해야 합니다.
+          </li>
+          <li>
             법령에 따라 보존할 정보는 다른 정보와 분리하여 보관한 뒤
             보존기간 종료 후 삭제합니다.
           </li>
@@ -185,9 +264,10 @@ export default function PrivacyPage() {
         <p>
           Google Analytics는 방문자 분석을 위해 쿠키 또는 유사 기술을 사용할
           수 있습니다. Microsoft Clarity는 사이트 이용 행태를 분석하기 위한
-          기술을 사용할 수 있습니다. 운영자 전용 관리자 화면은 로그인 상태
-          유지를 위해 Supabase 인증 저장소를 사용하며 일반 이용자에게는
-          적용되지 않습니다.
+          기술을 사용할 수 있습니다. 로그인 이용자의 인증 상태 유지를 위해
+          Supabase 인증 저장소가 사용됩니다. 페스티봄은 Supabase 회원
+          식별자를 Google Analytics 또는 Microsoft Clarity의 사용자 ID로
+          별도 전송하지 않습니다.
         </p>
       </PublicInfoSection>
 
@@ -235,13 +315,14 @@ export default function PrivacyPage() {
       <PublicInfoSection title="13. 개인정보처리방침의 변경">
         <p>
           본 방침이 변경되는 경우 시행일과 주요 변경 내용을 공지사항을
-          통해 안내합니다. 회원가입, 댓글, 개인 기록, 광고나 결제 기능을
-          도입하는 경우 실제 처리 방식에 맞추어 방침을 개정합니다.
+          통해 안내합니다. 댓글, 광고나 결제 기능을 도입하거나 수집 항목과
+          외부 처리 방식이 바뀌는 경우 실제 처리 방식에 맞추어 방침을
+          개정합니다.
         </p>
       </PublicInfoSection>
 
       <p className={`${typography.meta} border-t border-line pt-6 text-ink-tertiary`}>
-        공고일·시행일: 2026년 8월 2일
+        공고일·시행일: 2026년 8월 11일
       </p>
     </PublicInfoPage>
   );

@@ -33,73 +33,154 @@ export type FestivalBasicInfoRecord = {
   timetable_status: string | null;
 };
 
+type FestivalBasicInfoDraft = {
+  festivalName: string;
+  normalizedName: string;
+  searchAliases: string;
+  startDate: string;
+  endDate: string;
+  location: string;
+  address: string;
+  region: string;
+  category: string;
+  description: string;
+  officialUrl: string;
+  instagramUrl: string;
+  officialUrlUnavailable: boolean;
+  instagramUrlUnavailable: boolean;
+  priceType: string;
+  priceInfo: string;
+  programInfo: string;
+  festivalStatus: string;
+  verificationStatus: string;
+};
+
+type FestivalThumbnailDraft = {
+  url: string;
+  file: File | null;
+  preview: string;
+  sourceUrl: string;
+  note: string;
+};
+
+const INITIAL_BASIC_INFO: FestivalBasicInfoDraft = {
+  festivalName: "",
+  normalizedName: "",
+  searchAliases: "",
+  startDate: "",
+  endDate: "",
+  location: "",
+  address: "",
+  region: "",
+  category: "",
+  description: "",
+  officialUrl: "",
+  instagramUrl: "",
+  officialUrlUnavailable: false,
+  instagramUrlUnavailable: false,
+  priceType: "",
+  priceInfo: "",
+  programInfo: "",
+  festivalStatus: "",
+  verificationStatus: "pending",
+};
+
+const INITIAL_THUMBNAIL: FestivalThumbnailDraft = {
+  url: "",
+  file: null,
+  preview: "",
+  sourceUrl: "",
+  note: "",
+};
+
 export function useFestivalBasicInfo(
   festivalId: number,
   setErrorMessage: SetErrorMessage,
 ) {
-  const [festivalName, setFestivalName] = useState("");
-  const [normalizedName, setNormalizedName] = useState("");
-  const [searchAliases, setSearchAliases] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [location, setLocation] = useState("");
-  const [address, setAddress] = useState("");
-  const [region, setRegion] = useState("");
-  const [category, setCategory] = useState("");
-  const [description, setDescription] = useState("");
-  const [thumbnailUrl, setThumbnailUrl] = useState("");
-  const [officialUrl, setOfficialUrl] = useState("");
-  const [instagramUrl, setInstagramUrl] = useState("");
-  const [officialUrlUnavailable, setOfficialUrlUnavailable] =
-    useState(false);
-  const [instagramUrlUnavailable, setInstagramUrlUnavailable] =
-    useState(false);
-  const [priceType, setPriceType] = useState("");
-  const [priceInfo, setPriceInfo] = useState("");
-  const [programInfo, setProgramInfo] = useState("");
-  const [festivalStatus, setFestivalStatus] = useState("");
-  const [verificationStatus, setVerificationStatus] =
-    useState("pending");
+  const [basicInfo, setBasicInfo] =
+    useState<FestivalBasicInfoDraft>(INITIAL_BASIC_INFO);
+  const [thumbnail, setThumbnail] =
+    useState<FestivalThumbnailDraft>(INITIAL_THUMBNAIL);
   const [timetableStatus, setTimetableStatus] = useState<
     "published" | "unpublished"
   >("published");
   const [isSavingTimetableStatus, setIsSavingTimetableStatus] =
     useState(false);
-  const [thumbnailFile, setThumbnailFile] =
-    useState<File | null>(null);
-  const [thumbnailPreview, setThumbnailPreview] = useState("");
   const [isSavingBasic, setIsSavingBasic] = useState(false);
   const [isUploadingThumbnail, setIsUploadingThumbnail] =
     useState(false);
   const [isLoadingRuleThumbnail, setIsLoadingRuleThumbnail] =
     useState(false);
-  const [thumbnailSourceUrl, setThumbnailSourceUrl] = useState("");
-  const [thumbnailNote, setThumbnailNote] = useState("");
+  const {
+    festivalName,
+    normalizedName,
+    searchAliases,
+    startDate,
+    endDate,
+    location,
+    address,
+    region,
+    category,
+    description,
+    officialUrl,
+    instagramUrl,
+    officialUrlUnavailable,
+    instagramUrlUnavailable,
+    priceType,
+    priceInfo,
+    programInfo,
+    festivalStatus,
+    verificationStatus,
+  } = basicInfo;
+  const {
+    url: thumbnailUrl,
+    file: thumbnailFile,
+    preview: thumbnailPreview,
+    sourceUrl: thumbnailSourceUrl,
+    note: thumbnailNote,
+  } = thumbnail;
+
+  function setBasicInfoField<K extends keyof FestivalBasicInfoDraft>(
+    field: K,
+    value: FestivalBasicInfoDraft[K],
+  ) {
+    setBasicInfo((current) => ({ ...current, [field]: value }));
+  }
+
+  function setThumbnailField<K extends keyof FestivalThumbnailDraft>(
+    field: K,
+    value: FestivalThumbnailDraft[K],
+  ) {
+    setThumbnail((current) => ({ ...current, [field]: value }));
+  }
 
   const initializeBasicInfo = useCallback(
     (festival: FestivalBasicInfoRecord) => {
-      setFestivalName(festival.name);
-      setNormalizedName(festival.normalized_name);
-      setSearchAliases(festival.search_aliases ?? "");
-      setStartDate(festival.start_date ?? "");
-      setEndDate(festival.end_date ?? "");
-      setLocation(festival.location ?? "");
-      setAddress(festival.address ?? "");
-      setRegion(festival.region ?? "");
-      setCategory(festival.category ?? "");
-      setDescription(festival.description ?? "");
-      setThumbnailUrl(festival.thumbnail_url ?? "");
-      setOfficialUrl(festival.official_url ?? "");
-      setInstagramUrl(festival.instagram_url ?? "");
-      setOfficialUrlUnavailable(festival.official_url_unavailable);
-      setInstagramUrlUnavailable(festival.instagram_url_unavailable);
-      setPriceType(festival.price_type ?? "");
-      setPriceInfo(festival.price_info ?? "");
-      setProgramInfo(festival.program_info ?? "");
-      setFestivalStatus(festival.status ?? "");
-      setVerificationStatus(
-        festival.verification_status ?? "pending",
-      );
+      setBasicInfo({
+        festivalName: festival.name,
+        normalizedName: festival.normalized_name,
+        searchAliases: festival.search_aliases ?? "",
+        startDate: festival.start_date ?? "",
+        endDate: festival.end_date ?? "",
+        location: festival.location ?? "",
+        address: festival.address ?? "",
+        region: festival.region ?? "",
+        category: festival.category ?? "",
+        description: festival.description ?? "",
+        officialUrl: festival.official_url ?? "",
+        instagramUrl: festival.instagram_url ?? "",
+        officialUrlUnavailable: festival.official_url_unavailable,
+        instagramUrlUnavailable: festival.instagram_url_unavailable,
+        priceType: festival.price_type ?? "",
+        priceInfo: festival.price_info ?? "",
+        programInfo: festival.program_info ?? "",
+        festivalStatus: festival.status ?? "",
+        verificationStatus: festival.verification_status ?? "pending",
+      });
+      setThumbnail((current) => ({
+        ...current,
+        url: festival.thumbnail_url ?? "",
+      }));
       setTimetableStatus(
         festival.timetable_status === "unpublished"
           ? "unpublished"
@@ -130,8 +211,7 @@ export function useFestivalBasicInfo(
         { sourceUrl: thumbnailSourceUrl, note: thumbnailNote },
       );
 
-      setThumbnailUrl(publicUrl);
-      setThumbnailFile(null);
+      setThumbnail((current) => ({ ...current, url: publicUrl, file: null }));
       window.alert(
         "썸네일이 업로드되었습니다. 기본정보 저장을 눌러 반영하세요.",
       );
@@ -161,9 +241,7 @@ export function useFestivalBasicInfo(
         sourceUrl: thumbnailSourceUrl,
         note: thumbnailNote,
       });
-      setThumbnailUrl("");
-      setThumbnailFile(null);
-      setThumbnailPreview("");
+      setThumbnail((current) => ({ ...current, url: "", file: null, preview: "" }));
       window.alert("썸네일이 삭제되었습니다.");
     } catch (error) {
       setErrorMessage(
@@ -232,9 +310,7 @@ export function useFestivalBasicInfo(
         throw updateError;
       }
 
-      setThumbnailUrl(publicUrl);
-      setThumbnailFile(null);
-      setThumbnailPreview("");
+      setThumbnail((current) => ({ ...current, url: publicUrl, file: null, preview: "" }));
       window.alert(`${expectedFileName} 이미지를 연결했습니다.`);
     } catch (error) {
       setErrorMessage(
@@ -361,59 +437,59 @@ export function useFestivalBasicInfo(
     tabProps: {
       festivalId,
       festivalName,
-      setFestivalName,
+      setFestivalName: (value: string) => setBasicInfoField("festivalName", value),
       normalizedName,
-      setNormalizedName,
+      setNormalizedName: (value: string) => setBasicInfoField("normalizedName", value),
       searchAliases,
-      setSearchAliases,
+      setSearchAliases: (value: string) => setBasicInfoField("searchAliases", value),
       startDate,
-      setStartDate,
+      setStartDate: (value: string) => setBasicInfoField("startDate", value),
       endDate,
-      setEndDate,
+      setEndDate: (value: string) => setBasicInfoField("endDate", value),
       location,
-      setLocation,
+      setLocation: (value: string) => setBasicInfoField("location", value),
       address,
-      setAddress,
+      setAddress: (value: string) => setBasicInfoField("address", value),
       region,
-      setRegion,
+      setRegion: (value: string) => setBasicInfoField("region", value),
       category,
-      setCategory,
+      setCategory: (value: string) => setBasicInfoField("category", value),
       description,
-      setDescription,
+      setDescription: (value: string) => setBasicInfoField("description", value),
       thumbnailUrl,
-      setThumbnailUrl,
+      setThumbnailUrl: (value: string) => setThumbnailField("url", value),
       thumbnailFile,
-      setThumbnailFile,
+      setThumbnailFile: (file: File | null) => setThumbnailField("file", file),
       thumbnailPreview,
-      setThumbnailPreview,
+      setThumbnailPreview: (value: string) => setThumbnailField("preview", value),
       uploadThumbnail,
       deleteThumbnail,
       loadRuleThumbnail,
       isUploadingThumbnail,
       isLoadingRuleThumbnail,
       thumbnailSourceUrl,
-      setThumbnailSourceUrl,
+      setThumbnailSourceUrl: (value: string) => setThumbnailField("sourceUrl", value),
       thumbnailNote,
-      setThumbnailNote,
+      setThumbnailNote: (value: string) => setThumbnailField("note", value),
       officialUrl,
-      setOfficialUrl,
+      setOfficialUrl: (value: string) => setBasicInfoField("officialUrl", value),
       instagramUrl,
-      setInstagramUrl,
+      setInstagramUrl: (value: string) => setBasicInfoField("instagramUrl", value),
       officialUrlUnavailable,
-      setOfficialUrlUnavailable,
+      setOfficialUrlUnavailable: (value: boolean) => setBasicInfoField("officialUrlUnavailable", value),
       instagramUrlUnavailable,
-      setInstagramUrlUnavailable,
+      setInstagramUrlUnavailable: (value: boolean) => setBasicInfoField("instagramUrlUnavailable", value),
       canConfirmLinkUnavailable: true,
       priceType,
-      setPriceType,
+      setPriceType: (value: string) => setBasicInfoField("priceType", value),
       festivalStatus,
-      setFestivalStatus,
+      setFestivalStatus: (value: string) => setBasicInfoField("festivalStatus", value),
       verificationStatus,
-      setVerificationStatus,
+      setVerificationStatus: (value: string) => setBasicInfoField("verificationStatus", value),
       priceInfo,
-      setPriceInfo,
+      setPriceInfo: (value: string) => setBasicInfoField("priceInfo", value),
       programInfo,
-      setProgramInfo,
+      setProgramInfo: (value: string) => setBasicInfoField("programInfo", value),
       saveBasicInfo,
       isSavingBasic,
     },

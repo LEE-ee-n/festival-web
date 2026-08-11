@@ -1,11 +1,16 @@
 export {
   createFestivalIdentityKey,
+  calculateFestivalNameSimilarity,
+  FESTIVAL_NAME_SIMILARITY_THRESHOLD,
   findExactFestivalIdentityMatch,
+  findSimilarFestivalCandidates,
   isCompleteFestivalIdentity,
+  normalizeComparableFestivalName,
 } from "../../operations/discord-instagram-bot/src/festivalIdentity.js";
 export type {
   FestivalIdentity,
   FestivalIdentityMatch,
+  SimilarFestival,
 } from "../../operations/discord-instagram-bot/src/festivalIdentity.js";
 
 const MINUTE_TIME_PATTERN = /^(\d{1,2}):(\d{2})(?::\d{2})?$/;
