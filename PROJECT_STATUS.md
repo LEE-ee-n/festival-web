@@ -12,6 +12,7 @@
 - 진행 중 계획: [2026-08-11 SaaS 공개·유료화 준비](plans/2026-08-11-saas-launch-readiness.md) — 의존성 감사 0건, 테스트 276개·타입 검사·프로덕션 빌드 통과, ESLint 오류 0개. 다음은 관리자 MFA·`aal2`, 개인정보·회원탈퇴·복구 시험
 - 완료 계획: [[완료] 2026-08-11 Supabase Security Advisor·RPC 권한 보강](plans/2026-08-11-supabase-security-advisor-rpc-hardening.md) — 운영 DB 적용 완료. Advisor 56→41건, 익명 `SECURITY DEFINER` 8→0건, 일반 회원 관리자 RPC 거부와 관리자·Bot·RLS 역할 검증 통과
 - 완료 계획: [[완료] 2026-08-11 단일 관리자 TOTP MFA·aal2 강제](plans/2026-08-11-admin-mfa-aal2-enforcement.md) — Vercel 배포, 관리자 TOTP 등록과 운영 DB `aal2` 강제 완료. 관리자 `aal1`·일반 회원 거부, 관리자 `aal2` 허용과 Bot·cron 회귀 검증 통과
+- 구현 완료·운영 확인 중 계획: [2026-08-11 일반 회원 직접 탈퇴](plans/2026-08-11-member-account-deletion.md) — 직접 탈퇴 API와 재인증, 서버 환경변수 누락 진단, 탈퇴 완료 안내의 회색 중앙 문구와 삭제 계정의 오래된 세션 자동 정리·메인 이동 적용 완료
 - 완료 계획: [[완료] 2026-08-11 유사 후보 기존 수정 전환 RLS 오류 수정](plans/2026-08-11-festival-candidate-update-conversion-rls.md) — 관리자 `aal2` 전용 INSERT 정책 적용, 실제 후보→기존 수정 초안 전환·원본 삭제·테스트 초안 삭제 확인, 전체 테스트 282개·타입 검사·린트 오류 0개 통과
 - 구현 완료·관리자 주요 회귀 확인 계획: [[완료] 2026-08-11 코드 구조 1차 정리](plans/2026-08-11-code-structure-cleanup.md) — 티켓 수입 기능 보존, 공통 로직 정리, 신규·기존 수정·아티스트·달력 controller 분리와 기본정보 상태 통합 완료. 기존 수정은 임시저장·새로고침 복원·1~5단계 이동·초안 삭제까지 실제 확인했고 최종 반영만 남음
 - 구현 완료·화면 확인 대기 계획: [[완료] 2026-08-11 신규 축제 controller 분리·유사 중복 검토](plans/2026-08-11-festival-candidate-controller-similar-duplicate-review.md) — 신규 등록 controller 분리, 같은 연도·이름 포함 또는 유사도 50% 이상 관리자 확인, 승인 직전 재검사 구현

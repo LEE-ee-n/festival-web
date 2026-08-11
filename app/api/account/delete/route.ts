@@ -117,7 +117,9 @@ export async function DELETE(request: Request) {
   } catch (error) {
     if (error instanceof SupabaseAdminConfigurationError) {
       return errorResponse(
-        "회원탈퇴 기능의 서버 설정이 완료되지 않았습니다.",
+        `Vercel Production 환경변수에서 ${error.missingVariables.join(
+          ", ",
+        )} 항목을 찾지 못했습니다.`,
         "SERVER_CONFIGURATION_REQUIRED",
         503,
       );

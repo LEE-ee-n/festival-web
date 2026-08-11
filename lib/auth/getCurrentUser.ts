@@ -1,5 +1,6 @@
 import type { User } from "@supabase/supabase-js";
 
+import { recoverDeletedAuthUser } from "@/lib/auth/authUserError";
 import { supabase } from "@/lib/supabase/client";
 
 export async function getCurrentUser(): Promise<User | null> {
@@ -17,6 +18,20 @@ export async function getCurrentUser(): Promise<User | null> {
   } = await supabase.auth.getUser();
 
   if (userError?.name === "AuthSessionMissingError") return null;
+  const recoveredDeletedUser = await recoverDeletedAuthUser({
+    error: userError,
+    currentPath:
+      typeof window === "undefined" ? "/" : window.location.pathname,
+    clearLocalSession: async () => {
+      await supabase.auth.signOut({ scope: "local" });
+    },
+    redirectHome: () => {
+      if (typeof window !== "undefined") window.location.replace("/");
+    },
+  });
+  if (recoveredDeletedUser) {
+    return null;
+  }
   if (userError) throw userError;
 
   return user;

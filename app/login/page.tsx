@@ -73,7 +73,7 @@ export default function LoginPage() {
 
         {errorMessage && <p className="mt-4 text-sm font-medium text-red-600">{errorMessage}</p>}
         {successMessage && (
-          <p className="mt-4 rounded-xl border border-green-200 bg-green-50 p-3 text-sm font-medium text-green-700">
+          <p className="mt-4 text-center text-sm text-ink-muted">
             {successMessage}
           </p>
         )}
