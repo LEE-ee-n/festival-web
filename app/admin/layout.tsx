@@ -31,7 +31,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
     async function checkAdminAccess() {
       try {
-        const { user, isAdmin } = await getCurrentAdminAccess();
+        const { user, hasAdminRole, isAdmin } =
+          await getCurrentAdminAccess();
 
         if (isCancelled) {
           return;
@@ -43,7 +44,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         }
 
         if (!isAdmin) {
-          router.replace("/");
+          router.replace(hasAdminRole ? "/admin/login" : "/");
           return;
         }
 
