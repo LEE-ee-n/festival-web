@@ -1,22 +1,42 @@
-# 운영 상태와 알림
+# 페스티봄 감시 체계
 
-## 현재 1단계
+## 현재 연결된 감시
 
-DB 예약 백업은 실행할 때마다 Git 저장소 밖의 `Documents\FestibomOperations\alerts`에 다음 파일을 만든다.
+### UptimeRobot
 
-- `latest-backup-status.json`: 가장 최근 실행 결과
-- `backup-YYYYMMDD-HHMMSS-success.json`: 성공 이력
-- `backup-YYYYMMDD-HHMMSS-failure.json`: 실패 이력
+- 대상: `https://festibom.com`
+- 주기: 5분
+- 알림: 등록된 이메일
+- 감지 범위: 외부에서 사이트가 응답하지 않는 장애
 
-이 파일은 상태 기록이며 즉시 알림은 아니다. 사용자가 열어 보지 않으면 실패를 알 수 없다는 한계가 있다.
+### Vercel·공개 배포 점검
 
-## 다음 2단계
+- Vercel이 `main` push를 감지해 자동 배포한다.
+- 배포 뒤 `operations/deployment/Test-FestibomPublicDeployment.ps1`로 주요 URL, 404, Cron 401, 보안 헤더를 검사한다.
+- 감지 범위: 배포 실패, Runtime 오류, 공개 경로와 보안 헤더 이상
 
-우선순위는 다음과 같다.
+### GitHub Actions
 
-1. 백업 실패 시 Windows 알림
-2. Vercel 배포 실패 알림
-3. 홈페이지와 로그인 상태 감시
-4. 필요 시 이메일 또는 Discord 통합 알림
+- `Quality gate`: push와 PR마다 코드 품질 검사
+- `Security audit`: 매주 월요일 09:00 KST에 운영 의존성 취약점 검사
+- 감지 범위: 코드 검사 실패와 알려진 high 이상 취약점
 
-알림에는 개인정보, 비밀번호, access token, DB 접속 문자열을 넣지 않는다.
+### 백업 감시
+
+- DB·Storage·Google Drive 백업은 각각 성공·실패 JSON을 `Documents\FestibomOperations\alerts`에 기록한다.
+- 매일 22:40 `Festibom Backup Alert Check`가 작업 결과와 26시간 이상 미갱신을 검사한다.
+- 문제 발생 시 Windows 팝업을 표시하고 같은 문제는 24시간에 한 번만 반복한다.
+
+## 아직 연결되지 않은 감시
+
+UptimeRobot은 사이트가 열리는지만 확인한다. 저장, 로그인, API 5xx, 브라우저 예외처럼 화면 내부에서만 발생하는 문제는 자동 수집하지 못한다. 다음 작업으로 Sentry를 연결하되 개인정보와 일기 내용을 수집하지 않도록 설정한다.
+
+## 장애 확인 순서
+
+1. UptimeRobot 장애 알림 확인
+2. Vercel 최신 배포와 Runtime Log 확인
+3. Supabase 프로젝트 상태와 로그 확인
+4. 공개 배포 점검 스크립트 실행
+5. 최근 변경이 원인이면 롤백 후 핵심 기능 재검증
+
+전체 관계와 한계는 `operations/SECURITY_MONITORING_AND_RECOVERY.md`를 참고한다.

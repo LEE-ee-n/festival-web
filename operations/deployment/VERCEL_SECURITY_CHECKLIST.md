@@ -1,5 +1,7 @@
 # Vercel 보안 점검 체크리스트
 
+> GitHub Actions는 코드 검사를 수행하고, Vercel은 `main` 변경을 감지해 자동 배포한다. 두 작업은 현재 병렬로 진행될 수 있다. 외부 가용성은 UptimeRobot이 5분마다 별도로 감시한다. 전체 연결 관계는 `operations/SECURITY_MONITORING_AND_RECOVERY.md`를 참고한다.
+
 ## 현재 코드에서 자동 적용되는 보호
 
 - 모든 경로에 HSTS, `nosniff`, `DENY`, Referrer Policy, Permissions Policy 적용
@@ -26,3 +28,11 @@
 ## CSP 강제 전환 조건
 
 CSP 위반 보고를 최소 7일 관찰하고 GA4, Clarity, Supabase, 이미지, Google 로그인이 차단되지 않는 것이 확인된 뒤 `Content-Security-Policy-Report-Only`를 `Content-Security-Policy`로 전환한다. 전환 직후 공개 smoke test와 실제 Google 로그인을 확인한다.
+
+## 배포 후 확인
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\operations\deployment\Test-FestibomPublicDeployment.ps1"
+```
+
+성공 기준은 주요 공개 URL `200`, 존재하지 않는 축제·아티스트 `404`, 무인증 Cron API `401`, 보안 헤더 전부 `OK`이다. UptimeRobot의 정상 표시만으로 저장·로그인 기능까지 정상이라고 판단하지 않는다.
