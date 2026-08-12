@@ -54,6 +54,7 @@ if (Test-Path -LiteralPath $backupDirectory) {
 
 New-Item -ItemType Directory -Path $backupDirectory | Out-Null
 
+$rolesPath = Join-Path $backupDirectory "roles.sql"
 $schemaPath = Join-Path $backupDirectory "schema.sql"
 $dataPath = Join-Path $backupDirectory "data.sql"
 $manifestPath = Join-Path $backupDirectory "manifest.json"
@@ -69,11 +70,23 @@ New-Item -ItemType Directory -Path $cliProjectStateDirectory -Force | Out-Null
 Get-ChildItem -LiteralPath $linkedProjectStateDirectory -File | Copy-Item -Destination $cliProjectStateDirectory -Force
 
 try {
-  Write-Host "[1/3] Backing up the public schema."
-  Invoke-SupabaseCli -Arguments @("--workdir", $cliWorkRoot, "db", "dump", "--linked", "--schema", "public", "--file", $schemaPath)
+  Write-Host "[1/4] Backing up database roles."
+  Invoke-SupabaseCli -Arguments @("--workdir", $cliWorkRoot, "db", "dump", "--linked", "--file", $rolesPath, "--role-only")
 
-  Write-Host "[2/3] Backing up public data."
-  Invoke-SupabaseCli -Arguments @("--workdir", $cliWorkRoot, "db", "dump", "--linked", "--schema", "public", "--data-only", "--use-copy", "--file", $dataPath)
+  Write-Host "[2/4] Backing up the database schema."
+  Invoke-SupabaseCli -Arguments @("--workdir", $cliWorkRoot, "db", "dump", "--linked", "--file", $schemaPath)
+
+  Write-Host "[3/4] Backing up database data, including Auth users and Storage metadata."
+  Invoke-SupabaseCli -Arguments @(
+    "--workdir", $cliWorkRoot,
+    "db", "dump",
+    "--linked",
+    "--data-only",
+    "--use-copy",
+    "--exclude", "storage.buckets_vectors",
+    "--exclude", "storage.vector_indexes",
+    "--file", $dataPath
+  )
 }
 finally {
   if (Test-Path -LiteralPath $cliWorkRoot) {
@@ -81,13 +94,13 @@ finally {
   }
 }
 
-foreach ($requiredFile in @($schemaPath, $dataPath)) {
+foreach ($requiredFile in @($rolesPath, $schemaPath, $dataPath)) {
   if (-not (Test-Path -LiteralPath $requiredFile -PathType Leaf)) {
     throw "Backup output file was not created: $requiredFile"
   }
 }
 
-$fileDetails = @($schemaPath, $dataPath) | ForEach-Object {
+$fileDetails = @($rolesPath, $schemaPath, $dataPath) | ForEach-Object {
   $file = Get-Item -LiteralPath $_
   $hash = Get-FileHash -LiteralPath $_ -Algorithm SHA256
 
@@ -102,10 +115,12 @@ $manifest = [ordered]@{
   created_at = (Get-Date).ToUniversalTime().ToString("o")
   source = "Supabase linked project"
   scope = [ordered]@{
-    included = @("public schema", "public data")
+    included = @(
+      "database roles",
+      "database schema",
+      "database data including Auth users and Storage metadata"
+    )
     excluded = @(
-      "auth schema and Auth users",
-      "storage schema metadata",
       "Storage object files",
       "Supabase secrets and project settings"
     )
@@ -115,6 +130,6 @@ $manifest = [ordered]@{
 
 $manifest | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $manifestPath -Encoding utf8
 
-Write-Host "[3/3] Backup complete."
+Write-Host "[4/4] Backup complete."
 Write-Host "Directory: $backupDirectory"
 Write-Host "Next: copy this directory to Drive or an external disk."

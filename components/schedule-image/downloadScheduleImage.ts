@@ -2,6 +2,7 @@ import {
   SCHEDULE_IMAGE_HEIGHT,
   SCHEDULE_IMAGE_WIDTH,
 } from "@/lib/schedule/scheduleImageLayout";
+import { postMessageToMobileApp } from "@/lib/mobile/appBridge";
 
 function canvasToBlob(canvas: HTMLCanvasElement) {
   return new Promise<Blob>((resolve, reject) => {
@@ -94,6 +95,14 @@ export async function saveScheduleImage(
 
   context.drawImage(image, 0, 0, canvas.width, canvas.height);
   const blob = await canvasToBlob(canvas);
+  const dataUrl = await blobToDataUrl(blob);
+  if (postMessageToMobileApp({
+    type: "image:export",
+    payload: { filename, mimeType: "image/png", base64: dataUrl },
+  })) {
+    return;
+  }
+
   const file = new File([blob], filename, { type: "image/png" });
 
   if (navigator.canShare?.({ files: [file] })) {

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { typography } from "@/lib/typography";
+import { OPEN_ANALYTICS_CONSENT_EVENT } from "@/lib/analytics/consent";
 
 const CONTACT_EMAIL = "festibom.official@gmail.com";
 
@@ -13,7 +14,7 @@ export default function PublicFooter() {
   if (pathname.startsWith("/admin")) return null;
 
   return (
-    <footer className="mt-10 border-t border-line bg-surface text-ink-tertiary">
+    <footer data-web-shell className="mt-10 border-t border-line bg-surface text-ink-tertiary">
       <div className="mx-auto min-h-[140px] w-full max-w-[1500px] px-4 py-5 sm:px-6">
         <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center sm:gap-6">
           <nav
@@ -32,6 +33,17 @@ export default function PublicFooter() {
             <Link href="/report" className="hover:text-ink">
               정보 수정 제보
             </Link>
+            <button
+              type="button"
+              onClick={() =>
+                window.dispatchEvent(
+                  new Event(OPEN_ANALYTICS_CONSENT_EVENT),
+                )
+              }
+              className="hover:text-ink"
+            >
+              분석 설정
+            </button>
           </nav>
 
           <a

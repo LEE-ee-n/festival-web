@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "Festibom",
+    "slug": "festibom",
+    "owner": "festiboms-team",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "festibom",
+    "userInterfaceStyle": "light",
+    "android": {
+      "package": "com.festibom.app",
+      "permissions": [
+        "POST_NOTIFICATIONS"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "festibom.com",
+              "pathPrefix": "/festival/"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
+    },
+    "plugins": [
+      "expo-notifications",
+      "expo-web-browser",
+      "expo-media-library",
+      "expo-font"
+    ],
+    "extra": {
+      "webOrigin": "https://festibom.com",
+      "eas": {
+        "projectId": "01947ede-592c-4cb4-9953-ba9c921e69c8"
+      }
+    }
+  }
+}

@@ -108,3 +108,6 @@ a {
     animation-duration: 1ms;
   }
 }
+html.festibom-app [data-web-shell] {
+  display: none;
+}

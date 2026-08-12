@@ -2,6 +2,8 @@
 
 # dependencies
 /node_modules
+/mobile/node_modules/
+/.npm-mobile-cache/
 /.npm-cache
 /.tmp
 /.pnp
@@ -56,6 +58,13 @@ session.json
 *.bak
 *.backup
 /backups/
+/operations/runtime/
+/operations/private/
+
+# operator records may contain personal data or database dumps
+request-register*.csv
+request-register*.xlsx
+backup-status*.json
 
 # debug
 npm-debug.log*
@@ -71,6 +80,7 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+mobile/.expo/
 next-env.d.ts
 
 .vercel

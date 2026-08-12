@@ -15,6 +15,7 @@ import {
   buildScheduleImageCardPositions,
   SCHEDULE_IMAGE_HEIGHT,
   SCHEDULE_IMAGE_WIDTH,
+  shouldShowScheduleImageStageTitle,
   type ScheduleImagePage,
 } from "@/lib/schedule/scheduleImageLayout";
 
@@ -157,6 +158,8 @@ const ScheduleImageCanvas = forwardRef<SVGSVGElement, ScheduleImageCanvasProps>(
             LINEUP
           </text>
         ) : page.stages.map((stage, index) => {
+          if (!shouldShowScheduleImageStageTitle(stage)) return null;
+
           const centerX = gridLeft + index * (stageWidth + stageGap) + stageWidth / 2;
           return (
             <text

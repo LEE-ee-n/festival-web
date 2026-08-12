@@ -1,5 +1,16 @@
 # Festibom 운영 DB 명세
 
+## Android 앱 관심 축제·푸시 알림 (2026-08-12 운영 DB 적용)
+
+- 기존 `user_favorite_festivals`를 관심 축제 단일 원본으로 재사용한다.
+- `user_push_devices`: 회원별 Expo Push Token, 플랫폼·앱 버전·활성 상태를 저장한다. 영구 실패 토큰은 삭제하지 않고 비활성화한다.
+- `user_notification_preferences`: 아티스트 출연, 축제 변경, 티켓 하루 전·10분 전 수신 설정을 저장한다.
+- `notification_events`: 축제별 변경 묶음과 티켓 예약 이벤트를 서버 전용으로 보관한다.
+- `notification_deliveries`: 회원·기기별 중복 방지 키와 Expo ticket·receipt 결과를 기록한다.
+- 라인업과 타임테이블 공개 상태 변경은 10분간 축제별 한 건으로 합친다. 티켓 `open_at` 변경·삭제 시 대기 예약을 취소하고 미래 시점만 다시 계산한다.
+- 회원 테이블은 본인 행만 허용하는 RLS를 사용하고, 이벤트·발송 테이블은 로그인 회원 권한을 전부 회수해 서버에서만 처리한다.
+- `send-mobile-notifications` Edge Function version 1을 배포했다. 실제 발송은 Expo/EAS·FCM 자격 증명과 `MOBILE_NOTIFICATION_CRON_SECRET` 설정 후 시작한다.
+
 ## 베타 서비스 이용권 (migration 066, 운영 DB 적용 완료·검증 대기)
 
 - `service_access_entitlements`: 회원별 개인 기능 이용권과 부여 출처·상태·기간·부여 관리자를 저장한다.

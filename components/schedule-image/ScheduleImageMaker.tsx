@@ -16,7 +16,10 @@ import {
   normalizeAuthReturnPath,
 } from "@/lib/auth/authReturnPath";
 import { useScheduleSelection } from "@/lib/hooks/useScheduleSelection";
-import { buildScheduleImagePages } from "@/lib/schedule/scheduleImageLayout";
+import {
+  buildScheduleImagePages,
+  getVisibleScheduleImagePages,
+} from "@/lib/schedule/scheduleImageLayout";
 import {
   createRockCatSticker,
   type ScheduleImageSticker,
@@ -77,16 +80,10 @@ export default function ScheduleImageMaker({
     () => buildScheduleImagePages(festivalArtists, selectedIds),
     [festivalArtists, selectedIds],
   );
-  const selectedDates = useMemo(
-    () =>
-      new Set(
-        festivalArtists
-          .filter((item) => selectedIds.has(item.id))
-          .map((item) => item.performance_date),
-      ),
-    [festivalArtists, selectedIds],
+  const pages = useMemo(
+    () => getVisibleScheduleImagePages(allPages),
+    [allPages],
   );
-  const pages = allPages.filter((page) => selectedDates.has(page.performanceDate));
   const dates = [...new Set(pages.map((page) => page.performanceDate))];
   const resolvedDate = activeDate === undefined ? dates[0] : activeDate;
   const datePages = pages.filter((page) => page.performanceDate === resolvedDate);
@@ -186,11 +183,11 @@ export default function ScheduleImageMaker({
     );
   }
 
-  if (selectedIds.size === 0 || !activePage) {
+  if (!activePage) {
     return (
       <section className="rounded-3xl border border-line bg-surface p-8 text-center">
-        <h2 className={`${typography.subsectionTitle} text-ink`}>선택한 공연이 없습니다</h2>
-        <p className={`${typography.bodyCompact} mt-2 text-ink-tertiary`}>타임테이블에서 보고 싶은 아티스트를 먼저 선택해주세요.</p>
+        <h2 className={`${typography.subsectionTitle} text-ink`}>표시할 공연이 없습니다</h2>
+        <p className={`${typography.bodyCompact} mt-2 text-ink-tertiary`}>등록된 타임테이블을 먼저 확인해주세요.</p>
         <Link href={`/festival/${festival.id}`} className={`${typography.button} mt-5 inline-flex rounded-xl border border-line-strong px-5 py-3 text-ink-secondary`}>
           타임테이블로 돌아가기
         </Link>

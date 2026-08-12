@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import "./globals.css";
-import AnalyticsScripts from "../components/analytics/AnalyticsScripts";
+import AnalyticsConsentManager from "../components/analytics/AnalyticsConsentManager";
 import CommonHeader from "../components/CommonHeader";
 import PublicFooter from "../components/PublicFooter";
 import ServiceAccessProvider from "@/components/access/ServiceAccessProvider";
+import MobileAppBridge from "@/components/mobile/MobileAppBridge";
 import {
   HOME_DESCRIPTION,
   HOME_TITLE,
@@ -38,7 +39,8 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
-        <AnalyticsScripts />
+        <MobileAppBridge />
+        <AnalyticsConsentManager />
         <ServiceAccessProvider>
           <CommonHeader />
           {children}

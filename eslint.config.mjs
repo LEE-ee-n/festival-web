@@ -15,6 +15,8 @@ export default defineConfig([
     ".tmp/**",
     "_crawler_review*/**",
     "operations/discord-instagram-bot/work/**",
+    "mobile/**",
+    "supabase/functions/**",
     "next-env.d.ts",
   ]),
 ]);

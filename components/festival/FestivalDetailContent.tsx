@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Heart } from "lucide-react";
 import PersonalFeatureLink from "@/components/access/PersonalFeatureLink";
+import FavoriteFestivalButton from "@/components/festival/FavoriteFestivalButton";
 
 import { getCurrentAdminAccess } from "@/lib/auth/getCurrentAdminAccess";
 import { formatFestivalPeriod } from "@/lib/calendar";
@@ -103,6 +104,7 @@ export default function FestivalDetailContent({
             <h1 className={`${typography.pageTitle} mt-5 text-ink`}>
               {festival.name}
             </h1>
+            <FavoriteFestivalButton festivalId={festival.id} festivalName={festival.name} />
             {isAdmin && (
               <div className="mt-4 flex flex-wrap gap-2">
                 <Link

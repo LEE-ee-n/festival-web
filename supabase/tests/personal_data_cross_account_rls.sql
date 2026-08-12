@@ -225,6 +225,16 @@ begin
     (v_user_b, 'personal_features', 'beta_manual', 'active')
   on conflict do nothing;
 
+  insert into public.user_notification_preferences (user_id)
+  values (v_user_a), (v_user_b)
+  on conflict (user_id) do nothing;
+
+  insert into public.user_push_devices (
+    user_id, expo_push_token, platform, app_version
+  ) values
+    (v_user_a, 'ExpoPushToken[rlstest-a-000000000001]', 'android', 'rls-test'),
+    (v_user_b, 'ExpoPushToken[rlstest-b-000000000002]', 'android', 'rls-test');
+
   perform pg_catalog.set_config('rls_test.user_a', v_user_a::text, true);
   perform pg_catalog.set_config('rls_test.user_b', v_user_b::text, true);
   perform pg_catalog.set_config('rls_test.artist_1', v_artist_1::text, true);
@@ -307,6 +317,18 @@ begin
        or (select count(*) from public.user_festival_media where id = v_target_media) <> 0 then
       raise exception '교차 계정 SELECT가 허용되었습니다.';
     end if;
+
+    if (select count(*) from public.user_push_devices where user_id = v_target) <> 0
+       or (select count(*) from public.user_notification_preferences where user_id = v_target) <> 0 then
+      raise exception '교차 계정 앱 설정 SELECT가 허용되었습니다.';
+    end if;
+
+    begin perform 1 from public.notification_events;
+      raise exception '일반 회원의 알림 이벤트 SELECT가 허용되었습니다.';
+    exception when insufficient_privilege then null; end;
+    begin perform 1 from public.notification_deliveries;
+      raise exception '일반 회원의 알림 발송 기록 SELECT가 허용되었습니다.';
+    exception when insufficient_privilege then null; end;
 
     begin
       perform 1 from public.service_access_entitlements where user_id = v_target;
@@ -412,6 +434,23 @@ begin
       raise exception '이용권 직접 DELETE가 허용되었습니다.';
     exception when insufficient_privilege then null; end;
 
+    begin insert into public.user_notification_preferences (user_id) values (v_target);
+      raise exception '알림 설정 교차 INSERT가 허용되었습니다.';
+    exception when insufficient_privilege then null; end;
+    update public.user_notification_preferences
+    set favorite_artist_appearance = false where user_id = v_target;
+    get diagnostics v_rows = row_count;
+    if v_rows <> 0 then raise exception '알림 설정 교차 UPDATE가 허용되었습니다.'; end if;
+
+    begin insert into public.user_push_devices (
+      user_id, expo_push_token, platform, app_version
+    ) values (v_target, 'ExpoPushToken[cross-account-test]', 'android', 'rls-test');
+      raise exception '기기 교차 INSERT가 허용되었습니다.';
+    exception when insufficient_privilege then null; end;
+    delete from public.user_push_devices where user_id = v_target;
+    get diagnostics v_rows = row_count;
+    if v_rows <> 0 then raise exception '기기 교차 DELETE가 허용되었습니다.'; end if;
+
     v_rpc_denied := false;
     begin
       perform public.save_user_festival_record(
@@ -450,6 +489,24 @@ begin
   get diagnostics v_rows = row_count;
   if v_rows <> 1 then raise exception '본인 관심 축제 DELETE가 거부되었습니다.'; end if;
   insert into public.user_favorite_festivals (user_id, festival_id) values (v_user_a, v_festival_1);
+
+  update public.user_notification_preferences
+  set favorite_artist_appearance = false
+  where user_id = v_user_a;
+  get diagnostics v_rows = row_count;
+  if v_rows <> 1 then raise exception '본인 알림 설정 UPDATE가 거부되었습니다.'; end if;
+
+  delete from public.user_push_devices
+  where user_id = v_user_a and expo_push_token = 'ExpoPushToken[rlstest-a-000000000001]';
+  get diagnostics v_rows = row_count;
+  if v_rows <> 1 then raise exception '본인 기기 DELETE가 거부되었습니다.'; end if;
+
+  perform public.register_push_device(
+    'ExpoPushToken[rlstest-a-recreated]', 'android', 'rls-test'
+  );
+  if not public.deactivate_push_device('ExpoPushToken[rlstest-a-recreated]') then
+    raise exception '본인 기기 비활성화 RPC가 거부되었습니다.';
+  end if;
 
   delete from public.user_schedule_items where user_id = v_user_a and festival_artist_id = v_schedule_artist_1;
   get diagnostics v_rows = row_count;
@@ -509,7 +566,7 @@ rollback;
 select jsonb_build_object(
   'status', 'PASS',
   'accounts', 2,
-  'tables', 9,
-  'rpcs', 2,
+  'tables', 13,
+  'rpcs', 4,
   'persistent_test_rows', 0
 ) as personal_data_cross_account_rls_result;

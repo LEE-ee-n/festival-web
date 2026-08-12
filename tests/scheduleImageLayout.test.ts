@@ -5,10 +5,16 @@ import {
   buildScheduleImageCardPositions,
   buildScheduleImagePages,
   distributeStages,
+  getVisibleScheduleImagePages,
+  shouldShowScheduleImageStageTitle,
 } from "../lib/schedule/scheduleImageLayout.ts";
 import type { ScheduleImageItem } from "../lib/schedule/scheduleImageLayout.ts";
 import type { FestivalArtist } from "../lib/types.ts";
 import { SCHEDULE_IMAGE_TYPOGRAPHY } from "../lib/schedule/scheduleImageTheme.ts";
+import {
+  SCHEDULE_IMAGE_DEFAULT_CARD_MAX_HEIGHT,
+  SCHEDULE_IMAGE_SELECTED_CARD_MAX_HEIGHT,
+} from "../lib/schedule/scheduleImageCardHeight.ts";
 import {
   buildScheduleImageUntimedCardLayouts,
   SCHEDULE_IMAGE_UNTIMED_DEFAULT_MAX_HEIGHT,
@@ -34,6 +40,12 @@ test("무대를 페이지당 최대 3개로 균등하게 나눈다", () => {
     ["A", "B", "C"],
     ["D", "E"],
   ]);
+});
+
+test("일정 이미지에서 무대 미정 제목만 숨긴다", () => {
+  assert.equal(shouldShowScheduleImageStageTitle("무대 미정"), false);
+  assert.equal(shouldShowScheduleImageStageTitle("TINY DISCO"), true);
+  assert.equal(shouldShowScheduleImageStageTitle("메인 스테이지"), true);
 });
 
 test("날짜별 페이지를 만들고 겹치는 선택 일정을 표시한다", () => {
@@ -65,6 +77,91 @@ test("날짜별 페이지를 만들고 겹치는 선택 일정을 표시한다",
   assert.equal(pages.length, 1);
   assert.equal(pages[0].items.every((item) => item.hasConflict), true);
   assert.equal(pages[0].timelineEnd, 18 * 60 + 30);
+});
+
+test("선택한 공연이 없으면 모든 날짜의 이미지 페이지를 표시한다", () => {
+  const artists: FestivalArtist[] = [
+    {
+      id: 1,
+      artist_id: 1,
+      performance_date: "2026-08-08",
+      performance_time: "17:00:00",
+      performance_end_time: "18:00:00",
+      stage_name: "A",
+      status: "scheduled",
+      artists: { id: 1, name: "가수 A", normalized_name: "가수a" },
+    },
+    {
+      id: 2,
+      artist_id: 2,
+      performance_date: "2026-08-09",
+      performance_time: "18:00:00",
+      performance_end_time: "19:00:00",
+      stage_name: "B",
+      status: "scheduled",
+      artists: { id: 2, name: "가수 B", normalized_name: "가수b" },
+    },
+  ];
+
+  const unselectedPages = buildScheduleImagePages(artists, new Set());
+  assert.deepEqual(
+    getVisibleScheduleImagePages(unselectedPages).map(
+      (page) => page.performanceDate,
+    ),
+    ["2026-08-08", "2026-08-09"],
+  );
+
+  const selectedPages = buildScheduleImagePages(artists, new Set([2]));
+  assert.deepEqual(
+    getVisibleScheduleImagePages(selectedPages).map(
+      (page) => page.performanceDate,
+    ),
+    ["2026-08-09"],
+  );
+});
+
+test("시간 공연이 1개나 3개여도 카드 최대 높이를 넘지 않는다", () => {
+  const selectedItems: ScheduleImageItem[] = ["A", "B", "C"].map(
+    (stageName, index) => ({
+      id: index + 1,
+      artistName: `선택 공연 ${index + 1}`,
+      stageName,
+      performanceDate: "2026-08-08",
+      startMinutes: 18 * 60,
+      endMinutes: 18 * 60 + 40,
+      isSelected: true,
+      hasConflict: false,
+    }),
+  );
+  const selectedPositions = buildScheduleImageCardPositions(
+    selectedItems,
+    ["A", "B", "C"],
+    18 * 60,
+    19 * 60,
+    100,
+    1484,
+  );
+
+  selectedItems.forEach((item) => {
+    assert.equal(
+      selectedPositions.get(item.id)?.height,
+      SCHEDULE_IMAGE_SELECTED_CARD_MAX_HEIGHT,
+    );
+  });
+
+  const normalItem = { ...selectedItems[0], isSelected: false };
+  const normalPositions = buildScheduleImageCardPositions(
+    [normalItem],
+    ["A"],
+    18 * 60,
+    19 * 60,
+    100,
+    1484,
+  );
+  assert.equal(
+    normalPositions.get(normalItem.id)?.height,
+    SCHEDULE_IMAGE_DEFAULT_CARD_MAX_HEIGHT,
+  );
 });
 
 test("카드는 실제 시작 시각에 맞추고 선택 카드는 다음 공연 전까지만 확대한다", () => {

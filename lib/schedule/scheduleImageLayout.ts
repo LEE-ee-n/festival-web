@@ -1,8 +1,13 @@
 import type { FestivalArtist } from "@/lib/types";
+import {
+  SCHEDULE_IMAGE_DEFAULT_CARD_MAX_HEIGHT,
+  SCHEDULE_IMAGE_SELECTED_CARD_MAX_HEIGHT,
+} from "./scheduleImageCardHeight.ts";
 
 export const SCHEDULE_IMAGE_MAX_STAGES = 3;
 export const SCHEDULE_IMAGE_WIDTH = 1080;
 export const SCHEDULE_IMAGE_HEIGHT = 1920;
+export const SCHEDULE_IMAGE_UNKNOWN_STAGE_NAME = "무대 미정";
 
 export type ScheduleImageItem = {
   id: number;
@@ -68,6 +73,9 @@ export function buildScheduleImageCardPositions(
       const desiredHeight = item.isSelected
         ? durationHeight * SELECTED_HEIGHT_SCALE
         : durationHeight;
+      const maximumHeight = item.isSelected
+        ? SCHEDULE_IMAGE_SELECTED_CARD_MAX_HEIGHT
+        : SCHEDULE_IMAGE_DEFAULT_CARD_MAX_HEIGHT;
       const nextItem = stageItems[index + 1];
       const availableHeight = nextItem
         ? (nextItem.startMinutes! - item.startMinutes!) * pixelsPerMinute -
@@ -78,7 +86,12 @@ export function buildScheduleImageCardPositions(
         y,
         height: Math.max(
           1,
-          Math.min(desiredHeight, availableHeight, timelineBottom - y),
+          Math.min(
+            desiredHeight,
+            availableHeight,
+            timelineBottom - y,
+            maximumHeight,
+          ),
         ),
       });
     });
@@ -93,7 +106,11 @@ function getArtistName(item: FestivalArtist) {
 }
 
 function getStageName(item: FestivalArtist) {
-  return item.stage_name?.trim() || "무대 미정";
+  return item.stage_name?.trim() || SCHEDULE_IMAGE_UNKNOWN_STAGE_NAME;
+}
+
+export function shouldShowScheduleImageStageTitle(stageName: string) {
+  return stageName !== SCHEDULE_IMAGE_UNKNOWN_STAGE_NAME;
 }
 
 export function parseScheduleTime(value: string | null): number | null {
@@ -109,7 +126,7 @@ export function distributeStages(
   stages: string[],
   maxStages = SCHEDULE_IMAGE_MAX_STAGES,
 ): string[][] {
-  if (stages.length === 0) return [["무대 미정"]];
+  if (stages.length === 0) return [[SCHEDULE_IMAGE_UNKNOWN_STAGE_NAME]];
 
   const pageCount = Math.ceil(stages.length / maxStages);
   const baseSize = Math.floor(stages.length / pageCount);
@@ -233,4 +250,20 @@ export function buildScheduleImagePages(
       timelineEnd,
     }));
   });
+}
+
+export function getVisibleScheduleImagePages(
+  pages: readonly ScheduleImagePage[],
+): ScheduleImagePage[] {
+  const selectedDates = new Set(
+    pages.flatMap((page) =>
+      page.items
+        .filter((item) => item.isSelected)
+        .map((item) => item.performanceDate),
+    ),
+  );
+
+  if (selectedDates.size === 0) return [...pages];
+
+  return pages.filter((page) => selectedDates.has(page.performanceDate));
 }

@@ -20,14 +20,20 @@ const personalTables = [
   "user_festival_songs",
   "user_festival_media",
   "service_access_entitlements",
+  "user_push_devices",
+  "user_notification_preferences",
+  "notification_events",
+  "notification_deliveries",
 ];
 
-test("cross-account RLS test covers every personal table and both RPCs", () => {
+test("cross-account RLS test covers every personal table and personal RPCs", () => {
   for (const table of personalTables) {
     assert.match(sql, new RegExp(`public\\.${table}\\b`));
   }
   assert.match(sql, /public\.save_user_festival_record\(/);
   assert.match(sql, /public\.save_user_festival_artist_record\(/);
+  assert.match(sql, /public\.register_push_device\(/);
+  assert.match(sql, /public\.deactivate_push_device\(/);
 });
 
 test("cross-account RLS test uses authenticated role in both directions", () => {

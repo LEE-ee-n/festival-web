@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -573,6 +573,132 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_deliveries: {
+        Row: {
+          created_at: string
+          dedupe_key: string
+          device_id: number
+          event_id: number
+          expo_ticket_id: string | null
+          failure_code: string | null
+          failure_reason: string | null
+          id: number
+          receipt_checked_at: string | null
+          sent_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dedupe_key: string
+          device_id: number
+          event_id: number
+          expo_ticket_id?: string | null
+          failure_code?: string | null
+          failure_reason?: string | null
+          id?: never
+          receipt_checked_at?: string | null
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dedupe_key?: string
+          device_id?: number
+          event_id?: number
+          expo_ticket_id?: string | null
+          failure_code?: string | null
+          failure_reason?: string | null
+          id?: never
+          receipt_checked_at?: string | null
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_deliveries_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "user_push_devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_deliveries_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "notification_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_events: {
+        Row: {
+          artist_id: number | null
+          attempts: number
+          available_at: string
+          created_at: string
+          dedupe_key: string
+          event_type: string
+          festival_id: number | null
+          id: number
+          last_error: string | null
+          payload: Json
+          scheduled_for: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          artist_id?: number | null
+          attempts?: number
+          available_at?: string
+          created_at?: string
+          dedupe_key: string
+          event_type: string
+          festival_id?: number | null
+          id?: never
+          last_error?: string | null
+          payload?: Json
+          scheduled_for?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          artist_id?: number | null
+          attempts?: number
+          available_at?: string
+          created_at?: string
+          dedupe_key?: string
+          event_type?: string
+          festival_id?: number | null
+          id?: never
+          last_error?: string | null
+          payload?: Json
+          scheduled_for?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_events_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_events_festival_id_fkey"
+            columns: ["festival_id"]
+            isOneToOne: false
+            referencedRelation: "festivals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pipeline_runs: {
         Row: {
           articles_added: number | null
@@ -914,6 +1040,72 @@ export type Database = {
           },
         ]
       }
+      user_notification_preferences: {
+        Row: {
+          created_at: string
+          favorite_artist_appearance: boolean
+          followed_festival_update: boolean
+          ticket_day_before: boolean
+          ticket_ten_minutes_before: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          favorite_artist_appearance?: boolean
+          followed_festival_update?: boolean
+          ticket_day_before?: boolean
+          ticket_ten_minutes_before?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          favorite_artist_appearance?: boolean
+          followed_festival_update?: boolean
+          ticket_day_before?: boolean
+          ticket_ten_minutes_before?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_push_devices: {
+        Row: {
+          app_version: string
+          created_at: string
+          expo_push_token: string
+          id: number
+          is_active: boolean
+          last_seen_at: string
+          platform: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          app_version: string
+          created_at?: string
+          expo_push_token: string
+          id?: never
+          is_active?: boolean
+          last_seen_at?: string
+          platform: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          app_version?: string
+          created_at?: string
+          expo_push_token?: string
+          id?: never
+          is_active?: boolean
+          last_seen_at?: string
+          platform?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_schedule_items: {
         Row: {
           created_at: string
@@ -948,6 +1140,27 @@ export type Database = {
       admin_import_festival_lineup: {
         Args: { p_artists: Json; p_festival_id: number }
         Returns: Json
+      }
+      admin_list_service_users: {
+        Args: never
+        Returns: {
+          access_status: string
+          beta_access_number: number
+          beta_limit: number
+          display_name: string
+          email: string
+          granted_at: string
+          has_beta_access: boolean
+          is_admin: boolean
+          joined_at: string
+          revoked_at: string
+          signup_number: number
+          user_id: string
+        }[]
+      }
+      admin_set_beta_access: {
+        Args: { p_enabled: boolean; p_user_id: string }
+        Returns: boolean
       }
       apply_festival_json_update_with_audit: {
         Args: {
@@ -1035,6 +1248,30 @@ export type Database = {
           p_ticket_id?: number
         }
         Returns: Json
+      }
+      claim_notification_events: {
+        Args: { p_limit?: number }
+        Returns: {
+          artist_id: number | null
+          attempts: number
+          available_at: string
+          created_at: string
+          dedupe_key: string
+          event_type: string
+          festival_id: number | null
+          id: number
+          last_error: string | null
+          payload: Json
+          scheduled_for: string | null
+          status: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "notification_events"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       create_artist_with_audit: {
         Args: {
@@ -1217,6 +1454,10 @@ export type Database = {
         Args: { p_festival: Json }
         Returns: number
       }
+      deactivate_push_device: {
+        Args: { p_expo_push_token: string }
+        Returns: boolean
+      }
       delete_artist_admin: { Args: { p_artist_id: number }; Returns: Json }
       delete_festival_with_audit: {
         Args: { p_festival_id: number }
@@ -1240,10 +1481,15 @@ export type Database = {
         }
         Returns: Json
       }
+      finish_notification_event: {
+        Args: { p_error?: string; p_event_id: number; p_succeeded: boolean }
+        Returns: boolean
+      }
       format_festival_display_name: {
         Args: { p_name: string; p_start_date: string }
         Returns: string
       }
+      has_personal_service_access: { Args: never; Returns: boolean }
       import_festival_from_xlsx: {
         Args: { p_artists: Json; p_festival: Json }
         Returns: Json
@@ -1252,28 +1498,6 @@ export type Database = {
         Args: { p_artists: Json; p_festival_id: number }
         Returns: Json
       }
-      admin_list_service_users: {
-        Args: never
-        Returns: {
-          access_status: string | null
-          beta_access_number: number | null
-          beta_limit: number
-          display_name: string
-          email: string | null
-          granted_at: string | null
-          has_beta_access: boolean
-          is_admin: boolean
-          joined_at: string
-          revoked_at: string | null
-          signup_number: number
-          user_id: string
-        }[]
-      }
-      admin_set_beta_access: {
-        Args: { p_enabled: boolean; p_user_id: string }
-        Returns: boolean
-      }
-      has_personal_service_access: { Args: never; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
       is_festival_bot: { Args: never; Returns: boolean }
       is_valid_festival_region: { Args: { p_region: string }; Returns: boolean }
@@ -1283,6 +1507,14 @@ export type Database = {
         Returns: string
       }
       refresh_festival_statuses: { Args: never; Returns: number }
+      register_push_device: {
+        Args: {
+          p_app_version: string
+          p_expo_push_token: string
+          p_platform: string
+        }
+        Returns: number
+      }
       replace_pending_discord_source_drafts: {
         Args: { p_source_url: string }
         Returns: Json

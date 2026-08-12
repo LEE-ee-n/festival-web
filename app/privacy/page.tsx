@@ -14,7 +14,7 @@ export default function PrivacyPage() {
   return (
     <PublicInfoPage
       title="페스티봄 개인정보처리방침"
-      dateLabel="공고일·시행일: 2026년 8월 11일"
+      dateLabel="공고일·시행일: 2026년 8월 12일"
     >
       <section className="space-y-4">
         <p>
@@ -33,6 +33,7 @@ export default function PrivacyPage() {
           <li>Google 계정 로그인, 회원 식별과 로그인 상태 유지</li>
           <li>관심 축제·아티스트, 개인 공연 일정과 페스티벌 기록 제공</li>
           <li>베타 이용 권한 부여와 회원별 서비스 접근 관리</li>
+          <li>관심 축제·아티스트와 티켓 일정에 따른 앱 푸시 알림 제공</li>
           <li>문의와 정보 수정 제보의 확인, 답변 및 처리 결과 안내</li>
           <li>공식 자료와 제보 내용의 비교 및 잘못된 정보 수정</li>
           <li>권리 침해 신고 처리와 필요한 분쟁 대응</li>
@@ -70,6 +71,7 @@ export default function PrivacyPage() {
               곡명과 이용자가 등록한 외부 미디어 참조정보
             </li>
             <li>베타 이용권 상태와 부여·회수 일시</li>
+            <li>알림 수신 설정, Expo Push Token, 앱 플랫폼·버전과 발송 결과</li>
           </ul>
         </div>
         <div>
@@ -182,6 +184,16 @@ export default function PrivacyPage() {
                 <td className="px-3 py-3">웹사이트 이용 행태 분석</td>
                 <td className="px-3 py-3">페이지 이동, 클릭·스크롤, 브라우저·기기 정보</td>
               </tr>
+              <tr>
+                <td className="px-3 py-3">Expo / 650 Industries, Inc.</td>
+                <td className="px-3 py-3">앱 빌드와 푸시 알림 전달</td>
+                <td className="px-3 py-3">Expo Push Token, 알림 제목·본문·이동 링크, 기기·앱 정보</td>
+              </tr>
+              <tr>
+                <td className="px-3 py-3">Google Firebase Cloud Messaging</td>
+                <td className="px-3 py-3">Android 기기 푸시 알림 전달</td>
+                <td className="px-3 py-3">기기 알림 토큰과 알림 전송 정보</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -189,7 +201,7 @@ export default function PrivacyPage() {
 
       <PublicInfoSection title="6. 개인정보의 국외 처리">
         <p>
-          Vercel, Supabase, Google 및 Microsoft는 해외 법인이 운영하는 서비스이며,
+          Vercel, Supabase, Google, Microsoft 및 Expo는 해외 법인이 운영하는 서비스이며,
           서비스 이용 과정에서 정보가 암호화된 네트워크를 통해 해당
           사업자 또는 사업자가 사용하는 데이터센터로 전송·처리될 수
           있습니다.
@@ -199,11 +211,13 @@ export default function PrivacyPage() {
             Vercel Inc.: 미국 및 Vercel이 공개한 하위 처리 사업자 소재지
           </li>
           <li>
-            Supabase Pte. Ltd.: 싱가포르 및 프로젝트에서 선택한 클라우드
-            리전
+            Supabase Pte. Ltd.: 싱가포르 및 하위 처리 사업자 소재지. 회원
+            계정과 개인 기록이 저장되는 프로젝트의 기본 데이터 리전은
+            대한민국 서울(ap-northeast-2)
           </li>
           <li>Google LLC: 미국을 포함한 Google의 서비스 운영 지역</li>
           <li>Microsoft Corporation: 미국을 포함한 Microsoft의 서비스 운영 지역</li>
+          <li>Expo / 650 Industries, Inc.: 미국 및 Expo가 사용하는 서비스 운영 지역</li>
         </ul>
         <p>
           처리 항목과 목적은 제5조와 같으며, 보유 기간은 제3조 또는 각
@@ -222,7 +236,7 @@ export default function PrivacyPage() {
           </li>
           <li>
             회원탈퇴 시 활성 세션과 회원 계정, 관심 정보, 일정, 페스티벌
-            기록과 하위 메모·곡·미디어 참조정보, 이용권 정보를 삭제합니다.
+            기록과 하위 메모·곡·미디어 참조정보, 이용권, 앱 기기·알림 설정과 발송 기록을 삭제합니다.
             일반 회원은 마이페이지에서 Google 재인증 후 직접 탈퇴할 수
             있으며, 직접 처리가 어려운 경우 개인정보 보호책임자 이메일로
             요청할 수 있습니다.
@@ -261,14 +275,24 @@ export default function PrivacyPage() {
       </PublicInfoSection>
 
       <PublicInfoSection title="9. 쿠키 및 유사 기술">
-        <p>
-          Google Analytics는 방문자 분석을 위해 쿠키 또는 유사 기술을 사용할
-          수 있습니다. Microsoft Clarity는 사이트 이용 행태를 분석하기 위한
-          기술을 사용할 수 있습니다. 로그인 이용자의 인증 상태 유지를 위해
-          Supabase 인증 저장소가 사용됩니다. 페스티봄은 Supabase 회원
-          식별자를 Google Analytics 또는 Microsoft Clarity의 사용자 ID로
-          별도 전송하지 않습니다.
-        </p>
+        <div className="space-y-3">
+          <p>
+            로그인 이용자의 인증 상태 유지를 위해 Supabase 인증 저장소가
+            사용됩니다. 이 필수 기능은 분석 선택과 관계없이 동작합니다.
+          </p>
+          <p>
+            Google Analytics와 Microsoft Clarity는 이용자가 `분석 허용`을
+            선택한 경우에만 로드되어 공개 페이지 방문과 이용 행태를
+            분석합니다. `필수만 사용`을 선택하면 두 분석 도구를 로드하지
+            않으며 로그인과 개인 기능 이용에는 영향이 없습니다.
+          </p>
+          <p>
+            선택은 현재 브라우저에 저장되며 사이트 하단의 `분석 설정`에서
+            변경할 수 있습니다. 페스티봄은 Supabase 회원 식별자를 Google
+            Analytics 또는 Microsoft Clarity의 사용자 ID로 별도 전송하지
+            않습니다.
+          </p>
+        </div>
       </PublicInfoSection>
 
       <PublicInfoSection title="10. 개인정보의 안전성 확보 조치">
@@ -322,7 +346,7 @@ export default function PrivacyPage() {
       </PublicInfoSection>
 
       <p className={`${typography.meta} border-t border-line pt-6 text-ink-tertiary`}>
-        공고일·시행일: 2026년 8월 11일
+        공고일·시행일: 2026년 8월 12일
       </p>
     </PublicInfoPage>
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import AccountDeletionSection from "@/components/mypage/AccountDeletionSection";
 import FavoriteArtistList from "@/components/mypage/FavoriteArtistList";
 import PersonalFeatureNotice from "@/components/access/PersonalFeatureNotice";
@@ -64,6 +65,16 @@ export default function MyPageContent() {
   return (
     <div className="space-y-6">
       <PersonalFeatureNotice />
+
+      <section className="rounded-3xl border border-line bg-surface p-6 shadow-sm sm:p-8">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h2 className={`${typography.sectionTitle} text-ink`}>앱 알림</h2>
+            <p className={`${typography.meta} mt-1 text-ink-tertiary`}>아티스트 출연, 축제 변경과 티켓 오픈 알림을 관리합니다.</p>
+          </div>
+          <Link href="/mypage/notifications" className={`${typography.button} shrink-0 rounded-xl border border-line-strong px-4 py-2.5 text-ink-secondary`}>설정</Link>
+        </div>
+      </section>
 
       {festivalDiaries.errorMessage ? (
           <section className="rounded-3xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">

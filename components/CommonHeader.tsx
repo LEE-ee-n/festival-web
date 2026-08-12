@@ -11,20 +11,21 @@ import {
   normalizeAuthReturnPath,
 } from "@/lib/auth/authReturnPath";
 import { typography } from "@/lib/typography";
+import { deactivateCurrentPushDevice } from "@/lib/mobile/pushDevice";
 
 export default function CommonHeader() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [hasAdminRole, setHasAdminRole] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function loadAuthState() {
       try {
-        const { user, isAdmin: hasAdminAccess } =
+        const { user, hasAdminRole: userHasAdminRole } =
           await getCurrentAdminAccess();
 
         setUserEmail(user?.email ?? null);
-        setIsAdmin(hasAdminAccess);
+        setHasAdminRole(userHasAdminRole);
 
         if (user) {
           const returnPath = normalizeAuthReturnPath(
@@ -44,7 +45,7 @@ export default function CommonHeader() {
       } catch (error) {
         console.error("Failed to load authentication state", error);
         setUserEmail(null);
-        setIsAdmin(false);
+        setHasAdminRole(false);
       } finally {
         setIsLoading(false);
       }
@@ -66,6 +67,12 @@ export default function CommonHeader() {
   }, []);
 
   async function handleLogout() {
+    try {
+      await deactivateCurrentPushDevice();
+    } catch (error) {
+      console.error("Failed to deactivate mobile push device", error);
+    }
+
     const { error } = await supabase.auth.signOut();
 
     if (error) {
@@ -77,7 +84,7 @@ export default function CommonHeader() {
   }
 
   return (
-  <header className="bg-surface px-3 text-ink sm:px-6">
+  <header data-web-shell className="bg-surface px-3 text-ink sm:px-6">
     <div className="mx-auto flex h-14 w-full max-w-[1500px] items-center justify-between border-b border-line px-4 sm:h-[68px] sm:px-6">
       <Link
         href="/"
@@ -101,7 +108,7 @@ export default function CommonHeader() {
         ) : userEmail ? (
           <>
             <span className="hidden text-ink-tertiary sm:inline">
-              {isAdmin ? "관리자" : "회원"} · {userEmail}
+              {hasAdminRole ? "관리자" : "회원"} · {userEmail}
             </span>
 
             <Link
@@ -111,7 +118,7 @@ export default function CommonHeader() {
               마이페이지
             </Link>
 
-            {isAdmin && (
+            {hasAdminRole && (
               <Link
                 href="/admin"
                 className={`${typography.metaStrong} rounded-full border border-line px-4 py-1.5 text-ink-secondary hover:bg-surface-muted`}

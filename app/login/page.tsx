@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { supabase } from "@/lib/supabase/client";
+import { postMessageToMobileApp } from "@/lib/mobile/appBridge";
 
 export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -17,6 +18,28 @@ export default function LoginPage() {
     }
   }, []);
 
+  useEffect(() => {
+    async function handleAuthCallback(event: Event) {
+      if (!(event instanceof CustomEvent) || typeof event.detail !== "object" || event.detail === null) return;
+      const detail = event.detail as { url?: string; returnPath?: string };
+      if (typeof detail.url !== "string" || typeof detail.returnPath !== "string") return;
+
+      try {
+        const code = new URL(detail.url).searchParams.get("code");
+        if (!code) throw new Error("Google 로그인 인증 코드가 없습니다.");
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        if (error) throw error;
+        window.location.replace(detail.returnPath);
+      } catch (error) {
+        setErrorMessage(error instanceof Error ? error.message : "Google 로그인을 완료하지 못했습니다.");
+        setIsSubmitting(false);
+      }
+    }
+
+    window.addEventListener("festibom:auth-callback", handleAuthCallback);
+    return () => window.removeEventListener("festibom:auth-callback", handleAuthCallback);
+  }, []);
+
   async function handleGoogleLogin() {
     setIsSubmitting(true);
     setErrorMessage(null);
@@ -25,10 +48,18 @@ export default function LoginPage() {
       const shouldReauthenticate =
         new URLSearchParams(window.location.search).get("reauth") ===
         "account-deletion";
-      const { error } = await supabase.auth.signInWithOAuth({
+      const returnPath = shouldReauthenticate ? "/mypage" : "/";
+      const isMobileApp = postMessageToMobileApp({
+        type: "navigation:changed",
+        payload: { url: window.location.href },
+      });
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/`,
+          redirectTo: isMobileApp
+            ? "festibom://auth/callback"
+            : `${window.location.origin}/`,
+          skipBrowserRedirect: isMobileApp,
           queryParams: shouldReauthenticate
             ? { prompt: "login" }
             : undefined,
@@ -36,6 +67,12 @@ export default function LoginPage() {
       });
 
       if (error) throw error;
+      if (isMobileApp && data.url) {
+        postMessageToMobileApp({
+          type: "auth:start",
+          payload: { url: data.url, returnPath },
+        });
+      }
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "Google 로그인을 시작하지 못했습니다.",

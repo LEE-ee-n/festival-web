@@ -1,5 +1,7 @@
 # Festibom 프로젝트 종합 현황
 
+> 일시 보류: [Android 하이브리드 앱 1차 개발](plans/2026-08-11-android-hybrid-app-mvp.md) — Expo 연결, Firebase Android 앱 등록, Supabase 앱 Redirect 등록 완료. 다음은 Firebase 설정 파일 연결과 EAS 개발 APK 빌드이며 Google Play 등록비 결제·비공개 테스트는 추후 진행
+
 기준일: 2026-07-28
 
 이 문서는 전체 개발 진행도와 최근 변경, 검증 상태, 다음 작업을 한눈에 확인하는 현황판이다. 세부 규칙은 각 기능 문서를 기준으로 한다.
@@ -9,6 +11,10 @@
 - 전체 완성도 추정: **약 75%**
 - 제한적 공개 준비도 추정: **약 85%**
 - 현재 핵심 작업: 공개 Google 로그인·좋아하는 아티스트·개인 공연 일정·배경화면 MVP
+- 운영 검증 완료 계획: [[완료] 2026-08-11 Windows 작업 스케줄러 Supabase 백업 자동화](plans/2026-08-11-windows-scheduled-supabase-backup.md) — 매일 21시·누락 실행·Docker 자동 준비·중복 방지·로그 기록을 적용하고 실제 예약 실행에서 schema 244,036바이트·data 2,838,917바이트와 SHA-256 일치를 확인
+- 화면 검증 완료 계획: [[완료] 2026-08-11 일정 이미지 `무대 미정` 제목 숨김](plans/2026-08-11-schedule-image-hide-unknown-stage-label.md) — 내부 무대 그룹과 카드 배치는 유지한 채 생성 이미지의 `무대 미정` 제목만 제거. localhost 121번 카드 유지, 97번 실제 무대명·시간 미정 유지 확인
+- 화면 검증 완료 계획: [[완료] 2026-08-11 일정 이미지 선택 없음 허용·시간 카드 최대 높이](plans/2026-08-11-schedule-image-zero-selection-timed-card-max-height.md) — 선택 0개 전체 타임테이블 생성·PNG 저장, 공연 개수 무관 시간 카드 선택 `168px`·일반 `125px` 최대 높이를 localhost에서 확인. 테스트 데이터와 5782 이용권 원상복구 완료
+- 구현 완료·배포 확인 대기 계획: [[완료] 2026-08-11 관리자 헤더 진입 버튼·TOTP 분리](plans/2026-08-11-admin-header-entry-before-mfa.md) — 관리자 역할 계정은 TOTP 전에도 관리자 버튼을 보고, 실제 기능은 기존처럼 `aal2` 뒤에만 사용하도록 분리함. 테스트 297개·타입 검사·관련 린트 오류 0개 통과
 - 진행 중 계획: [2026-08-11 SaaS 공개·유료화 준비](plans/2026-08-11-saas-launch-readiness.md) — 의존성 감사 0건, 테스트 276개·타입 검사·프로덕션 빌드 통과, ESLint 오류 0개. 다음은 관리자 MFA·`aal2`, 개인정보·회원탈퇴·복구 시험
 - 완료 계획: [[완료] 2026-08-11 Supabase Security Advisor·RPC 권한 보강](plans/2026-08-11-supabase-security-advisor-rpc-hardening.md) — 운영 DB 적용 완료. Advisor 56→41건, 익명 `SECURITY DEFINER` 8→0건, 일반 회원 관리자 RPC 거부와 관리자·Bot·RLS 역할 검증 통과
 - 완료 계획: [[완료] 2026-08-11 단일 관리자 TOTP MFA·aal2 강제](plans/2026-08-11-admin-mfa-aal2-enforcement.md) — Vercel 배포, 관리자 TOTP 등록과 운영 DB `aal2` 강제 완료. 관리자 `aal1`·일반 회원 거부, 관리자 `aal2` 허용과 Bot·cron 회귀 검증 통과
@@ -16,12 +22,14 @@
 - 완료 계획: [[완료] 2026-08-11 유사 후보 기존 수정 전환 RLS 오류 수정](plans/2026-08-11-festival-candidate-update-conversion-rls.md) — 관리자 `aal2` 전용 INSERT 정책 적용, 실제 후보→기존 수정 초안 전환·원본 삭제·테스트 초안 삭제 확인, 전체 테스트 282개·타입 검사·린트 오류 0개 통과
 - 구현 완료·관리자 주요 회귀 확인 계획: [[완료] 2026-08-11 코드 구조 1차 정리](plans/2026-08-11-code-structure-cleanup.md) — 티켓 수입 기능 보존, 공통 로직 정리, 신규·기존 수정·아티스트·달력 controller 분리와 기본정보 상태 통합 완료. 기존 수정은 임시저장·새로고침 복원·1~5단계 이동·초안 삭제까지 실제 확인했고 최종 반영만 남음
 - 구현 완료·화면 확인 대기 계획: [[완료] 2026-08-11 신규 축제 controller 분리·유사 중복 검토](plans/2026-08-11-festival-candidate-controller-similar-duplicate-review.md) — 신규 등록 controller 분리, 같은 연도·이름 포함 또는 유사도 50% 이상 관리자 확인, 승인 직전 재검사 구현
-- 구현 완료·화면 확인 대기 계획: [[완료] 2026-08-10 일정 이미지 LINEUP 카드 최대 높이](plans/2026-08-10-schedule-image-lineup-card-max-height.md)
-- 구현 완료·화면 확인 대기 계획: [[완료] 2026-08-10 일정 이미지 시간 미정 라벨 정리](plans/2026-08-10-schedule-image-untimed-label-style.md)
-- 구현 완료·화면 확인 대기 계획: [[완료] 2026-08-10 일정 이미지 시간 미정 무대별 배치](plans/2026-08-10-schedule-image-untimed-stage-row.md)
-- 구현 완료·화면 확인 대기 계획: [[완료] 2026-08-10 일정 이미지 스티커 선택 해제](plans/2026-08-10-schedule-image-sticker-deselect.md)
-- 운영 DB 적용 완료·화면 검증 대기 계획: [2026-08-10 베타 이용권·가입자 관리](plans/2026-08-10-beta-access-entitlement.md)
-- 구현 완료·화면 확인 대기 계획: [[완료] 2026-08-10 마이페이지 내 공연 일정 박스 정렬](plans/2026-08-10-mypage-schedule-card.md)
+- 운영 검증 완료 계획: [[완료] 2026-08-11 남은 검증 항목 일괄 점검](plans/2026-08-11-remaining-validation-audit.md) — 최근 UI 5건, 아티스트·개인 기록 CRUD, 달력 PC/모바일, 베타 이용권 부여·회수·DB 우회 차단·정원 제한을 확인하고 테스트 데이터를 모두 정리함
+- 화면 검증 완료 계획: [[완료] 2026-08-10 일정 이미지 LINEUP 카드 최대 높이](plans/2026-08-10-schedule-image-lineup-card-max-height.md)
+- 화면 검증 완료 계획: [[완료] 2026-08-10 일정 이미지 시간 미정 라벨 정리](plans/2026-08-10-schedule-image-untimed-label-style.md)
+- 화면 검증 완료 계획: [[완료] 2026-08-10 일정 이미지 시간 미정 무대별 배치](plans/2026-08-10-schedule-image-untimed-stage-row.md)
+- 화면 검증 완료 계획: [[완료] 2026-08-10 일정 이미지 스티커 선택 해제](plans/2026-08-10-schedule-image-sticker-deselect.md)
+- 운영 검증 완료 계획: [[완료] 2026-08-10 베타 이용권·가입자 관리](plans/2026-08-10-beta-access-entitlement.md) — 가입자 목록·부여·회수·기존 데이터 조회 유지·UI 및 DB 변경 차단·관리자 접근 차단·정원 제한까지 확인
+- 화면 검증 완료 계획: [[완료] 2026-08-10 마이페이지 내 공연 일정 박스 정렬](plans/2026-08-10-mypage-schedule-card.md)
+- 후속 점검: 운영 Google 로그인에서 Supabase 세션 발급 시각이 브라우저보다 약 1시간 미래라는 clock skew 경고가 발생한다. 로그인 기능은 정상이나 원인 확인 필요
 - 진행 중 계획: [2026-08-06 공개 사용자 로그인·개인 일정 MVP](plans/2026-08-06-public-auth-personal-services.md)
 - 로그인 완료 필수 검증: 단일 관리자 MFA·`aal2`, 일반 회원 2계정 전체 쓰기 RLS, 개인정보처리방침·회원탈퇴, 남은 운영 RPC·Auth 설정 점검
 - 구현 완료·화면 확인 대기: 숫자·한글·영문 정렬, 이름 검색, 초성·알파벳, 좋아요 필터를 제공하는 `/artists` 탐색 페이지
