@@ -18,11 +18,13 @@ $checks = @(
     @{ Path = '/report'; Expected = 200; Contains = 'festibom.official@gmail.com' },
     @{ Path = '/sitemap.xml'; Expected = 200; Contains = '<urlset' },
     @{ Path = '/robots.txt'; Expected = 200; Contains = 'Sitemap:' },
+    @{ Path = '/api/cron/ticket-url-alert'; Expected = 401; Contains = '' },
     @{ Path = '/festival/999999'; Expected = 404; Contains = '' },
     @{ Path = '/artist/999999'; Expected = 404; Contains = '' }
 )
 
 $results = [Collections.Generic.List[object]]::new()
+$rootHeaders = $null
 foreach ($check in $checks) {
     $url = "$base$($check.Path)"
     $status = $null
@@ -31,6 +33,7 @@ foreach ($check in $checks) {
     try {
         $response = Invoke-WebRequest -Uri $url -MaximumRedirection 5 -TimeoutSec $TimeoutSeconds -UseBasicParsing -ErrorAction Stop
         $status = [int]$response.StatusCode
+        if ($check.Path -eq '/') { $rootHeaders = $response.Headers }
         $contentPassed = [string]::IsNullOrWhiteSpace($check.Contains) -or $response.Content.Contains([string]$check.Contains)
         $passed = $status -eq $check.Expected -and $contentPassed
         if (-not $contentPassed) { $message = "Required text was not found: $($check.Contains)" }
@@ -42,6 +45,30 @@ foreach ($check in $checks) {
     }
     $results.Add([pscustomobject]@{ url = $url; expected = $check.Expected; actual = $status; passed = $passed; message = $message })
     Write-Host "[$(if($passed){'OK'}else{'FAIL'})] $status $url"
+}
+
+$requiredHeaders = @(
+    @{ Name = 'Content-Security-Policy-Report-Only'; Contains = "default-src 'self'" },
+    @{ Name = 'Strict-Transport-Security'; Contains = 'max-age=31536000' },
+    @{ Name = 'X-Content-Type-Options'; Contains = 'nosniff' },
+    @{ Name = 'X-Frame-Options'; Contains = 'DENY' },
+    @{ Name = 'Cross-Origin-Opener-Policy'; Contains = 'same-origin-allow-popups' },
+    @{ Name = 'X-Permitted-Cross-Domain-Policies'; Contains = 'none' },
+    @{ Name = 'Referrer-Policy'; Contains = 'strict-origin-when-cross-origin' },
+    @{ Name = 'Permissions-Policy'; Contains = 'camera=()' }
+)
+
+foreach ($requiredHeader in $requiredHeaders) {
+    $actualValue = if ($null -ne $rootHeaders) { [string]$rootHeaders[$requiredHeader.Name] } else { '' }
+    $passed = $actualValue.Contains([string]$requiredHeader.Contains)
+    $results.Add([pscustomobject]@{
+        url = "$base/"
+        expected = "$($requiredHeader.Name): $($requiredHeader.Contains)"
+        actual = $actualValue
+        passed = $passed
+        message = if ($passed) { $null } else { "Required security header is missing or invalid: $($requiredHeader.Name)" }
+    })
+    Write-Host "[$(if($passed){'OK'}else{'FAIL'})] Header $($requiredHeader.Name)"
 }
 
 $failed = @($results | Where-Object { -not $_.passed })

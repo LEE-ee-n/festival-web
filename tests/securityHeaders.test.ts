@@ -34,3 +34,11 @@ test("security header names are not duplicated", () => {
   const names = securityHeaders.map((header) => header.key);
   assert.equal(new Set(names).size, names.length);
 });
+
+test("security headers isolate tabs without breaking OAuth popups", () => {
+  assert.equal(
+    getHeader("Cross-Origin-Opener-Policy"),
+    "same-origin-allow-popups",
+  );
+  assert.equal(getHeader("X-Permitted-Cross-Domain-Policies"), "none");
+});

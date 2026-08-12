@@ -11,6 +11,7 @@ export const dynamic = "force-dynamic";
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
 };
 
 function getAugust2026SearchParams(searchParams: URLSearchParams) {
