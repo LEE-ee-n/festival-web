@@ -28,6 +28,8 @@ test("report-only CSP blocks high-risk defaults and declares used providers", ()
   assert.match(contentSecurityPolicyReportOnly, /https:\/\/\*\.supabase\.co/);
   assert.match(contentSecurityPolicyReportOnly, /www\.googletagmanager\.com/);
   assert.match(contentSecurityPolicyReportOnly, /www\.clarity\.ms/);
+  assert.match(contentSecurityPolicyReportOnly, /\*\.ingest\.sentry\.io/);
+  assert.match(contentSecurityPolicyReportOnly, /\*\.ingest\.us\.sentry\.io/);
 });
 
 test("security header names are not duplicated", () => {

@@ -9,7 +9,9 @@
 - [ ] 홈페이지가 정상으로 열림
 - [ ] `sitemap.xml`, `robots.txt`가 정상 응답함
 - [ ] 최근 DB 백업 상태가 `success`이고 24시간 이내임
+- [ ] 최근 Storage·Google Drive 백업 상태가 `success`이고 24시간 이내임
 - [ ] 실패 알림이나 미확인 오류가 없음
+- [ ] Sentry 연결 후 새 미처리 오류가 없음
 
 ## 직접 확인
 

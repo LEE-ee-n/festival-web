@@ -4,6 +4,8 @@
 /node_modules
 /mobile/node_modules/
 /.npm-mobile-cache/
+/.npm-sentry-cache/
+/.npm-*-audit-cache/
 /.npm-cache
 /.tmp
 /.pnp

@@ -10,7 +10,7 @@
     "@openai/codex": "^0.144.6",
     "@supabase/supabase-js": "^2.110.2",
     "discord.js": "^14.22.1",
-    "puppeteer-core": "^24.34.0",
-    "sharp": "^0.34.5"
+    "puppeteer-core": "25.6.0",
+    "sharp": "0.35.3"
   }
 }

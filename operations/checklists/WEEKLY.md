@@ -7,6 +7,7 @@
 ## 백업·장애
 
 - [ ] 최근 7일 DB 백업이 매일 생성됨
+- [ ] 최근 7일 Storage·Google Drive 백업이 매일 생성됨
 - [ ] 최신 백업에 `roles.sql`, `schema.sql`, `data.sql`, `manifest.json`이 있음
 - [ ] 백업 크기가 갑자기 0 또는 비정상적으로 작아지지 않음
 - [ ] 미처리 실패 알림과 장애 기록이 없음
@@ -23,6 +24,7 @@
 
 - [ ] 미처리 사용자 요청이 없음
 - [ ] Vercel·Supabase 오류와 사용량 추세를 확인함
+- [ ] GitHub Actions `Quality gate`와 `Security audit`가 정상임
 - [ ] 다음 주 수정 예정 항목과 위험을 기록함
 
 ## 기록

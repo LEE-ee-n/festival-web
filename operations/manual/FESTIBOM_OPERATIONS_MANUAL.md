@@ -13,7 +13,7 @@
 | 일요일 22:30 | 백업 보관 정리 | 30일 보관, 종류별 최소 7개 유지 |
 | 매일 22:40 | 백업 통합 상태 검사 | DB·Storage·Drive 모두 정상, 26시간 이내 갱신 |
 | 5분마다 | UptimeRobot | `https://festibom.com` 응답 정상 |
-| 매주 월요일 09:00 | GitHub Security audit | high 이상 운영 의존성 취약점 없음 |
+| 매주 월요일 09:00 | GitHub Security audit | 웹·모바일·운영 봇의 high 이상 운영 의존성 취약점 없음 |
 | 매분 | Supabase 모바일 알림 Cron | Cron `succeeded`, Function HTTP `200` |
 
 ## 2. 복구 목표
@@ -29,7 +29,7 @@
 - Vercel: 빌드·배포·Runtime 오류
 - Windows 팝업: DB·Storage·Google Drive 백업 실패 또는 오래된 상태
 - Windows 팝업: 사용자 요청 미처리 또는 기한 초과
-- 아직 미구축: 사이트는 열리지만 저장·로그인·API 내부에서 발생하는 오류의 자동 수집(Sentry 예정)
+- Sentry: 코드 구성 완료. 운영 프로젝트와 Vercel 환경변수 연결 전까지 실제 전송은 비활성
 
 ## 4. 매일 직접 확인
 
@@ -64,7 +64,7 @@
 
 ## 8. 아직 남은 작업
 
-1. Sentry 내부 오류 수집 연결
+1. Sentry 운영 프로젝트·Vercel 환경변수 연결과 테스트 오류 확인
 2. Android 앱과 실제 모바일 푸시 알림 end-to-end 검증
 3. CSP 강제 모드 전환 여부 검토
 4. 운영 PC 장애에 대비한 백업 실행 환경 이중화

@@ -14,14 +14,30 @@ concurrency:
 
 jobs:
   dependencies:
-    name: Production dependency audit
+    name: ${{ matrix.name }} production dependency audit
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Web
+            directory: .
+            lockfile: package-lock.json
+          - name: Mobile
+            directory: mobile
+            lockfile: mobile/package-lock.json
+          - name: Instagram bot
+            directory: operations/discord-instagram-bot
+            lockfile: operations/discord-instagram-bot/package-lock.json
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
+          cache-dependency-path: ${{ matrix.lockfile }}
       - run: npm ci --ignore-scripts
+        working-directory: ${{ matrix.directory }}
       - run: npm audit --omit=dev --audit-level=high
+        working-directory: ${{ matrix.directory }}

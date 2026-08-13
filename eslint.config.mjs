@@ -12,6 +12,7 @@ export default defineConfig([
     ".npm-cache/**",
     ".env/**",
     ".env.*",
+    ".env-accidental-folder/**",
     ".tmp/**",
     "_crawler_review*/**",
     "operations/discord-instagram-bot/work/**",
