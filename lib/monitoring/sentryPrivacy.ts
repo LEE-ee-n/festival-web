@@ -13,6 +13,16 @@ function stripUrlDetails(value: string | undefined) {
   }
 }
 
+function sanitizeExceptionMessage(value: string | undefined) {
+  if (!value) return value;
+
+  return value
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[email removed]")
+    .replace(/Bearer\s+[A-Za-z0-9._~+/=-]+/gi, "Bearer [token removed]")
+    .replace(/([?&](?:token|code|secret|key)=)[^&\s]+/gi, "$1[removed]")
+    .slice(0, 300);
+}
+
 export function sanitizeSentryEvent<T extends Event>(event: T): T {
   return {
     ...event,
@@ -24,7 +34,7 @@ export function sanitizeSentryEvent<T extends Event>(event: T): T {
       ? {
           values: event.exception.values?.map((exception) => ({
             ...exception,
-            value: undefined,
+            value: sanitizeExceptionMessage(exception.value),
           })),
         }
       : undefined,

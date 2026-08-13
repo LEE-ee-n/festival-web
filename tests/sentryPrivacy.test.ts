@@ -21,7 +21,13 @@ test("Sentry event에서 개인정보와 입력 데이터를 제거한다", () =
     logentry: { message: "save failed", params: ["개인 기록"] },
     message: "사용자가 입력한 내용",
     exception: {
-      values: [{ type: "DatabaseError", value: "개인 기록이 너무 깁니다" }],
+      values: [
+        {
+          type: "DatabaseError",
+          value:
+            "Save failed for user@example.com with Bearer very-secret-token?token=secret",
+        },
+      ],
     },
   });
 
@@ -34,7 +40,23 @@ test("Sentry event에서 개인정보와 입력 데이터를 제거한다", () =
   assert.equal(event.message, undefined);
   assert.equal(event.logentry, undefined);
   assert.equal(event.exception?.values?.[0]?.type, "DatabaseError");
-  assert.equal(event.exception?.values?.[0]?.value, undefined);
+  assert.equal(
+    event.exception?.values?.[0]?.value,
+    "Save failed for [email removed] with Bearer [token removed]?token=[removed]",
+  );
+});
+
+test("Sentry exception message preserves a useful error title", () => {
+  const event = sanitizeSentryEvent({
+    exception: {
+      values: [{ type: "Error", value: "Festibom Sentry connection test" }],
+    },
+  });
+
+  assert.equal(
+    event.exception?.values?.[0]?.value,
+    "Festibom Sentry connection test",
+  );
 });
 
 test("일반 breadcrumb 메시지는 입력 내용일 수 있어 제거한다", () => {
