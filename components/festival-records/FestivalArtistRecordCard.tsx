@@ -9,6 +9,7 @@ import {
   type FestivalRecordPerformance,
 } from "@/lib/diaries/festivalDiaries";
 import { typography } from "@/lib/typography";
+import FestivalDriveMediaField from "@/components/google-drive/FestivalDriveMediaField";
 
 const STATUS_OPTIONS: Array<{ value: FestivalExperienceStatus; label: string }> = [
   { value: "watched", label: "봤어요" },
@@ -126,6 +127,8 @@ export default function FestivalArtistRecordCard({ item, isFavorite, isOpen, onT
             기록
             <textarea value={memo} onChange={(event) => { setMemo(event.target.value); setIsSaved(false); }} rows={4} maxLength={MEMO_MAX_LENGTH} placeholder="좋았던 순간이나 놓쳐서 아쉬웠던 기억을 남겨보세요." className="mt-2 w-full resize-y rounded-xl border border-line-strong px-4 py-3 text-sm outline-none focus:border-ink-muted" />
           </label>
+
+          <FestivalDriveMediaField recordPerformanceId={item.recordPerformanceId} initialMedia={item.media} />
 
           <label className={`${typography.metaStrong} block text-ink-secondary`}>
             기억에 남은 곡

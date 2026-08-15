@@ -925,12 +925,48 @@ export type Database = {
           },
         ]
       }
+      user_external_connections: {
+        Row: {
+          connected_at: string
+          encrypted_refresh_token: string
+          granted_scopes: string[]
+          id: number
+          last_used_at: string | null
+          provider: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          connected_at?: string
+          encrypted_refresh_token: string
+          granted_scopes?: string[]
+          id?: number
+          last_used_at?: string | null
+          provider: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          connected_at?: string
+          encrypted_refresh_token?: string
+          granted_scopes?: string[]
+          id?: number
+          last_used_at?: string | null
+          provider?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_festival_media: {
         Row: {
           created_at: string
           external_file_id: string | null
+          external_file_name: string | null
+          file_size: number | null
           file_type: string
           id: number
+          mime_type: string | null
           preview_url: string | null
           provider: string
           user_festival_performance_id: number
@@ -938,8 +974,11 @@ export type Database = {
         Insert: {
           created_at?: string
           external_file_id?: string | null
+          external_file_name?: string | null
+          file_size?: number | null
           file_type: string
           id?: number
+          mime_type?: string | null
           preview_url?: string | null
           provider: string
           user_festival_performance_id: number
@@ -947,8 +986,11 @@ export type Database = {
         Update: {
           created_at?: string
           external_file_id?: string | null
+          external_file_name?: string | null
+          file_size?: number | null
           file_type?: string
           id?: number
+          mime_type?: string | null
           preview_url?: string | null
           provider?: string
           user_festival_performance_id?: number

@@ -4,18 +4,18 @@ const isDevelopment = process.env.NODE_ENV === "development";
 
 export const contentSecurityPolicyReportOnly = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ""} https://www.googletagmanager.com https://www.clarity.ms`,
+  `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ""} https://www.googletagmanager.com https://www.clarity.ms https://apis.google.com`,
   "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
   "font-src 'self' data: https://cdn.jsdelivr.net",
   "img-src 'self' data: blob: https://*.supabase.co https://*.googleusercontent.com https://www.google-analytics.com https://*.clarity.ms https://*.bing.com",
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://*.clarity.ms https://*.ingest.sentry.io https://*.ingest.us.sentry.io",
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.googleapis.com https://oauth2.googleapis.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://*.clarity.ms https://*.ingest.sentry.io https://*.ingest.us.sentry.io",
   "media-src 'self' blob: https://*.supabase.co",
   "worker-src 'self' blob:",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
-  "frame-src 'none'",
+  "frame-src https://accounts.google.com https://docs.google.com https://drive.google.com https://picker.googleapis.com",
   "manifest-src 'self'",
 ].join("; ");
 

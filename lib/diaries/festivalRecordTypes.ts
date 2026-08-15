@@ -51,6 +51,9 @@ export type FestivalRecordPerformance = FestivalLineupOption & {
     id: number;
     provider: string;
     externalFileId: string | null;
+    externalFileName: string | null;
+    mimeType: string | null;
+    fileSize: number | null;
     previewUrl: string | null;
     fileType: string;
   }>;

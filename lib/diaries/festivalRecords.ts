@@ -65,7 +65,7 @@ export async function getFestivalRecordDetail(
           artists (id, name, image_url)
         ),
         user_festival_songs (id, song_name),
-        user_festival_media (id, provider, external_file_id, preview_url, file_type)
+        user_festival_media (id, provider, external_file_id, external_file_name, mime_type, file_size, preview_url, file_type)
       )
     `)
     .eq("id", recordId)
@@ -103,6 +103,9 @@ export async function getFestivalRecordDetail(
         id: media.id,
         provider: media.provider,
         externalFileId: media.external_file_id,
+        externalFileName: media.external_file_name,
+        mimeType: media.mime_type,
+        fileSize: media.file_size,
         previewUrl: media.preview_url,
         fileType: media.file_type,
       })),

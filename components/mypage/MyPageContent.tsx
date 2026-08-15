@@ -6,6 +6,7 @@ import FavoriteArtistList from "@/components/mypage/FavoriteArtistList";
 import PersonalFeatureNotice from "@/components/access/PersonalFeatureNotice";
 import FestivalRecordSlider from "@/components/festival-records/FestivalRecordSlider";
 import ScheduleList from "@/components/mypage/ScheduleList";
+import GoogleDriveConnectionCard from "@/components/google-drive/GoogleDriveConnectionCard";
 import {
   AUTH_RETURN_PATH_KEY,
   normalizeAuthReturnPath,
@@ -65,6 +66,8 @@ export default function MyPageContent() {
   return (
     <div className="space-y-6">
       <PersonalFeatureNotice />
+
+      <GoogleDriveConnectionCard />
 
       <section className="rounded-3xl border border-line bg-surface p-6 shadow-sm sm:p-8">
         <div className="flex items-center justify-between gap-4">

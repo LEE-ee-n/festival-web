@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
-import { MapPin, Music2 } from "lucide-react";
+import { ExternalLink, Image as ImageIcon, MapPin, Music2, Video } from "lucide-react";
 
 import { useFestivalRecordDetail } from "@/lib/hooks/useFestivalRecordDetail";
 import { typography } from "@/lib/typography";
@@ -81,6 +81,12 @@ export default function FestivalRecordDetailView({ recordId }: { recordId: numbe
                       <div>
                         {item.memo && <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-ink-secondary">“{item.memo}”</p>}
                         {item.songs.map((song) => <p key={song.id} className="mt-4 flex items-center gap-2 text-sm font-semibold text-ink-secondary"><Music2 className="h-4 w-4" />{song.songName}</p>)}
+                        {item.media.length > 0 && <div className="mt-4 flex flex-wrap gap-2">
+                          {item.media.map((media) => media.previewUrl && <a key={media.id} href={media.previewUrl} target="_blank" rel="noreferrer" className="inline-flex max-w-full items-center gap-2 rounded-xl border border-line px-3 py-2 text-sm text-ink-secondary">
+                            {media.fileType === "video" ? <Video className="h-4 w-4" /> : <ImageIcon className="h-4 w-4" />}
+                            <span className="max-w-48 truncate">{media.externalFileName || "Drive 파일"}</span><ExternalLink className="h-3.5 w-3.5" />
+                          </a>)}
+                        </div>}
                       </div>
                     </article>
                   ))}
