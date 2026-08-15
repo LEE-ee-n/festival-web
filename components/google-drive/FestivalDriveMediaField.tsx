@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ExternalLink, Image as ImageIcon, Trash2, Video } from "lucide-react";
 import GoogleDrivePickerButton from "./GoogleDrivePickerButton";
 import GoogleDriveUploadButton from "./GoogleDriveUploadButton";
+import GoogleDriveMediaPreview from "./GoogleDriveMediaPreview";
 import { supabase } from "@/lib/supabase/client";
 import type { FestivalRecordPerformance } from "@/lib/diaries/festivalRecordTypes";
 import type { GoogleDrivePickedFile } from "@/lib/google-drive/types";
@@ -44,9 +45,12 @@ export default function FestivalDriveMediaField({ recordPerformanceId, initialMe
       <span className="text-sm font-semibold text-ink-secondary">사진 · 영상</span>
       <div className="flex flex-wrap items-center gap-2">
         <GoogleDrivePickerButton disabled={isSaving} onPicked={(files) => void addFiles(files)} />
-        <GoogleDriveUploadButton disabled={isSaving} onUploaded={(files) => void addFiles(files)} />
+        <GoogleDriveUploadButton recordPerformanceId={recordPerformanceId} disabled={isSaving} onUploaded={(files) => void addFiles(files)} />
       </div>
     </div>
+    {items.length > 0 && <div className="grid gap-3 sm:grid-cols-2">
+      {items.map((item) => <GoogleDriveMediaPreview key={`preview-${item.id}`} media={item} compact />)}
+    </div>}
     {items.length > 0 && <ul className="divide-y divide-line rounded-xl border border-line">
       {items.map((item) => <li key={item.id} className="flex items-center gap-3 px-3 py-3">
         {item.fileType === "video" ? <Video className="h-4 w-4 shrink-0" /> : <ImageIcon className="h-4 w-4 shrink-0" />}

@@ -15,7 +15,10 @@ type GooglePickerApi = {
   Action: { PICKED: string };
   Feature: { MULTISELECT_ENABLED: string };
   DocsView: new () => { setMimeTypes(value: string): unknown };
-  DocsUploadView: new () => { setIncludeFolders(included: boolean): unknown };
+  DocsUploadView: new () => {
+    setIncludeFolders(included: boolean): unknown;
+    setParent(parentId: string): unknown;
+  };
   PickerBuilder: new () => PickerBuilder;
 };
 
@@ -31,6 +34,7 @@ type OpenGoogleDrivePickerInput = {
   apiKey: string;
   appId: string;
   onPicked(files: GoogleDrivePickedFile[]): void;
+  parentId?: string;
 };
 
 const MEDIA_MIME_TYPES = [
@@ -98,8 +102,11 @@ async function openPicker(input: OpenGoogleDrivePickerInput, mode: "select" | "u
   const picker = window.google?.picker;
   if (!picker) throw new Error("Google Picker를 초기화하지 못했습니다.");
 
-  const view = mode === "upload"
-    ? new picker.DocsUploadView().setIncludeFolders(true)
+  const uploadView = mode === "upload" ? new picker.DocsUploadView() : null;
+  const view = uploadView
+    ? input.parentId
+      ? uploadView.setParent(input.parentId)
+      : uploadView.setIncludeFolders(true)
     : new picker.DocsView().setMimeTypes(MEDIA_MIME_TYPES);
 
   new picker.PickerBuilder()
