@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ExternalLink, Image as ImageIcon, Trash2, Video } from "lucide-react";
 import GoogleDrivePickerButton from "./GoogleDrivePickerButton";
+import GoogleDriveUploadButton from "./GoogleDriveUploadButton";
 import { supabase } from "@/lib/supabase/client";
 import type { FestivalRecordPerformance } from "@/lib/diaries/festivalRecordTypes";
 import type { GoogleDrivePickedFile } from "@/lib/google-drive/types";
@@ -41,7 +42,10 @@ export default function FestivalDriveMediaField({ recordPerformanceId, initialMe
   return <div className="space-y-3">
     <div className="flex flex-wrap items-center justify-between gap-3">
       <span className="text-sm font-semibold text-ink-secondary">사진 · 영상</span>
-      <GoogleDrivePickerButton disabled={isSaving} onPicked={(files) => void addFiles(files)} />
+      <div className="flex flex-wrap items-center gap-2">
+        <GoogleDrivePickerButton disabled={isSaving} onPicked={(files) => void addFiles(files)} />
+        <GoogleDriveUploadButton disabled={isSaving} onUploaded={(files) => void addFiles(files)} />
+      </div>
     </div>
     {items.length > 0 && <ul className="divide-y divide-line rounded-xl border border-line">
       {items.map((item) => <li key={item.id} className="flex items-center gap-3 px-3 py-3">
