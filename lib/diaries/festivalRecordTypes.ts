@@ -40,6 +40,20 @@ export type FestivalLineupOption = {
 
 export type FestivalExperienceStatus = "watched" | "briefly" | "missed";
 
+export type FestivalRecordMedia = {
+  id: number;
+  recordPerformanceId: number | null;
+  provider: string;
+  externalFileId: string | null;
+  externalFileName: string | null;
+  mimeType: string | null;
+  fileSize: number | null;
+  previewUrl: string | null;
+  fileType: string;
+  featuredImageOrder: number | null;
+  isFeaturedVideo: boolean;
+};
+
 export type FestivalRecordPerformance = FestivalLineupOption & {
   recordPerformanceId: number;
   experienceStatus: FestivalExperienceStatus | null;
@@ -47,21 +61,13 @@ export type FestivalRecordPerformance = FestivalLineupOption & {
   memo: string | null;
   artistImageUrl: string | null;
   songs: Array<{ id: number; songName: string }>;
-  media: Array<{
-    id: number;
-    provider: string;
-    externalFileId: string | null;
-    externalFileName: string | null;
-    mimeType: string | null;
-    fileSize: number | null;
-    previewUrl: string | null;
-    fileType: string;
-  }>;
+  media: FestivalRecordMedia[];
 };
 
 export type FestivalRecordDetail = FestivalDiaryListItem & {
   favoritePerformanceId: number | null;
   performances: FestivalRecordPerformance[];
+  media: FestivalRecordMedia[];
 };
 
 export type FestivalDiaryInput = {

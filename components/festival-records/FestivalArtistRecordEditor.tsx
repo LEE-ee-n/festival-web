@@ -78,7 +78,7 @@ export default function FestivalArtistRecordEditor({ recordId }: { recordId: num
             <section key={group.date}>
               <h3 className={`${typography.sectionTitle} mb-3 text-ink`}>{group.date === "날짜 미정" ? group.date : formatDate(group.date)}</h3>
               <div className="space-y-3">
-                {group.items.map((item) => <FestivalArtistRecordCard key={item.recordPerformanceId} item={item} isFavorite={favoriteArtistIds.has(item.artistId)} isOpen={activeOpenId === item.recordPerformanceId} onToggle={() => setOpenId(activeOpenId === item.recordPerformanceId ? null : item.recordPerformanceId)} onSaved={() => handleSaved(item.recordPerformanceId)} />)}
+                {group.items.map((item) => <FestivalArtistRecordCard key={item.recordPerformanceId} recordId={recordId} item={item} isFavorite={favoriteArtistIds.has(item.artistId)} isOpen={activeOpenId === item.recordPerformanceId} onToggle={() => setOpenId(activeOpenId === item.recordPerformanceId ? null : item.recordPerformanceId)} onSaved={() => handleSaved(item.recordPerformanceId)} />)}
               </div>
             </section>
           ))}

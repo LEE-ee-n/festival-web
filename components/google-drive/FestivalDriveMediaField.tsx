@@ -1,17 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { ExternalLink, Image as ImageIcon, Trash2, Video } from "lucide-react";
 import GoogleDrivePickerButton from "./GoogleDrivePickerButton";
 import GoogleDriveUploadButton from "./GoogleDriveUploadButton";
-import GoogleDriveMediaPreview from "./GoogleDriveMediaPreview";
 import { supabase } from "@/lib/supabase/client";
 import type { FestivalRecordPerformance } from "@/lib/diaries/festivalRecordTypes";
 import type { GoogleDrivePickedFile } from "@/lib/google-drive/types";
 
 type Media = FestivalRecordPerformance["media"][number];
 
-export default function FestivalDriveMediaField({ recordPerformanceId, initialMedia }: { recordPerformanceId: number; initialMedia: Media[] }) {
+export default function FestivalDriveMediaField({ recordId, recordPerformanceId, initialMedia }: { recordId: number; recordPerformanceId: number; initialMedia: Media[] }) {
   const [items, setItems] = useState(initialMedia);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -21,15 +21,17 @@ export default function FestivalDriveMediaField({ recordPerformanceId, initialMe
     if (fresh.length === 0) return;
     setIsSaving(true); setErrorMessage(null);
     const { data, error } = await supabase.from("user_festival_media").insert(fresh.map((file) => ({
+      user_festival_diary_id: recordId,
       user_festival_performance_id: recordPerformanceId, provider: "google_drive",
       external_file_id: file.id, external_file_name: file.name, mime_type: file.mimeType,
       file_size: file.sizeBytes, file_type: file.fileType,
       preview_url: `https://drive.google.com/file/d/${encodeURIComponent(file.id)}/preview`,
-    }))).select("id, provider, external_file_id, external_file_name, mime_type, file_size, preview_url, file_type");
+    }))).select("id, user_festival_performance_id, provider, external_file_id, external_file_name, mime_type, file_size, preview_url, file_type, featured_image_order, is_featured_video");
     if (error) setErrorMessage("Drive 파일 정보를 저장하지 못했습니다.");
     else setItems((current) => [...current, ...(data ?? []).map((row) => ({ id: row.id, provider: row.provider,
       externalFileId: row.external_file_id, externalFileName: row.external_file_name, mimeType: row.mime_type,
-      fileSize: row.file_size, previewUrl: row.preview_url, fileType: row.file_type }))]);
+      recordPerformanceId: row.user_festival_performance_id, fileSize: row.file_size, previewUrl: row.preview_url,
+      fileType: row.file_type, featuredImageOrder: row.featured_image_order, isFeaturedVideo: row.is_featured_video }))]);
     setIsSaving(false);
   }
 
@@ -45,12 +47,9 @@ export default function FestivalDriveMediaField({ recordPerformanceId, initialMe
       <span className="text-sm font-semibold text-ink-secondary">사진 · 영상</span>
       <div className="flex flex-wrap items-center gap-2">
         <GoogleDrivePickerButton disabled={isSaving} onPicked={(files) => void addFiles(files)} />
-        <GoogleDriveUploadButton recordPerformanceId={recordPerformanceId} disabled={isSaving} onUploaded={(files) => void addFiles(files)} />
+        <GoogleDriveUploadButton recordId={recordId} recordPerformanceId={recordPerformanceId} disabled={isSaving} onUploaded={(files) => void addFiles(files)} />
       </div>
     </div>
-    {items.length > 0 && <div className="grid gap-3 sm:grid-cols-2">
-      {items.map((item) => <GoogleDriveMediaPreview key={`preview-${item.id}`} media={item} compact />)}
-    </div>}
     {items.length > 0 && <ul className="divide-y divide-line rounded-xl border border-line">
       {items.map((item) => <li key={item.id} className="flex items-center gap-3 px-3 py-3">
         {item.fileType === "video" ? <Video className="h-4 w-4 shrink-0" /> : <ImageIcon className="h-4 w-4 shrink-0" />}
@@ -59,6 +58,9 @@ export default function FestivalDriveMediaField({ recordPerformanceId, initialMe
         <button type="button" onClick={() => void remove(item.id)} aria-label="파일 연결 삭제"><Trash2 className="h-4 w-4 text-red-500" /></button>
       </li>)}
     </ul>}
+    {items.length > 0 && <Link href={`/mypage/festival-records/${recordId}/media`} className="inline-flex text-sm font-semibold text-ink-secondary underline underline-offset-4">
+      전체 미디어 보기 · 대표 미디어 관리
+    </Link>}
     {errorMessage && <p role="alert" className="text-sm text-red-600">{errorMessage}</p>}
   </div>;
 }

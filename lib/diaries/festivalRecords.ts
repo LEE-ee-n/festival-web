@@ -58,14 +58,17 @@ export async function getFestivalRecordDetail(
       id, festival_id, attended_date, attended_dates, title, content, summary, cover_image_url,
       favorite_performance_id, created_at, updated_at,
       festivals (id, name, location, start_date, end_date, thumbnail_url),
+      user_festival_media!user_festival_media_user_festival_diary_id_fkey (
+        id, user_festival_performance_id, provider, external_file_id, external_file_name,
+        mime_type, file_size, preview_url, file_type, featured_image_order, is_featured_video
+      ),
       user_festival_performances!user_festival_performances_user_festival_diary_id_fkey (
         id, experience_status, rating, memo,
         festival_artists (
           id, performance_date, performance_time, performance_end_time, stage_name,
           artists (id, name, image_url)
         ),
-        user_festival_songs (id, song_name),
-        user_festival_media (id, provider, external_file_id, external_file_name, mime_type, file_size, preview_url, file_type)
+        user_festival_songs (id, song_name)
       )
     `)
     .eq("id", recordId)
@@ -77,6 +80,20 @@ export async function getFestivalRecordDetail(
 
   const festival = firstRelation(data.festivals);
   if (!festival) return null;
+
+  const media = (data.user_festival_media ?? []).map((item) => ({
+    id: item.id,
+    recordPerformanceId: item.user_festival_performance_id,
+    provider: item.provider,
+    externalFileId: item.external_file_id,
+    externalFileName: item.external_file_name,
+    mimeType: item.mime_type,
+    fileSize: item.file_size,
+    previewUrl: item.preview_url,
+    fileType: item.file_type,
+    featuredImageOrder: item.featured_image_order,
+    isFeaturedVideo: item.is_featured_video,
+  }));
 
   const performances = (data.user_festival_performances ?? []).flatMap((row) => {
     const lineup = firstRelation(row.festival_artists);
@@ -99,16 +116,7 @@ export async function getFestivalRecordDetail(
         id: song.id,
         songName: song.song_name,
       })),
-      media: (row.user_festival_media ?? []).map((media) => ({
-        id: media.id,
-        provider: media.provider,
-        externalFileId: media.external_file_id,
-        externalFileName: media.external_file_name,
-        mimeType: media.mime_type,
-        fileSize: media.file_size,
-        previewUrl: media.preview_url,
-        fileType: media.file_type,
-      })),
+      media: media.filter((item) => item.recordPerformanceId === row.id),
     }];
   }).sort((a, b) =>
     (a.performanceDate ?? "9999").localeCompare(b.performanceDate ?? "9999") ||
@@ -126,5 +134,6 @@ export async function getFestivalRecordDetail(
     coverImageUrl: data.cover_image_url,
     favoritePerformanceId: data.favorite_performance_id,
     performances,
+    media,
   };
 }

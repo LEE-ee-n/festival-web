@@ -2,101 +2,59 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-import { useEffect, useState } from "react";
-import { ExternalLink } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ExternalLink, Play } from "lucide-react";
 import { getGoogleDriveApiHeaders } from "@/lib/google-drive/clientAuth";
 
-type DriveMedia = {
-  id: number;
-  externalFileId: string | null;
-  externalFileName: string | null;
-  previewUrl: string | null;
-  fileType: string;
-};
+type DriveMedia = { id: number; externalFileId: string | null; externalFileName: string | null; previewUrl: string | null; fileType: string };
 
-export default function GoogleDriveMediaPreview({ media, compact = false }: { media: DriveMedia; compact?: boolean }) {
+export default function GoogleDriveMediaPreview({ media, compact = false, eager = false, videoAutoplay = false }: {
+  media: DriveMedia; compact?: boolean; eager?: boolean; videoAutoplay?: boolean;
+}) {
+  const rootRef = useRef<HTMLDivElement | HTMLAnchorElement | null>(null);
+  const [shouldLoad, setShouldLoad] = useState(eager);
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
-  const [thumbnailFailed, setThumbnailFailed] = useState(false);
-  const [videoAspectRatio, setVideoAspectRatio] = useState(16 / 9);
+  const [failed, setFailed] = useState(false);
+  const [playVideo, setPlayVideo] = useState(videoAutoplay);
 
   useEffect(() => {
-    if (media.fileType !== "image" || !media.externalFileId) return;
+    if (shouldLoad || !rootRef.current) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setShouldLoad(true); observer.disconnect(); }
+    }, { rootMargin: "240px" });
+    observer.observe(rootRef.current);
+    return () => observer.disconnect();
+  }, [shouldLoad]);
+
+  useEffect(() => {
+    if (!shouldLoad || media.fileType !== "image" || !media.externalFileId) return;
     let objectUrl: string | null = null;
     let cancelled = false;
-
     void (async () => {
       try {
-        const response = await fetch(`/api/google-drive/media/${media.id}/thumbnail`, {
-          headers: await getGoogleDriveApiHeaders(),
-        });
+        const response = await fetch(`/api/google-drive/media/${media.id}/thumbnail?size=${compact ? 480 : 900}`, { headers: await getGoogleDriveApiHeaders() });
         if (!response.ok) throw new Error("Drive thumbnail request failed");
         objectUrl = URL.createObjectURL(await response.blob());
         if (!cancelled) setThumbnailUrl(objectUrl);
-      } catch {
-        if (!cancelled) setThumbnailFailed(true);
-      }
+      } catch { if (!cancelled) setFailed(true); }
     })();
-
-    return () => {
-      cancelled = true;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-    };
-  }, [media.externalFileId, media.fileType, media.id]);
-
-  useEffect(() => {
-    if (media.fileType !== "video" || !media.externalFileId) return;
-    let cancelled = false;
-
-    void (async () => {
-      try {
-        const response = await fetch(`/api/google-drive/media/${media.id}/video-metadata`, {
-          headers: await getGoogleDriveApiHeaders(),
-        });
-        if (!response.ok) return;
-        const metadata = await response.json() as { width?: number; height?: number };
-        if (!cancelled && metadata.width && metadata.height) {
-          setVideoAspectRatio(metadata.width / metadata.height);
-        }
-      } catch {
-        // Drive 메타데이터를 읽지 못하면 기본 16:9 비율을 유지합니다.
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [media.externalFileId, media.fileType, media.id]);
+    return () => { cancelled = true; if (objectUrl) URL.revokeObjectURL(objectUrl); };
+  }, [compact, media.externalFileId, media.fileType, media.id, shouldLoad]);
 
   if (!media.externalFileId || !media.previewUrl) return null;
-
-  if (media.fileType === "video") {
-    return (
-      <div className="overflow-hidden rounded-xl border border-line bg-black sm:col-span-2">
-        <iframe
-          src={media.previewUrl}
-          title={media.externalFileName || "Google Drive 영상"}
-          className="block w-full"
-          style={{ aspectRatio: videoAspectRatio }}
-          allow="autoplay; fullscreen"
-          allowFullScreen
-          loading="lazy"
-        />
-      </div>
-    );
-  }
-
-  return (
-    <a href={media.previewUrl} target="_blank" rel="noreferrer"
-      className="group relative block overflow-hidden rounded-xl border border-line bg-surface-muted"
-      aria-label={`${media.externalFileName || "Google Drive 사진"} 크게 보기`}>
-      {thumbnailUrl
-        ? <img src={thumbnailUrl} alt={media.externalFileName || "Google Drive 사진"}
-          className={`w-full object-cover transition-transform group-hover:scale-[1.02] ${compact ? "aspect-square" : "aspect-[4/3]"}`}
-          loading="lazy" />
-        : <div className={`flex items-center justify-center px-4 text-center text-sm text-ink-muted ${compact ? "aspect-square" : "aspect-[4/3]"}`}>
-          {thumbnailFailed ? "사진을 불러오지 못했습니다." : "사진 불러오는 중"}
-        </div>}
-      <ExternalLink className="absolute right-2 top-2 h-4 w-4 rounded bg-white/85 p-0.5 text-ink-secondary" />
-    </a>
+  if (media.fileType === "video") return (
+    <div ref={rootRef as React.RefObject<HTMLDivElement>} className="relative overflow-hidden rounded-xl bg-black">
+      {playVideo ? <iframe src={`${media.previewUrl}${media.previewUrl.includes("?") ? "&" : "?"}autoplay=1`} title={media.externalFileName || "Google Drive 영상"} className="block aspect-video w-full" allow="autoplay; fullscreen" allowFullScreen /> :
+        <button type="button" onClick={() => setPlayVideo(true)} className="flex aspect-video w-full items-center justify-center bg-black text-white" aria-label="영상 재생">
+          <Play className="h-10 w-10 fill-current" />
+        </button>}
+      <a href={media.previewUrl} target="_blank" rel="noreferrer" className="absolute right-2 top-2 rounded bg-black/60 p-1.5 text-white" aria-label="Google Drive에서 열기"><ExternalLink className="h-4 w-4" /></a>
+    </div>
   );
+
+  return <a ref={rootRef as React.RefObject<HTMLAnchorElement>} href={media.previewUrl} target="_blank" rel="noreferrer" className="group relative block overflow-hidden rounded-xl bg-surface-muted">
+    {thumbnailUrl ? <img src={thumbnailUrl} alt={media.externalFileName || "Google Drive 사진"} className={`w-full object-cover ${compact ? "aspect-square" : "aspect-[4/3]"}`} /> :
+      <div className={`flex items-center justify-center p-3 text-center text-xs text-ink-muted ${compact ? "aspect-square" : "aspect-[4/3]"}`}>{failed ? "사진을 불러오지 못했습니다." : "사진 불러오는 중"}</div>}
+    <ExternalLink className="absolute right-2 top-2 h-4 w-4 rounded bg-white/85 p-0.5 text-ink-secondary" />
+  </a>;
 }

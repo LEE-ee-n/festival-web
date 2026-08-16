@@ -7,8 +7,9 @@ import { openGoogleDriveUploadPicker } from "@/lib/google-drive/googlePicker";
 import type { GoogleDrivePickedFile } from "@/lib/google-drive/types";
 import { useGoogleDrivePickerAction } from "./useGoogleDrivePickerAction";
 
-export default function GoogleDriveUploadButton({ recordPerformanceId, onUploaded, disabled = false }: {
-  recordPerformanceId: number;
+export default function GoogleDriveUploadButton({ recordId, recordPerformanceId, onUploaded, disabled = false }: {
+  recordId: number;
+  recordPerformanceId?: number;
   onUploaded(files: GoogleDrivePickedFile[]): void;
   disabled?: boolean;
 }) {
@@ -26,7 +27,7 @@ export default function GoogleDriveUploadButton({ recordPerformanceId, onUploade
       const response = await fetch("/api/google-drive/upload-folder", {
         method: "POST",
         headers: await getGoogleDriveApiHeaders(),
-        body: JSON.stringify({ recordPerformanceId }),
+        body: JSON.stringify({ recordId, recordPerformanceId }),
       });
       if (!response.ok) throw new Error(await parseGoogleDriveApiError(response));
       const { folderId } = await response.json() as { folderId: string };

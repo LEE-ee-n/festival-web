@@ -25,6 +25,7 @@ function statusLabel(status: FestivalExperienceStatus | null) {
 }
 
 type FestivalArtistRecordCardProps = {
+  recordId: number;
   item: FestivalRecordPerformance;
   isFavorite: boolean;
   isOpen: boolean;
@@ -32,11 +33,10 @@ type FestivalArtistRecordCardProps = {
   onSaved: () => void;
 };
 
-export default function FestivalArtistRecordCard({ item, isFavorite, isOpen, onToggle, onSaved }: FestivalArtistRecordCardProps) {
+export default function FestivalArtistRecordCard({ recordId, item, isFavorite, isOpen, onToggle, onSaved }: FestivalArtistRecordCardProps) {
   const [experienceStatus, setExperienceStatus] = useState<FestivalExperienceStatus | null>(item.experienceStatus);
   const [memo, setMemo] = useState(item.memo ?? "");
   const [songNames, setSongNames] = useState(item.songs.map((song) => song.songName).join(", "));
-  const [rating, setRating] = useState<number | null>(item.rating);
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(Boolean(item.experienceStatus));
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -71,7 +71,7 @@ export default function FestivalArtistRecordCard({ item, isFavorite, isOpen, onT
       await saveFestivalArtistRecord({
         recordPerformanceId: item.recordPerformanceId,
         experienceStatus,
-        rating,
+        rating: null,
         memo,
         songNames: parsedSongNames,
       });
@@ -101,7 +101,7 @@ export default function FestivalArtistRecordCard({ item, isFavorite, isOpen, onT
 
       {isOpen && (
         <div className="space-y-6 border-t border-line px-4 py-5 sm:px-5">
-          <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <div role="group" aria-label="상태" className="flex min-w-0 items-center gap-3">
               <span className={`${typography.metaStrong} shrink-0 text-ink-secondary`}>상태</span>
               <div className="flex flex-nowrap gap-2 overflow-x-auto">
@@ -113,14 +113,6 @@ export default function FestivalArtistRecordCard({ item, isFavorite, isOpen, onT
               </div>
             </div>
 
-            <div role="group" aria-label="평점" className="flex shrink-0 items-center gap-3">
-              <span className={`${typography.metaStrong} text-ink-secondary`}>평점</span>
-              <div className="flex gap-1">
-                {[1, 2, 3, 4, 5].map((value) => (
-                  <button key={value} type="button" onClick={() => { setRating(rating === value ? null : value); setIsSaved(false); }} aria-label={`${value}점`} className={`text-2xl ${rating && value <= rating ? "text-amber-500" : "text-line-strong"}`}>★</button>
-                ))}
-              </div>
-            </div>
           </div>
 
           <label className={`${typography.metaStrong} block text-ink-secondary`}>
@@ -128,7 +120,7 @@ export default function FestivalArtistRecordCard({ item, isFavorite, isOpen, onT
             <textarea value={memo} onChange={(event) => { setMemo(event.target.value); setIsSaved(false); }} rows={4} maxLength={MEMO_MAX_LENGTH} placeholder="좋았던 순간이나 놓쳐서 아쉬웠던 기억을 남겨보세요." className="mt-2 w-full resize-y rounded-xl border border-line-strong px-4 py-3 text-sm outline-none focus:border-ink-muted" />
           </label>
 
-          <FestivalDriveMediaField recordPerformanceId={item.recordPerformanceId} initialMedia={item.media} />
+          <FestivalDriveMediaField recordId={recordId} recordPerformanceId={item.recordPerformanceId} initialMedia={item.media} />
 
           <label className={`${typography.metaStrong} block text-ink-secondary`}>
             기억에 남은 곡

@@ -11,20 +11,27 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "로그인이 필요하거나 이용 권한이 없습니다." }, { status: 401 });
 
   try {
-    const body = await request.json() as { recordPerformanceId?: number };
+    const body = await request.json() as { recordId?: number; recordPerformanceId?: number };
+    const requestedRecordId = Number(body.recordId);
     const recordPerformanceId = Number(body.recordPerformanceId);
-    if (!Number.isInteger(recordPerformanceId) || recordPerformanceId <= 0) {
-      return NextResponse.json({ error: "올바른 아티스트 기록이 필요합니다." }, { status: 400 });
+    const hasRecordId = Number.isInteger(requestedRecordId) && requestedRecordId > 0;
+    const hasPerformanceId = Number.isInteger(recordPerformanceId) && recordPerformanceId > 0;
+    if (!hasRecordId && !hasPerformanceId) {
+      return NextResponse.json({ error: "올바른 페스티벌 일기가 필요합니다." }, { status: 400 });
     }
 
     const admin = createSupabaseAdminClient();
-    const { data: performance, error: performanceError } = await admin.from("user_festival_performances")
-      .select("user_festival_diary_id").eq("id", recordPerformanceId).maybeSingle();
-    if (performanceError) throw performanceError;
-    if (!performance) return NextResponse.json({ error: "아티스트 기록을 찾을 수 없습니다." }, { status: 404 });
+    let recordId = hasRecordId ? requestedRecordId : 0;
+    if (!recordId && hasPerformanceId) {
+      const { data: performance, error: performanceError } = await admin.from("user_festival_performances")
+        .select("user_festival_diary_id").eq("id", recordPerformanceId).maybeSingle();
+      if (performanceError) throw performanceError;
+      if (!performance) return NextResponse.json({ error: "아티스트 기록을 찾을 수 없습니다." }, { status: 404 });
+      recordId = performance.user_festival_diary_id;
+    }
 
     const { data: diary, error: diaryError } = await admin.from("user_festival_diaries")
-      .select("festival_id").eq("id", performance.user_festival_diary_id).eq("user_id", user.id).maybeSingle();
+      .select("festival_id").eq("id", recordId).eq("user_id", user.id).maybeSingle();
     if (diaryError) throw diaryError;
     if (!diary) return NextResponse.json({ error: "이 기록의 폴더를 만들 권한이 없습니다." }, { status: 403 });
 

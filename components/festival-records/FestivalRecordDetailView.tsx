@@ -3,8 +3,8 @@
 /* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
-import { ExternalLink, Image as ImageIcon, MapPin, Music2, Video } from "lucide-react";
-import GoogleDriveMediaPreview from "@/components/google-drive/GoogleDriveMediaPreview";
+import { MapPin, Music2 } from "lucide-react";
+import FestivalFeaturedMedia from "@/components/festival-records/FestivalFeaturedMedia";
 
 import { useFestivalRecordDetail } from "@/lib/hooks/useFestivalRecordDetail";
 import { typography } from "@/lib/typography";
@@ -29,8 +29,6 @@ export default function FestivalRecordDetailView({ recordId }: { recordId: numbe
   const record = state.record;
   const heroImage = record.coverImageUrl || record.festivalThumbnailUrl;
   const memoCount = record.performances.filter((item) => item.memo).length;
-  const favorite = record.performances.find((item) => item.recordPerformanceId === record.favoritePerformanceId)
-    ?? [...record.performances].filter((item) => item.rating).sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))[0];
   const performanceGroups = record.performances.reduce<Array<{ date: string; items: typeof record.performances }>>((groups, item) => {
     const date = item.performanceDate ?? "날짜 미정";
     const current = groups.at(-1);
@@ -58,6 +56,7 @@ export default function FestivalRecordDetailView({ recordId }: { recordId: numbe
         <div className="mb-10 border-b border-line pb-8 whitespace-pre-wrap text-base leading-8 text-ink-secondary">
           {record.summary}
         </div>
+        <FestivalFeaturedMedia recordId={recordId} media={record.media} />
         {record.performances.length === 0 ? <p className="text-sm text-ink-tertiary">아직 기록할 아티스트를 선택하지 않았습니다.</p> : (
           <div className="space-y-10">
             {performanceGroups.map((group) => (
@@ -70,7 +69,6 @@ export default function FestivalRecordDetailView({ recordId }: { recordId: numbe
                         <div className="flex flex-wrap items-center gap-3">
                           <Link href={`/artist/${item.artistId}`} className="text-xl font-bold text-ink hover:underline">{item.artistName}</Link>
                           {item.experienceStatus && <span className="inline-flex rounded-full bg-surface-muted px-3 py-1 text-xs font-semibold text-ink-secondary">{STATUS_LABELS[item.experienceStatus]}</span>}
-                          {item.rating && <span className="text-sm text-amber-500">{"★".repeat(item.rating)}</span>}
                         </div>
                         {(item.performanceTime || item.stageName) && (
                           <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-1 text-sm text-ink-tertiary">
@@ -82,15 +80,6 @@ export default function FestivalRecordDetailView({ recordId }: { recordId: numbe
                       <div>
                         {item.memo && <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-ink-secondary">“{item.memo}”</p>}
                         {item.songs.map((song) => <p key={song.id} className="mt-4 flex items-center gap-2 text-sm font-semibold text-ink-secondary"><Music2 className="h-4 w-4" />{song.songName}</p>)}
-                        {item.media.length > 0 && <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                          {item.media.map((media) => <GoogleDriveMediaPreview key={`preview-${media.id}`} media={media} />)}
-                        </div>}
-                        {item.media.length > 0 && <div className="mt-3 flex flex-wrap gap-2">
-                          {item.media.map((media) => media.previewUrl && <a key={media.id} href={media.previewUrl} target="_blank" rel="noreferrer" className="inline-flex max-w-full items-center gap-2 rounded-xl border border-line px-3 py-2 text-sm text-ink-secondary">
-                            {media.fileType === "video" ? <Video className="h-4 w-4" /> : <ImageIcon className="h-4 w-4" />}
-                            <span className="max-w-48 truncate">{media.externalFileName || "Drive 파일"}</span><ExternalLink className="h-3.5 w-3.5" />
-                          </a>)}
-                        </div>}
                       </div>
                     </article>
                   ))}
@@ -102,7 +91,6 @@ export default function FestivalRecordDetailView({ recordId }: { recordId: numbe
 
         <footer className="mt-12 border-t border-line pt-5 text-sm text-ink-tertiary">
           <p>이날의 기록　아티스트 {record.performances.length}팀 · 작성한 기록 {memoCount}</p>
-          {favorite && <p className="mt-2">최고의 공연　{favorite.artistName}{favorite.rating ? ` ${"★".repeat(favorite.rating)}` : ""}</p>}
         </footer>
       </div>
     </article>

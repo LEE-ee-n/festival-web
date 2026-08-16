@@ -963,39 +963,55 @@ export type Database = {
           created_at: string
           external_file_id: string | null
           external_file_name: string | null
+          featured_image_order: number | null
           file_size: number | null
           file_type: string
           id: number
+          is_featured_video: boolean
           mime_type: string | null
           preview_url: string | null
           provider: string
-          user_festival_performance_id: number
+          user_festival_diary_id: number
+          user_festival_performance_id: number | null
         }
         Insert: {
           created_at?: string
           external_file_id?: string | null
           external_file_name?: string | null
+          featured_image_order?: number | null
           file_size?: number | null
           file_type: string
           id?: number
+          is_featured_video?: boolean
           mime_type?: string | null
           preview_url?: string | null
           provider: string
-          user_festival_performance_id: number
+          user_festival_diary_id: number
+          user_festival_performance_id?: number | null
         }
         Update: {
           created_at?: string
           external_file_id?: string | null
           external_file_name?: string | null
+          featured_image_order?: number | null
           file_size?: number | null
           file_type?: string
           id?: number
+          is_featured_video?: boolean
           mime_type?: string | null
           preview_url?: string | null
           provider?: string
-          user_festival_performance_id?: number
+          user_festival_diary_id?: number
+          user_festival_performance_id?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "user_festival_media_user_festival_diary_id_fkey"
+            columns: ["user_festival_diary_id"]
+            isOneToOne: false
+            referencedRelation: "user_festival_diaries"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "user_festival_media_user_festival_performance_id_fkey"
             columns: ["user_festival_performance_id"]
@@ -1581,6 +1597,10 @@ export type Database = {
           p_summary: string
         }
         Returns: number
+      }
+      set_user_festival_media_featured: {
+        Args: { p_featured: boolean; p_media_id: number }
+        Returns: Json
       }
       search_similar_artists: {
         Args: { input_name: string }
