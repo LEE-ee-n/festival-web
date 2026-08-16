@@ -14,7 +14,7 @@ export default function GoogleDriveConnectionCard() {
   const [isBusy, setIsBusy] = useState(false);
 
   useEffect(() => {
-    if (access.isLoading || !access.hasPersonalServiceAccess) return;
+    if (access.isLoading || !access.hasGoogleDriveAccess) return;
 
     async function loadStatus() {
       try {
@@ -30,7 +30,7 @@ export default function GoogleDriveConnectionCard() {
       }
     }
     void loadStatus();
-  }, [access.hasPersonalServiceAccess, access.isLoading]);
+  }, [access.hasGoogleDriveAccess, access.isLoading]);
 
   async function connect() {
     setIsBusy(true); setMessage(null);
@@ -58,7 +58,7 @@ export default function GoogleDriveConnectionCard() {
     } finally { setIsBusy(false); }
   }
 
-  if (access.isLoading || !access.hasPersonalServiceAccess) return null;
+  if (access.isLoading || !access.hasGoogleDriveAccess) return null;
 
   return (
     <section className="rounded-3xl border border-line bg-surface p-6 shadow-sm sm:p-8">

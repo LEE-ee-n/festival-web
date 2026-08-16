@@ -44,7 +44,7 @@ export default function FestivalDriveMediaField({ recordId, recordPerformanceId,
     else setItems((current) => current.filter((item) => item.id !== id));
   }
 
-  if (access.isLoading || !access.hasPersonalServiceAccess) return null;
+  if (access.isLoading || !access.hasGoogleDriveAccess) return null;
 
   return <div className="space-y-3">
     <div className="flex flex-wrap items-center justify-between gap-3">

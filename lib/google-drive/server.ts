@@ -34,16 +34,13 @@ export function getGoogleDriveServerConfig() {
 
 export async function hasGoogleDriveServiceAccess(userId: string): Promise<boolean> {
   const admin = createSupabaseAdminClient();
-  const now = new Date().toISOString();
-  const [{ data: profile }, { data: entitlement }] = await Promise.all([
-    admin.from("profiles").select("role").eq("id", userId).maybeSingle(),
-    admin.from("service_access_entitlements").select("id")
-      .eq("user_id", userId).eq("entitlement_key", "personal_features")
-      .eq("status", "active").lte("starts_at", now)
-      .or(`ends_at.is.null,ends_at.gt.${now}`).limit(1).maybeSingle(),
-  ]);
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("role")
+    .eq("id", userId)
+    .maybeSingle();
 
-  return profile?.role === "admin" || Boolean(entitlement);
+  return profile?.role === "admin";
 }
 
 export async function authenticateGoogleDriveRequest(request: Request): Promise<User | null> {

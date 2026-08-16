@@ -22,6 +22,17 @@ export async function getPersonalServiceAccess(): Promise<boolean> {
   return Boolean(data);
 }
 
+export async function getGoogleDriveServiceAccess(userId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data?.role === "admin";
+}
+
 export async function getAdminServiceUsers(): Promise<AdminServiceUser[]> {
   const { data, error } = await supabase.rpc("admin_list_service_users");
 

@@ -10,13 +10,17 @@ import {
   useState,
 } from "react";
 
-import { getPersonalServiceAccess } from "@/lib/access/serviceAccess";
+import {
+  getGoogleDriveServiceAccess,
+  getPersonalServiceAccess,
+} from "@/lib/access/serviceAccess";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { supabase } from "@/lib/supabase/client";
 
 type ServiceAccessState = {
   isAuthenticated: boolean;
   hasPersonalServiceAccess: boolean;
+  hasGoogleDriveAccess: boolean;
   isLoading: boolean;
   errorMessage: string | null;
   reload: () => Promise<void>;
@@ -27,6 +31,7 @@ const ServiceAccessContext = createContext<ServiceAccessState | null>(null);
 export default function ServiceAccessProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [hasPersonalServiceAccess, setHasPersonalServiceAccess] = useState(false);
+  const [hasGoogleDriveAccess, setHasGoogleDriveAccess] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -37,10 +42,21 @@ export default function ServiceAccessProvider({ children }: { children: ReactNod
     try {
       const user = await getCurrentUser();
       setIsAuthenticated(Boolean(user));
-      setHasPersonalServiceAccess(user ? await getPersonalServiceAccess() : false);
+      if (user) {
+        const [personalServiceAccess, googleDriveAccess] = await Promise.all([
+          getPersonalServiceAccess(),
+          getGoogleDriveServiceAccess(user.id),
+        ]);
+        setHasPersonalServiceAccess(personalServiceAccess);
+        setHasGoogleDriveAccess(googleDriveAccess);
+      } else {
+        setHasPersonalServiceAccess(false);
+        setHasGoogleDriveAccess(false);
+      }
     } catch (error) {
       console.error("Failed to load service access", error);
       setHasPersonalServiceAccess(false);
+      setHasGoogleDriveAccess(false);
       setErrorMessage("서비스 이용권을 확인하지 못했습니다.");
     } finally {
       setIsLoading(false);
@@ -71,10 +87,11 @@ export default function ServiceAccessProvider({ children }: { children: ReactNod
   const value = useMemo<ServiceAccessState>(() => ({
     isAuthenticated,
     hasPersonalServiceAccess,
+    hasGoogleDriveAccess,
     isLoading,
     errorMessage,
     reload,
-  }), [errorMessage, hasPersonalServiceAccess, isAuthenticated, isLoading, reload]);
+  }), [errorMessage, hasGoogleDriveAccess, hasPersonalServiceAccess, isAuthenticated, isLoading, reload]);
 
   return (
     <ServiceAccessContext.Provider value={value}>

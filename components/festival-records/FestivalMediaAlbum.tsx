@@ -23,7 +23,6 @@ import type { GoogleDrivePickedFile } from "@/lib/google-drive/types";
 import { useFestivalRecordDetail } from "@/lib/hooks/useFestivalRecordDetail";
 import { supabase } from "@/lib/supabase/client";
 import { useServiceAccess } from "@/components/access/ServiceAccessProvider";
-import PersonalFeatureNotice from "@/components/access/PersonalFeatureNotice";
 
 const PAGE_SIZE = 30;
 
@@ -31,7 +30,9 @@ export default function FestivalMediaAlbum({ recordId }: { recordId: number }) {
   const access = useServiceAccess();
 
   if (access.isLoading) return <p className="text-sm text-ink-muted">이용 권한을 확인하는 중...</p>;
-  if (!access.hasPersonalServiceAccess) return <PersonalFeatureNotice />;
+  if (!access.hasGoogleDriveAccess) {
+    return <p className="text-sm text-ink-muted">페이지를 찾을 수 없습니다.</p>;
+  }
 
   return <AuthorizedFestivalMediaAlbum recordId={recordId} />;
 }

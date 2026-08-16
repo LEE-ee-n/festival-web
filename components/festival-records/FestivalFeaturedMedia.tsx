@@ -11,7 +11,7 @@ import { useServiceAccess } from "@/components/access/ServiceAccessProvider";
 export default function FestivalFeaturedMedia({ recordId, media }: { recordId: number; media: FestivalRecordMedia[] }) {
   const access = useServiceAccess();
   const featured = getFeaturedFestivalMedia(media);
-  if (access.isLoading || !access.hasPersonalServiceAccess || media.length === 0) return null;
+  if (access.isLoading || !access.hasGoogleDriveAccess || media.length === 0) return null;
   return <section className="mb-10 border-b border-line pb-10">
     <div className="mb-4 flex items-center justify-between gap-4">
       <h2 className="text-lg font-bold text-ink">그날의 미디어</h2>
