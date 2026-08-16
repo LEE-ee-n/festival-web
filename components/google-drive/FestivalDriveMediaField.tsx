@@ -8,10 +8,12 @@ import GoogleDriveUploadButton from "./GoogleDriveUploadButton";
 import { supabase } from "@/lib/supabase/client";
 import type { FestivalRecordPerformance } from "@/lib/diaries/festivalRecordTypes";
 import type { GoogleDrivePickedFile } from "@/lib/google-drive/types";
+import { useServiceAccess } from "@/components/access/ServiceAccessProvider";
 
 type Media = FestivalRecordPerformance["media"][number];
 
 export default function FestivalDriveMediaField({ recordId, recordPerformanceId, initialMedia }: { recordId: number; recordPerformanceId: number; initialMedia: Media[] }) {
+  const access = useServiceAccess();
   const [items, setItems] = useState(initialMedia);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -41,6 +43,8 @@ export default function FestivalDriveMediaField({ recordId, recordPerformanceId,
     if (error) setErrorMessage("파일 연결을 삭제하지 못했습니다.");
     else setItems((current) => current.filter((item) => item.id !== id));
   }
+
+  if (access.isLoading || !access.hasPersonalServiceAccess) return null;
 
   return <div className="space-y-3">
     <div className="flex flex-wrap items-center justify-between gap-3">

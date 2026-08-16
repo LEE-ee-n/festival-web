@@ -1,7 +1,11 @@
 import * as Sentry from "@sentry/nextjs";
 import { NextResponse } from "next/server";
 import { parseDriveOAuthState } from "@/lib/google-drive/oauthState";
-import { encryptRefreshToken, getGoogleDriveServerConfig } from "@/lib/google-drive/server";
+import {
+  encryptRefreshToken,
+  getGoogleDriveServerConfig,
+  hasGoogleDriveServiceAccess,
+} from "@/lib/google-drive/server";
 import { GOOGLE_DRIVE_PROVIDER } from "@/lib/google-drive/types";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
@@ -44,6 +48,9 @@ export async function GET(request: Request) {
     stage = "state_validation";
     const state = parseDriveOAuthState(url.searchParams.get("state") ?? "", config.encryptionKey);
     returnTo = state.returnTo;
+    if (!await hasGoogleDriveServiceAccess(state.userId)) {
+      return redirectWithResult(request, returnTo, "forbidden");
+    }
     stage = "authorization_response";
     if (url.searchParams.get("error")) return redirectWithResult(request, returnTo, "cancelled");
     const code = url.searchParams.get("code");

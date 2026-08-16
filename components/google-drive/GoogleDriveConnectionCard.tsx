@@ -4,14 +4,18 @@ import { useEffect, useState } from "react";
 import { HardDrive } from "lucide-react";
 import { getGoogleDriveApiHeaders, parseGoogleDriveApiError } from "@/lib/google-drive/clientAuth";
 import type { GoogleDriveConnectionStatus } from "@/lib/google-drive/types";
+import { useServiceAccess } from "@/components/access/ServiceAccessProvider";
 import { typography } from "@/lib/typography";
 
 export default function GoogleDriveConnectionCard() {
+  const access = useServiceAccess();
   const [status, setStatus] = useState<GoogleDriveConnectionStatus | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
 
   useEffect(() => {
+    if (access.isLoading || !access.hasPersonalServiceAccess) return;
+
     async function loadStatus() {
       try {
         const response = await fetch("/api/google-drive/status", { headers: await getGoogleDriveApiHeaders(), cache: "no-store" });
@@ -26,7 +30,7 @@ export default function GoogleDriveConnectionCard() {
       }
     }
     void loadStatus();
-  }, []);
+  }, [access.hasPersonalServiceAccess, access.isLoading]);
 
   async function connect() {
     setIsBusy(true); setMessage(null);
@@ -53,6 +57,8 @@ export default function GoogleDriveConnectionCard() {
       setMessage(error instanceof Error ? error.message : "연결을 해제하지 못했습니다.");
     } finally { setIsBusy(false); }
   }
+
+  if (access.isLoading || !access.hasPersonalServiceAccess) return null;
 
   return (
     <section className="rounded-3xl border border-line bg-surface p-6 shadow-sm sm:p-8">

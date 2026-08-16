@@ -32,6 +32,20 @@ export function getGoogleDriveServerConfig() {
   return values as { clientId: string; clientSecret: string; encryptionKey: string };
 }
 
+export async function hasGoogleDriveServiceAccess(userId: string): Promise<boolean> {
+  const admin = createSupabaseAdminClient();
+  const now = new Date().toISOString();
+  const [{ data: profile }, { data: entitlement }] = await Promise.all([
+    admin.from("profiles").select("role").eq("id", userId).maybeSingle(),
+    admin.from("service_access_entitlements").select("id")
+      .eq("user_id", userId).eq("entitlement_key", "personal_features")
+      .eq("status", "active").lte("starts_at", now)
+      .or(`ends_at.is.null,ends_at.gt.${now}`).limit(1).maybeSingle(),
+  ]);
+
+  return profile?.role === "admin" || Boolean(entitlement);
+}
+
 export async function authenticateGoogleDriveRequest(request: Request): Promise<User | null> {
   const token = parseBearerAccessToken(request.headers.get("authorization"));
   if (!token) return null;
@@ -39,15 +53,7 @@ export async function authenticateGoogleDriveRequest(request: Request): Promise<
   const { data: { user }, error } = await admin.auth.getUser(token);
   if (error || !user) return null;
 
-  const now = new Date().toISOString();
-  const [{ data: profile }, { data: entitlement }] = await Promise.all([
-    admin.from("profiles").select("role").eq("id", user.id).maybeSingle(),
-    admin.from("service_access_entitlements").select("id")
-      .eq("user_id", user.id).eq("entitlement_key", "personal_features")
-      .eq("status", "active").lte("starts_at", now)
-      .or(`ends_at.is.null,ends_at.gt.${now}`).limit(1).maybeSingle(),
-  ]);
-  return profile?.role === "admin" || entitlement ? user : null;
+  return await hasGoogleDriveServiceAccess(user.id) ? user : null;
 }
 
 export async function getDriveConnection(userId: string) {

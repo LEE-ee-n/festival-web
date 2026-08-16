@@ -6,17 +6,37 @@ import { Play, Star, Trash2 } from "lucide-react";
 import GoogleDriveImage from "@/components/google-drive/GoogleDriveImage";
 import GoogleDrivePickerButton from "@/components/google-drive/GoogleDrivePickerButton";
 import GoogleDriveUploadButton from "@/components/google-drive/GoogleDriveUploadButton";
+import FestivalMediaArtistFilter, {
+  ALL_ARTISTS_FILTER,
+  UNASSIGNED_ARTIST_FILTER,
+} from "./FestivalMediaArtistFilter";
 import FestivalMediaArtistSelector from "./FestivalMediaArtistSelector";
 import FestivalMediaLightbox from "./FestivalMediaLightbox";
-import { filterFestivalMedia, nextFeaturedImageOrder, type FestivalMediaFilter } from "@/lib/diaries/festivalMedia";
+import {
+  filterFestivalMedia,
+  filterFestivalMediaByArtist,
+  nextFeaturedImageOrder,
+  type FestivalMediaFilter,
+} from "@/lib/diaries/festivalMedia";
 import type { FestivalRecordDetail, FestivalRecordMedia } from "@/lib/diaries/festivalRecordTypes";
 import type { GoogleDrivePickedFile } from "@/lib/google-drive/types";
 import { useFestivalRecordDetail } from "@/lib/hooks/useFestivalRecordDetail";
 import { supabase } from "@/lib/supabase/client";
+import { useServiceAccess } from "@/components/access/ServiceAccessProvider";
+import PersonalFeatureNotice from "@/components/access/PersonalFeatureNotice";
 
 const PAGE_SIZE = 30;
 
 export default function FestivalMediaAlbum({ recordId }: { recordId: number }) {
+  const access = useServiceAccess();
+
+  if (access.isLoading) return <p className="text-sm text-ink-muted">이용 권한을 확인하는 중...</p>;
+  if (!access.hasPersonalServiceAccess) return <PersonalFeatureNotice />;
+
+  return <AuthorizedFestivalMediaAlbum recordId={recordId} />;
+}
+
+function AuthorizedFestivalMediaAlbum({ recordId }: { recordId: number }) {
   const detail = useFestivalRecordDetail(recordId);
 
   if (detail.isLoading) return <p className="text-sm text-ink-muted">앨범을 불러오는 중...</p>;
@@ -29,6 +49,7 @@ function FestivalMediaAlbumContent({ record }: { record: FestivalRecordDetail })
   const searchParams = useSearchParams();
   const [items, setItems] = useState<FestivalRecordMedia[]>(record.media);
   const [filter, setFilter] = useState<FestivalMediaFilter>("all");
+  const [artistFilter, setArtistFilter] = useState(ALL_ARTISTS_FILTER);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(() => {
     const mediaId = Number(searchParams.get("media"));
@@ -37,7 +58,19 @@ function FestivalMediaAlbumContent({ record }: { record: FestivalRecordDetail })
   });
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const filtered = useMemo(() => filterFestivalMedia(items, filter), [filter, items]);
+  const filtered = useMemo(() => {
+    const typeFiltered = filterFestivalMedia(items, filter);
+    if (artistFilter === ALL_ARTISTS_FILTER) return typeFiltered;
+    if (artistFilter === UNASSIGNED_ARTIST_FILTER) {
+      return filterFestivalMediaByArtist(typeFiltered, "unassigned");
+    }
+
+    const artistName = artistFilter.slice("artist:".length);
+    const performanceIds = record.performances
+      .filter((performance) => performance.artistName === artistName)
+      .map((performance) => performance.recordPerformanceId);
+    return filterFestivalMediaByArtist(typeFiltered, performanceIds);
+  }, [artistFilter, filter, items, record.performances]);
   const visible = filtered.slice(0, visibleCount);
 
   async function addFiles(files: GoogleDrivePickedFile[]) {
@@ -153,13 +186,24 @@ function FestivalMediaAlbumContent({ record }: { record: FestivalRecordDetail })
       </div>
     </div>
 
-    <div className="mt-6 flex gap-2">
+    <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+      <div className="flex gap-2">
       {(["all", "image", "video"] as const).map((value) => <button
         key={value}
         type="button"
         onClick={() => { setFilter(value); setVisibleCount(PAGE_SIZE); setLightboxIndex(null); }}
         className={`rounded-full border px-4 py-2 text-sm ${filter === value ? "bg-ink-secondary text-white" : "border-line-strong"}`}
       >{value === "all" ? "전체" : value === "image" ? "사진" : "영상"}</button>)}
+      </div>
+      <FestivalMediaArtistFilter
+        performances={record.performances}
+        value={artistFilter}
+        onChange={(value) => {
+          setArtistFilter(value);
+          setVisibleCount(PAGE_SIZE);
+          setLightboxIndex(null);
+        }}
+      />
     </div>
 
     {message && <p role="alert" className="mt-4 text-sm text-red-600">{message}</p>}
