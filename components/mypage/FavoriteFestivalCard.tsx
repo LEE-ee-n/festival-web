@@ -15,7 +15,7 @@ export default function FavoriteFestivalCard({
   return (
     <Link
       href={`/festival/${festival.id}`}
-      className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-4 transition-shadow hover:shadow-md"
+      className="flex w-full min-w-0 max-w-full items-center gap-4 overflow-hidden rounded-2xl border border-line bg-surface p-4 transition-shadow hover:shadow-md"
     >
       <div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface-subtle">
         {festival.thumbnailUrl ? (
@@ -33,7 +33,7 @@ export default function FavoriteFestivalCard({
       </div>
 
       <div className="min-w-0 flex-1">
-        <h3 className={`${typography.cardTitle} truncate text-ink`}>
+        <h3 className={`${typography.cardTitle} min-w-0 truncate text-ink`}>
           {festival.name}
         </h3>
       </div>

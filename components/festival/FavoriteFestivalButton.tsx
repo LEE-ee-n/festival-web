@@ -35,7 +35,7 @@ export default function FavoriteFestivalButton({
         type="button"
         disabled={favorite.isLoading || favorite.isSaving || isLocked}
         aria-pressed={favorite.isFavorite}
-        aria-label={`${festivalName} ${favorite.isFavorite ? "관심 축제에서 해제" : "관심 축제로 저장"}`}
+        aria-label={`${festivalName} ${favorite.isFavorite ? "관심 페스티벌에서 해제" : "관심 페스티벌로 저장"}`}
         onClick={() => {
           if (!favorite.isAuthenticated) requestLogin();
           else void favorite.toggle();
@@ -43,7 +43,7 @@ export default function FavoriteFestivalButton({
         className={`${typography.button} inline-flex items-center gap-2 rounded-xl border border-line-strong px-4 py-2.5 text-ink-secondary disabled:opacity-50`}
       >
         <Heart className={`h-4 w-4 ${favorite.isFavorite ? "fill-red-500 text-red-500" : "text-ink-tertiary"}`} />
-        {favorite.isSaving ? "저장 중" : favorite.isFavorite ? "관심 축제" : "관심 축제 추가"}
+        {favorite.isSaving ? "저장 중" : favorite.isFavorite ? "관심 페스티벌" : "관심 페스티벌 추가"}
       </button>
       {isLocked && <p className="mt-1 text-xs font-medium text-amber-700">베타 이용권 필요</p>}
       {favorite.errorMessage && <p className="mt-2 text-xs font-medium text-red-600" role="alert">{favorite.errorMessage}</p>}

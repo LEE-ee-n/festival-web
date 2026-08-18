@@ -165,7 +165,7 @@ export default function MyPageContent() {
       <section className="rounded-3xl border border-line bg-surface p-6 shadow-sm sm:p-8">
         <div className="mb-5 flex items-end justify-between gap-4">
           <div>
-            <h2 className={`${typography.sectionTitle} text-ink`}>관심 축제</h2>
+            <h2 className={`${typography.sectionTitle} text-ink`}>관심 페스티벌</h2>
             <p className={`${typography.meta} mt-1 text-ink-tertiary`}>
               총 {favoriteFestivals.items.length}개
             </p>
