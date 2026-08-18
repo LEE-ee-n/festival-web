@@ -5,6 +5,7 @@ import {
   buildScheduleImageCardPositions,
   buildScheduleImagePages,
   distributeStages,
+  getScheduleImageTimelineHeight,
   getVisibleScheduleImagePages,
   shouldShowScheduleImageStageTitle,
 } from "../lib/schedule/scheduleImageLayout.ts";
@@ -20,6 +21,11 @@ import {
   SCHEDULE_IMAGE_UNTIMED_DEFAULT_MAX_HEIGHT,
   SCHEDULE_IMAGE_UNTIMED_SELECTED_MAX_HEIGHT,
 } from "../lib/schedule/scheduleImageUntimedLayout.ts";
+
+test("짧은 시간표는 세로로 과도하게 늘이지 않는다", () => {
+  assert.equal(getScheduleImageTimelineHeight(160, 1484), 480);
+  assert.equal(getScheduleImageTimelineHeight(540, 1484), 1484);
+});
 
 test("일정 이미지 글자 크기와 간격은 공통 상수로 고정한다", () => {
   assert.deepEqual(SCHEDULE_IMAGE_TYPOGRAPHY, {

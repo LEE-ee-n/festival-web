@@ -19,6 +19,7 @@ import { supabase } from "@/lib/supabase/client";
 
 type ServiceAccessState = {
   isAuthenticated: boolean;
+  isAdmin: boolean;
   hasPersonalServiceAccess: boolean;
   hasGoogleDriveAccess: boolean;
   isLoading: boolean;
@@ -30,6 +31,7 @@ const ServiceAccessContext = createContext<ServiceAccessState | null>(null);
 
 export default function ServiceAccessProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [hasPersonalServiceAccess, setHasPersonalServiceAccess] = useState(false);
   const [hasGoogleDriveAccess, setHasGoogleDriveAccess] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -43,18 +45,21 @@ export default function ServiceAccessProvider({ children }: { children: ReactNod
       const user = await getCurrentUser();
       setIsAuthenticated(Boolean(user));
       if (user) {
-        const [personalServiceAccess, googleDriveAccess] = await Promise.all([
+        const [personalServiceAccess, adminAccess] = await Promise.all([
           getPersonalServiceAccess(),
           getGoogleDriveServiceAccess(user.id),
         ]);
         setHasPersonalServiceAccess(personalServiceAccess);
-        setHasGoogleDriveAccess(googleDriveAccess);
+        setIsAdmin(adminAccess);
+        setHasGoogleDriveAccess(adminAccess);
       } else {
+        setIsAdmin(false);
         setHasPersonalServiceAccess(false);
         setHasGoogleDriveAccess(false);
       }
     } catch (error) {
       console.error("Failed to load service access", error);
+      setIsAdmin(false);
       setHasPersonalServiceAccess(false);
       setHasGoogleDriveAccess(false);
       setErrorMessage("서비스 이용권을 확인하지 못했습니다.");
@@ -86,12 +91,13 @@ export default function ServiceAccessProvider({ children }: { children: ReactNod
 
   const value = useMemo<ServiceAccessState>(() => ({
     isAuthenticated,
+    isAdmin,
     hasPersonalServiceAccess,
     hasGoogleDriveAccess,
     isLoading,
     errorMessage,
     reload,
-  }), [errorMessage, hasGoogleDriveAccess, hasPersonalServiceAccess, isAuthenticated, isLoading, reload]);
+  }), [errorMessage, hasGoogleDriveAccess, hasPersonalServiceAccess, isAdmin, isAuthenticated, isLoading, reload]);
 
   return (
     <ServiceAccessContext.Provider value={value}>

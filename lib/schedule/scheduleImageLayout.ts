@@ -38,6 +38,17 @@ export type ScheduleImageCardPosition = {
 
 const CARD_VISUAL_GAP = 7;
 const SELECTED_HEIGHT_SCALE = 1.35;
+const MAX_TIMELINE_PIXELS_PER_MINUTE = 3;
+
+export function getScheduleImageTimelineHeight(
+  minutesRange: number,
+  availableHeight: number,
+) {
+  return Math.min(
+    availableHeight,
+    Math.max(1, minutesRange) * MAX_TIMELINE_PIXELS_PER_MINUTE,
+  );
+}
 
 export function buildScheduleImageCardPositions(
   items: ScheduleImageItem[],

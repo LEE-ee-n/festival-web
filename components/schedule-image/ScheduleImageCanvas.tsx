@@ -13,6 +13,7 @@ import type { FestivalCalendarColor } from "@/lib/types";
 
 import {
   buildScheduleImageCardPositions,
+  getScheduleImageTimelineHeight,
   SCHEDULE_IMAGE_HEIGHT,
   SCHEDULE_IMAGE_WIDTH,
   shouldShowScheduleImageStageTitle,
@@ -93,10 +94,13 @@ const ScheduleImageCanvas = forwardRef<SVGSVGElement, ScheduleImageCanvasProps>(
     const isUntimedOnly = page.items.every((item) => item.startMinutes === null);
     const timelineTop = 304;
     const timelineBottom = !isUntimedOnly && untimedItems.length > 0 ? 1622 : 1788;
-    const timelineHeight = timelineBottom - timelineTop;
+    const availableTimelineHeight = timelineBottom - timelineTop;
     const mixedUntimedTop = 1644;
     const mixedUntimedHeight = 132;
     const minutesRange = Math.max(60, page.timelineEnd - page.timelineStart);
+    const timelineHeight = untimedItems.length > 0
+      ? availableTimelineHeight
+      : getScheduleImageTimelineHeight(minutesRange, availableTimelineHeight);
     const minuteHeight = timelineHeight / minutesRange;
     const cardPositions = buildScheduleImageCardPositions(
       page.items,

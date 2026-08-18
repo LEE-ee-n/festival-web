@@ -3,21 +3,26 @@
 import Link from "next/link";
 import AccountDeletionSection from "@/components/mypage/AccountDeletionSection";
 import FavoriteArtistList from "@/components/mypage/FavoriteArtistList";
+import FavoriteFestivalList from "@/components/mypage/FavoriteFestivalList";
 import PersonalFeatureNotice from "@/components/access/PersonalFeatureNotice";
 import FestivalRecordSlider from "@/components/festival-records/FestivalRecordSlider";
 import ScheduleList from "@/components/mypage/ScheduleList";
 import GoogleDriveConnectionCard from "@/components/google-drive/GoogleDriveConnectionCard";
+import { useServiceAccess } from "@/components/access/ServiceAccessProvider";
 import {
   AUTH_RETURN_PATH_KEY,
   normalizeAuthReturnPath,
 } from "@/lib/auth/authReturnPath";
 import { useFavoriteArtistList } from "@/lib/hooks/useFavoriteArtistList";
+import { useFavoriteFestivalList } from "@/lib/hooks/useFavoriteFestivalList";
 import { useFestivalDiaryList } from "@/lib/hooks/useFestivalDiaryList";
 import { useUserScheduleList } from "@/lib/hooks/useUserScheduleList";
 import { typography } from "@/lib/typography";
 
 export default function MyPageContent() {
+  const access = useServiceAccess();
   const favoriteArtists = useFavoriteArtistList();
+  const favoriteFestivals = useFavoriteFestivalList();
   const festivalDiaries = useFestivalDiaryList();
   const schedule = useUserScheduleList();
 
@@ -33,6 +38,7 @@ export default function MyPageContent() {
 
   if (
     favoriteArtists.isLoading ||
+    favoriteFestivals.isLoading ||
     festivalDiaries.isLoading ||
     schedule.isLoading
   ) {
@@ -41,6 +47,7 @@ export default function MyPageContent() {
 
   if (
     !favoriteArtists.isAuthenticated ||
+    !favoriteFestivals.isAuthenticated ||
     !festivalDiaries.isAuthenticated ||
     !schedule.isAuthenticated
   ) {
@@ -69,6 +76,7 @@ export default function MyPageContent() {
 
       <GoogleDriveConnectionCard />
 
+      {access.isAdmin && (
       <section className="rounded-3xl border border-line bg-surface p-6 shadow-sm sm:p-8">
         <div className="flex items-center justify-between gap-4">
           <div>
@@ -78,6 +86,7 @@ export default function MyPageContent() {
           <Link href="/mypage/notifications" className={`${typography.button} shrink-0 rounded-xl border border-line-strong px-4 py-2.5 text-ink-secondary`}>설정</Link>
         </div>
       </section>
+      )}
 
       {festivalDiaries.errorMessage ? (
           <section className="rounded-3xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
@@ -150,6 +159,32 @@ export default function MyPageContent() {
           </div>
         ) : (
           <FavoriteArtistList items={favoriteArtists.items} />
+        )}
+      </section>
+
+      <section className="rounded-3xl border border-line bg-surface p-6 shadow-sm sm:p-8">
+        <div className="mb-5 flex items-end justify-between gap-4">
+          <div>
+            <h2 className={`${typography.sectionTitle} text-ink`}>관심 축제</h2>
+            <p className={`${typography.meta} mt-1 text-ink-tertiary`}>
+              총 {favoriteFestivals.items.length}개
+            </p>
+          </div>
+        </div>
+
+        {favoriteFestivals.errorMessage ? (
+          <div className="rounded-2xl border border-line bg-surface-subtle p-5 text-sm text-danger">
+            <p>{favoriteFestivals.errorMessage}</p>
+            <button
+              type="button"
+              onClick={() => void favoriteFestivals.reload()}
+              className="mt-3 rounded-xl border border-line bg-surface px-4 py-2 font-semibold text-ink"
+            >
+              다시 시도
+            </button>
+          </div>
+        ) : (
+          <FavoriteFestivalList items={favoriteFestivals.items} />
         )}
       </section>
 
